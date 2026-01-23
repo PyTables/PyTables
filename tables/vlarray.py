@@ -583,7 +583,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
            In PyTables < 3.0 only one element was returned.
 
         """
-        (self._start, self._stop, self._step) = self._process_range(
+        self._start, self._stop, self._step = self._process_range(
             start, stop, step
         )
         self._init_loop()
@@ -684,7 +684,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = self._process_range(key, key + 1, 1)
+            start, stop, step = self._process_range(key, key + 1, 1)
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             start, stop, step = self._process_range(
@@ -883,7 +883,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # In the future, some analysis can be done in order to buffer
         # the copy process.
         nrowsinbuf = 1
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = SizeType(0)
         nbytes = 0

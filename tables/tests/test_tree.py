@@ -132,7 +132,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 object = self.h5file.get_node(node, classname="Group")
             except LookupError:
                 if common.verbose:
-                    (type, value, traceback) = sys.exc_info()
+                    type, value, traceback = sys.exc_info()
                     print("\nGreat!, the next LookupError was catched!")
                     print(value)
             else:
@@ -285,7 +285,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 objectlist = self.h5file.list_nodes(node, "Leaf")
             except TypeError:
                 if common.verbose:
-                    (type, value, traceback) = sys.exc_info()
+                    type, value, traceback = sys.exc_info()
                     print("\nGreat!, the next TypeError was catched!")
                     print(value)
             else:
@@ -313,7 +313,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 objectlist = self.h5file.list_nodes(node, "Table")
             except TypeError:
                 if common.verbose:
-                    (type, value, traceback) = sys.exc_info()
+                    type, value, traceback = sys.exc_info()
                     print("\nGreat!, the next TypeError was catched!")
                     print(value)
             else:
@@ -411,7 +411,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 objectlist = [o for o in self.h5file.iter_nodes(node, "Leaf")]
             except TypeError:
                 if common.verbose:
-                    (type, value, traceback) = sys.exc_info()
+                    type, value, traceback = sys.exc_info()
                     print("\nGreat!, the next TypeError was catched!")
                     print(value)
             else:
@@ -439,7 +439,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 objectlist = [o for o in self.h5file.iter_nodes(node, "Table")]
             except TypeError:
                 if common.verbose:
-                    (type, value, traceback) = sys.exc_info()
+                    type, value, traceback = sys.exc_info()
                     print("\nGreat!, the next TypeError was catched!")
                     print(value)
             else:

@@ -157,7 +157,7 @@ class Node(metaclass=MetaNode):
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self) -> Group:
         """Return the parent :class:`Group` instance."""
-        (parentpath, nodename) = split_path(self._v_pathname)
+        parentpath, nodename = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
 
     _v_parent = property(_g_getparent)

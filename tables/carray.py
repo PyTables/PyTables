@@ -271,7 +271,7 @@ class CArray(Array):
         **kwargs,
     ) -> tuple[CArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)
         shape[maindim] = len(range(start, stop, step))

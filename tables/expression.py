@@ -515,7 +515,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         # in account new possible values of start, stop and step in
         # the inputs range
         if maindim is not None:
-            (start, stop, step) = slice(
+            start, stop, step = slice(
                 self.start, self.stop, self.step
             ).indices(shape[maindim])
             shape[maindim] = min(shape[maindim], len(range(start, stop, step)))
@@ -531,9 +531,9 @@ value of dimensions that are orthogonal (and preferably close) to the
                 out = np.empty(shape, dtype=self._single_row_out.dtype)
                 # Get the trivial values for start, stop and step
                 if maindim is not None:
-                    (o_start, o_stop, o_step) = (0, shape[maindim], 1)
+                    o_start, o_stop, o_step = (0, shape[maindim], 1)
                 else:
-                    (o_start, o_stop, o_step) = (0, 0, 1)
+                    o_start, o_stop, o_step = (0, 0, 1)
             else:
                 out = self.out
                 # Out container already provided.  Do some sanity checks.
@@ -715,7 +715,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop
-        (i_nrows, slice_pos, start, stop, step, nrowsinbuf) = self._get_info(
+        i_nrows, slice_pos, start, stop, step, nrowsinbuf = self._get_info(
             shape, maindim, itermode=True
         )
 

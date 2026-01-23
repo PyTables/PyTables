@@ -600,7 +600,7 @@ class Leaf(Node):
             filters = self.filters
 
         # Create a copy of the object.
-        (new_node, bytes_) = self._g_copy_with_stats(
+        new_node, bytes_ = self._g_copy_with_stats(
             newparent,
             newname,
             start,

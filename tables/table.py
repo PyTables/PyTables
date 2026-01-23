@@ -1415,7 +1415,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
 
         # Bad luck, the condition must be parsed and compiled.
         # Fortunately, the key provides some valuable information. ;)
-        (condition, colnames, varnames, colpaths, vartypes) = condkey
+        condition, colnames, varnames, colpaths, vartypes = condkey
 
         # Extract more information from referenced columns.
 
@@ -1588,7 +1588,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
         if profile:
             show_stats("Entering table._where", tref)
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         if start >= stop:  # empty range, reset conditions
             self._use_index = False
             self._where_condition = None
@@ -1747,7 +1747,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
         # an appropriate error.
         # F. Alted 2008-09-18
         # A.V. 20130513: _process_range_read --> _process_range
-        (start, stop, step) = self._process_range(None, None, None)
+        start, stop, step = self._process_range(None, None, None)
         if (start > stop) or (len(sequence) == 0):
             return iter([])
         row = tableextension.Row(self)
@@ -1805,7 +1805,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
         """
         index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range(
+        start, stop, step = self._process_range(
             start, stop, step, warn_negstep=False
         )
         if (start > stop and 0 < step) or (start < stop and 0 > step):
@@ -1885,7 +1885,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
            In PyTables < 3.0 only one element was returned.
 
         """
-        (start, stop, step) = self._process_range(
+        start, stop, step = self._process_range(
             start, stop, step, warn_negstep=False
         )
         if (start > stop and 0 < step) or (start < stop and 0 > step):
@@ -2226,10 +2226,10 @@ very small/large chunksize, you may want to increase/decrease it.""",
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = self._process_range(key, key + 1, 1)
+            start, stop, step = self._process_range(key, key + 1, 1)
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = self._process_range(
+            start, stop, step = self._process_range(
                 key.start, key.stop, key.step
             )
             return self.read(start, stop, step)
@@ -2304,7 +2304,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
                 key += self.nrows
             return self.modify_rows(key, key + 1, 1, [value])
         elif isinstance(key, slice):
-            (start, stop, step) = self._process_range(
+            start, stop, step = self._process_range(
                 key.start, key.stop, key.step
             )
             return self.modify_rows(start, stop, step, value)
@@ -2497,7 +2497,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(rows) - 1) * step + 1
 
-        (start, stop, step) = self._process_range(start, stop, step)
+        start, stop, step = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError(
                 "This modification will exceed the length of "
@@ -2597,7 +2597,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(column) - 1) * step + 1
-        (start, stop, step) = self._process_range(start, stop, step)
+        start, stop, step = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError(
                 "This modification will exceed the length of "
@@ -2685,7 +2685,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(recarray) - 1) * step + 1
-        (start, stop, step) = self._process_range(start, stop, step)
+        start, stop, step = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError(
                 "This modification will exceed the length of "
@@ -2818,7 +2818,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
             :meth:`remove_row` method.
 
         """
-        (start, stop, step) = self._process_range(start, stop, step)
+        start, stop, step = self._process_range(start, stop, step)
         nrows = self._remove_rows(start, stop, step)
         # remove_rows is an invalidating index operation
         self._reindex(self.colpathnames)
@@ -3065,7 +3065,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
         propindexes = kwargs.pop("propindexes", False)
         check_csi = kwargs.pop("checkCSI", False)
         # Compute the correct indices.
-        (start, stop, step) = self._process_range_read(
+        start, stop, step = self._process_range_read(
             start, stop, step, warn_negstep=sortby is None
         )
         # And the number of final rows
@@ -3389,7 +3389,7 @@ class Cols:
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = table._process_range(key, key + 1, 1)
+            start, stop, step = table._process_range(key, key + 1, 1)
             colgroup = self._v_desc._v_pathname
             if colgroup == "":  # The root group
                 return table.read(start, stop, step)[0]
@@ -3397,7 +3397,7 @@ class Cols:
                 crecord = table.read(start, stop, step)[0]
                 return crecord[colgroup]
         elif isinstance(key, slice):
-            (start, stop, step) = table._process_range(
+            start, stop, step = table._process_range(
                 key.start, key.stop, key.step
             )
             colgroup = self._v_desc._v_pathname
@@ -3447,9 +3447,9 @@ class Cols:
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = table._process_range(key, key + 1, 1)
+            start, stop, step = table._process_range(key, key + 1, 1)
         elif isinstance(key, slice):
-            (start, stop, step) = table._process_range(
+            start, stop, step = table._process_range(
                 key.start, key.stop, key.step
             )
         else:
@@ -3691,10 +3691,10 @@ class Column:
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            (start, stop, step) = table._process_range(key, key + 1, 1)
+            start, stop, step = table._process_range(key, key + 1, 1)
             return table.read(start, stop, step, self.pathname)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = table._process_range(
+            start, stop, step = table._process_range(
                 key.start, key.stop, key.step
             )
             return table.read(start, stop, step, self.pathname)
@@ -3766,7 +3766,7 @@ class Column:
                 key, key + 1, 1, [[value]], self.pathname
             )
         elif isinstance(key, slice):
-            (start, stop, step) = table._process_range(
+            start, stop, step = table._process_range(
                 key.start, key.stop, key.step
             )
             return table.modify_column(start, stop, step, value, self.pathname)

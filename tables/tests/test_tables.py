@@ -3488,7 +3488,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.check_range()
         except ValueError:
             if common.verbose:
-                (type, value, traceback) = sys.exc_info()
+                type, value, traceback = sys.exc_info()
                 print("\nGreat!, the next ValueError was catched!")
                 print(value)
             self.h5file.close()
@@ -3502,7 +3502,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.check_range()
         except ValueError:
             if common.verbose:
-                (type, value, traceback) = sys.exc_info()
+                type, value, traceback = sys.exc_info()
                 print("\nGreat!, the next ValueError was catched!")
                 print(value)
             self.h5file.close()
@@ -4370,7 +4370,7 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Modify just one existing row
         for row in table.iterrows(2, 3):
-            (row["col1"], row["col2"], row["col3"]) = (456, "db2", 1.2)
+            row["col1"], row["col2"], row["col3"] = (456, "db2", 1.2)
             row.update()
         # Create the modified recarray
         r1 = np.rec.array(
@@ -4412,9 +4412,9 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify two existing rows
         for row in table.iterrows(1, 3, 2):
             if row.nrow == 1:
-                (row["col1"], row["col2"], row["col3"]) = (457, "db1", 1.2)
+                row["col1"], row["col2"], row["col3"] = (457, "db1", 1.2)
             elif row.nrow == 3:
-                (row["col1"], row["col2"], row["col3"]) = (6, "de2", 1.3)
+                row["col1"], row["col2"], row["col3"] = (6, "de2", 1.3)
             row.update()
         # Create the modified recarray
         r1 = np.rec.array(
@@ -4456,9 +4456,9 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify two existing rows
         for row in table.iterrows(1, 3):
             if row.nrow == 1:
-                (row["col1"], row["col2"], row["col3"]) = (457, "db1", 1.2)
+                row["col1"], row["col2"], row["col3"] = (457, "db1", 1.2)
             elif row.nrow == 2:
-                (row["col1"], row["col2"], row["col3"]) = (5, "de1", 1.3)
+                row["col1"], row["col2"], row["col3"] = (5, "de1", 1.3)
             row.update()
         # Create the modified recarray
         r1 = np.rec.array(
@@ -4500,9 +4500,9 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify two existing rows
         for row in table.iterrows(1, stop=4, step=2):
             if row.nrow == 1:
-                (row["col1"], row["col2"], row["col3"]) = (457, "db1", 1.2)
+                row["col1"], row["col2"], row["col3"] = (457, "db1", 1.2)
             elif row.nrow == 3:
-                (row["col1"], row["col2"], row["col3"]) = (6, "de2", 1.3)
+                row["col1"], row["col2"], row["col3"] = (6, "de2", 1.3)
             row.update()
         # Create the modified recarray
         r1 = np.rec.array(

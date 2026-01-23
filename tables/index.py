@@ -1086,7 +1086,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             message = f"swap_{what}({mode})"
         else:
             message = f"swap_{what}"
-        (nover, mult, tover) = self.compute_overlaps(
+        nover, mult, tover = self.compute_overlaps(
             self.tmp, message, self.verbose
         )
         rmult = len(mult.nonzero()[0]) / len(mult)
@@ -1982,7 +1982,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         step: int | None,
     ) -> np.ndarray:
         """Return the sorted or indices values in the specified range."""
-        (start, stop, step) = self._process_range(start, stop, step)
+        start, stop, step = self._process_range(start, stop, step)
         if start >= stop:
             return np.empty(0, self.dtype)
         # Correction for negative values of step (reverse indices)
@@ -2208,7 +2208,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         # Get possible remaining values in last row
         if self.nelementsSLR > 0:
             # Look for more indexes in the last row
-            (start, stop) = self.search_last_row(item)
+            start, stop = self.search_last_row(item)
             self.starts[-1] = start
             self.lengths[-1] = stop - start
             tlen += stop - start
@@ -2242,7 +2242,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         tlen = 0
         # Do the lookup for values fulfilling the conditions
         for i in range(self.nslices):
-            (start, stop) = sorted_._search_bin(i, item)
+            start, stop = sorted_._search_bin(i, item)
             self.starts[i] = start
             self.lengths[i] = stop - start
             tlen += stop - start

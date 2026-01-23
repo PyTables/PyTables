@@ -377,7 +377,7 @@ class Group(hdf5extension.Group, Node):
         """Dictionary with all hidden nodes hanging from this group."""
 
         # Get the names of *all* child groups and leaves.
-        (group_names, leaf_names, link_names, unknown_names) = (
+        group_names, leaf_names, link_names, unknown_names = (
             self._g_list_group(self._v_parent)
         )
 
@@ -683,7 +683,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         parentstack = [(self, newparent)]  # [(source, destination), ...]
         while parentstack:
-            (srcparent, dstparent) = parentstack.pop()
+            srcparent, dstparent = parentstack.pop()
 
             if use_hardlinks:
                 for srcchild in srcparent._v_children.values():

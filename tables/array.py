@@ -225,7 +225,7 @@ class Array(hdf5extension.Array, Leaf):
             # ``self._v_objectid`` needs to be set because would be
             # needed for setting attributes in some descendants later
             # on
-            (self._v_objectid, self.shape, self.atom) = self._create_array(
+            self._v_objectid, self.shape, self.atom = self._create_array(
                 nparr, self._v_new_title, self.atom
             )
         except Exception:  # XXX
@@ -242,7 +242,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _g_open(self) -> int:
         """Get the metadata info for an array in file."""
-        (oid, self.atom, self.shape, self._v_chunkshape) = self._open_array()
+        oid, self.atom, self.shape, self._v_chunkshape = self._open_array()
 
         self.nrowsinbuf = self._calc_nrowsinbuf()
 
@@ -293,7 +293,7 @@ class Array(hdf5extension.Array, Leaf):
 
         """
         try:
-            (self._start, self._stop, self._step) = self._process_range(
+            self._start, self._stop, self._step = self._process_range(
                 start, stop, step
             )
         except IndexError:
@@ -933,7 +933,7 @@ class Array(hdf5extension.Array, Leaf):
                 f"flavor is 'numpy', currently is {self.flavor}"
             )
             raise TypeError(msg)
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         arr = self._read(start, stop, step, out)
         return internal_to_flavor(arr, self.flavor)
 
@@ -952,7 +952,7 @@ class Array(hdf5extension.Array, Leaf):
     ) -> tuple[Array, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
         # Compute the correct indices.
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         # Get the slice of the array
         # (non-buffered version)
         if self.shape:

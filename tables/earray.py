@@ -251,7 +251,7 @@ class EArray(CArray):
         **kwargs,
     ) -> tuple[EArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         # Build the new EArray object
         maindim = self.maindim
         shape = list(self.shape)

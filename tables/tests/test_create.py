@@ -73,7 +73,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             )
         except tb.NodeError:
             if common.verbose:
-                (type, value, traceback) = sys.exc_info()
+                type, value, traceback = sys.exc_info()
                 print("\nGreat!, the next NameError was catched!")
                 print(value)
         else:
@@ -210,7 +210,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             )
         except tb.PerformanceWarning:
             if common.verbose:
-                (type, value, traceback) = sys.exc_info()
+                type, value, traceback = sys.exc_info()
                 print("\nGreat!, the next PerformanceWarning was catched!")
                 print(value)
         else:

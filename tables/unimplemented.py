@@ -58,7 +58,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         super().__init__(parentnode, name)
 
     def _g_open(self) -> int:
-        (self.shape, self.byteorder, object_id) = self._open_unimplemented()
+        self.shape, self.byteorder, object_id = self._open_unimplemented()
         try:
             self.nrows = SizeType(self.shape[0])
         except IndexError:

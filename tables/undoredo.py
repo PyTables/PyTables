@@ -79,16 +79,16 @@ def move_to_shadow(file_: "File", path: str) -> None:
     """Move a node to the set of shadowed ones."""
     node = file_._get_node(path)
 
-    (shparent, shname) = file_._shadow_name()
+    shparent, shname = file_._shadow_name()
     node._g_move(shparent, shname)
 
 
 def move_from_shadow(file_: "File", path: str) -> None:
     """Move a node fro the set of shadowe dones back to foreground."""
-    (shparent, shname) = file_._shadow_name()
+    shparent, shname = file_._shadow_name()
     node = shparent._f_get_child(shname)
 
-    (pname, name) = split_path(path)
+    pname, name = split_path(path)
     parent = file_._get_node(pname)
     node._g_move(parent, name)
 
@@ -115,7 +115,7 @@ def redo_remove(file_: "File", path: str) -> None:
 
 def undo_move(file_: "File", origpath: str, destpath: str) -> None:
     """Undo move node."""
-    (origpname, origname) = split_path(origpath)
+    origpname, origname = split_path(origpath)
 
     node = file_._get_node(destpath)
     origparent = file_._get_node(origpname)
@@ -124,7 +124,7 @@ def undo_move(file_: "File", origpath: str, destpath: str) -> None:
 
 def redo_move(file_: "File", origpath: str, destpath: str) -> None:
     """Re-do move node."""
-    (destpname, destname) = split_path(destpath)
+    destpname, destname = split_path(destpath)
 
     node = file_._get_node(origpath)
     destparent = file_._get_node(destpname)
@@ -137,7 +137,7 @@ def attr_to_shadow(file_: "File", path: str, name: str) -> None:
     attrs = node._v_attrs
     value = getattr(attrs, name)
 
-    (shparent, shname) = file_._shadow_name()
+    shparent, shname = file_._shadow_name()
     shattrs = shparent._v_attrs
 
     # Set the attribute only if it has not been kept in the shadow.
@@ -150,7 +150,7 @@ def attr_to_shadow(file_: "File", path: str, name: str) -> None:
 
 def attr_from_shadow(file_: "File", path: str, name: str) -> None:
     """Move an attribute from shadowed attribute set to foreground."""
-    (shparent, shname) = file_._shadow_name()
+    shparent, shname = file_._shadow_name()
     shattrs = shparent._v_attrs
     value = getattr(shattrs, shname)
 

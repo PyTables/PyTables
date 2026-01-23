@@ -173,7 +173,7 @@ def copy_leaf(
             propindexes=propindexes,
         )
     except Exception:
-        (type_, value, traceback) = sys.exc_info()
+        type_, value, traceback = sys.exc_info()
         print(
             f"Problems doing the copy from '{srcfile}:{srcnode}' to "
             f"'{dstfile}:{dstnode}'"
@@ -308,7 +308,7 @@ def copy_children(
             use_hardlinks=use_hardlinks,
         )
     except Exception:
-        (type_, value, traceback) = sys.exc_info()
+        type_, value, traceback = sys.exc_info()
         print(
             "Problems doing the copy from '%s:%s' to '%s:%s'"
             % (srcfile, srcgroup, dstfile, dstgroup)

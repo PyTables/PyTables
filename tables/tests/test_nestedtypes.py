@@ -488,7 +488,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raTable = self._testAData.copy()
         raColumn = raTable[nColumn]
         # The next will not work until NestedRecords supports copies
-        (raColumn[0], raColumn[-1]) = (raColumn[-1], raColumn[0])
+        raColumn[0], raColumn[-1] = (raColumn[-1], raColumn[0])
 
         # Write the resulting column and re-read the whole table.
         tbl.modify_column(colname=nColumn, column=raColumn)
@@ -522,7 +522,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Get the nested column data and swap the first and last rows.
         raTable = self._testAData.copy()
         raColumn = raTable[nColumn]
-        (raColumn[0], raColumn[-1]) = (raColumn[-1].copy(), raColumn[0].copy())
+        raColumn[0], raColumn[-1] = (raColumn[-1].copy(), raColumn[0].copy())
         newdtype = np.dtype([(nColumn, raTable.dtype.fields[nColumn][0])])
         self.assertIsNotNone(newdtype)
 
@@ -564,7 +564,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # or...
         # names=tbl.description._v_nested_names[0:2],
         # formats=tbl.description._v_nested_formats[0:2])
-        (raCols[0], raCols[-1]) = (raCols[-1].copy(), raCols[0].copy())
+        raCols[0], raCols[-1] = (raCols[-1].copy(), raCols[0].copy())
 
         # Write the resulting columns
         tbl.modify_columns(names=colnames, columns=raCols)
@@ -600,7 +600,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Get the nested record and swap the first and last rows.
         raTable = self._testAData.copy()
-        (raTable[0], raTable[-1]) = (raTable[-1].copy(), raTable[0].copy())
+        raTable[0], raTable[-1] = (raTable[-1].copy(), raTable[0].copy())
 
         # Write the resulting nested record and re-read the whole table.
         tbl.modify_rows(start=0, stop=2, rows=raTable)

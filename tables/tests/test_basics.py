@@ -2351,7 +2351,7 @@ except tb.HDF5ExtError, e:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            (stdout, stderr) = p.communicate()
+            stdout, stderr = p.communicate()
 
             self.assertNotIn("HDF5-DIAG", stderr.decode("ascii"))
         finally:
@@ -2389,7 +2389,7 @@ except tb.HDF5ExtError as e:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            (stdout, stderr) = p.communicate()
+            stdout, stderr = p.communicate()
 
             self.assertIn("HDF5-DIAG", stderr.decode("ascii"))
         finally:
