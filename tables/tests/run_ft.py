@@ -187,8 +187,7 @@ class Output:
         stream.flush()
 
 
-_EXCLUDE_CASES = set(
-    """
+_EXCLUDE_CASES = set("""
     tables.filters.Filters
     tables.misc.enum
     tables.tests.test_array.SI1NACloseTestCase
@@ -202,8 +201,7 @@ _EXCLUDE_CASES = set(
     tables.tests.test_utils.ptdumpTestCase.test_paths_windows
     tables.tests.test_utils.ptrepackTestCase.test_paths_windows
     tables.tests.test_utils.pttreeTestCase.test_paths_windows
-    """.strip().split()
-)
+    """.strip().split())
 
 
 def _match_case(test_id: str) -> bool:
