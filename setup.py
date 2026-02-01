@@ -7,11 +7,11 @@ import sys
 import glob
 import ctypes
 import shutil
-import sysconfig
 import fnmatch
 import platform
 import tempfile
 import textwrap
+import sysconfig
 import subprocess
 from typing import NamedTuple
 from pathlib import Path
@@ -19,8 +19,8 @@ from pathlib import Path
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
 from packaging.version import Version
-from setuptools.command.build_ext import build_ext
 from wheel.bdist_wheel import bdist_wheel
+from setuptools.command.build_ext import build_ext
 
 # The name for the pkg-config utility
 PKG_CONFIG = "pkg-config"
@@ -112,14 +112,17 @@ def get_blosc2_directories():
     include_path = library_path = runtime_path = None
     for line in open(recinfo):
         path, _ = line.split(",", 1)
-        if fnmatch.fnmatch(path, "**/bin/libblosc2*"):
+        if fnmatch.fnmatch(path, "**/bin/libblosc2*") or (
+            sys.platform.startswith("win")
+            and fnmatch.fnmatch(path, "**/lib/libblosc2*")
+        ):
             runtime_path = basepath.parent.joinpath(path).resolve()
             if not runtime_path.is_file():
                 raise FileNotFoundError(
                     f"File does not exists: {runtime_path}"
                 )
             runtime_path = runtime_path.parent.resolve()
-        elif fnmatch.fnmatch(path, "**/libblosc2*"):
+        if fnmatch.fnmatch(path, "**/libblosc2*"):
             library_path = basepath.parent.joinpath(path).resolve()
             if not library_path.is_file():
                 raise FileNotFoundError(
@@ -871,7 +874,7 @@ if __name__ == "__main__":
         if package.tag == "BLOSC2":
             hook = blosc2_find_directories_hook
 
-        (hdrdir, libdir, rundir) = package.find_directories(
+        hdrdir, libdir, rundir = package.find_directories(
             location, use_pkgconfig=use_pkgconfig, hook=hook
         )
 
@@ -1073,15 +1076,11 @@ if __name__ == "__main__":
     abi3_macros = []
     abi3_ext_kwargs = {}
     abi3_cflags = ""
-    if (
-        platform.python_implementation() == "CPython"
-        and not is_freethreaded()
-    ):
+    if platform.python_implementation() == "CPython" and not is_freethreaded():
         abi3_macros.append(("Py_LIMITED_API", "0x030B0000"))  # 3.11
         abi3_cflags = f"-D{'='.join(abi3_macros[-1])}"
         abi3_ext_kwargs["py_limited_api"] = True
         cmdclass["bdist_wheel"] = bdist_wheel_abi3
-
 
     def get_cython_extfiles(extnames):
         extdir = Path("tables")
@@ -1102,13 +1101,18 @@ if __name__ == "__main__":
                 # there doesn't seem to be one according to the docs, so temporarily set
                 # the env var instead
                 orig_cflags = os.getenv("CFLAGS", None)
-                cflags = f"{orig_cflags} {abi3_cflags}" if orig_cflags else abi3_cflags
+                cflags = (
+                    f"{orig_cflags} {abi3_cflags}"
+                    if orig_cflags
+                    else abi3_cflags
+                )
                 os.environ["CFLAGS"] = cflags
                 try:
                     cythonize(
                         str(extpfile),
                         compiler_directives=compiler_directives,
-                        language_level="2")
+                        language_level="2",
+                    )
                 finally:
                     if orig_cflags is not None:
                         os.environ["CFLAGS"] = orig_cflags
