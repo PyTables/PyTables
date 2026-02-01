@@ -19,7 +19,7 @@ jobs:
         python-version: ['3.14t']
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         submodules: true
@@ -30,7 +30,7 @@ jobs:
           libhdf5-dev libblosc-dev libblosc2-dev libbz2-dev liblz4-dev \
           liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
     - name: Setup python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install python packages
