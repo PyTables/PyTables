@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         name: Install Python
         with:
           python-version: 3.x
@@ -88,7 +88,7 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         name: Install Python on Unix
         with:
           python-version: '3.14'
@@ -103,7 +103,7 @@ jobs:
           init-shell: bash powershell
         if: runner.os == 'Windows'
 
-      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         id: deps-cache
         with:
           path: hdf5_build
@@ -175,7 +175,7 @@ jobs:
         run: ls -alR ./wheelhouse/
 
       - name: Install Python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.x'
 
