@@ -667,7 +667,10 @@ class Array(hdf5extension.Array, Leaf):
             # Then, try with a point-wise selection
             try:
                 coords = self._point_selection(key)
-                arr = self._read_coords(coords)
+                if coords.ndim == 1 and self.ndim != 1:
+                    arr = self[key, ...]
+                else:
+                    arr = self._read_coords(coords)
             except TypeError:
                 # Finally, try with a fancy selection
                 selection, reorder, shape = self._fancy_selection(key)
@@ -735,7 +738,10 @@ class Array(hdf5extension.Array, Leaf):
             # Then, try with a point-wise selection
             try:
                 coords = self._point_selection(key)
-                self._write_coords(coords, nparr)
+                if coords.ndim == 1 and self.ndim != 1:
+                    self[coords, ...] = nparr
+                else:  
+                    self._write_coords(coords, nparr)
             except TypeError:
                 selection, reorder, shape = self._fancy_selection(key)
                 self._write_selection(selection, reorder, shape, nparr)
