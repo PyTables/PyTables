@@ -7,17 +7,8 @@ concurrency:
 # Publish when a (published) GitHub Release is created.
 on:
   push:
-    branches:
-      - master
-      - 'releases/**'
-      - 'ci/**'
     tags:
       - v*
-  pull_request:
-    branches:
-      - master
-      - 'releases/**'
-      - 'ci/**'
   release:
     types:
       - published
@@ -48,7 +39,7 @@ jobs:
           python-version: 3.x
 
       - name: Install APT packages
-        if: contains(${{ matrix.os }}, 'ubuntu')
+        if: ${{ contains(matrix.os, 'ubuntu') }}
         run: |
           sudo apt update
           # Keep in sync with "Prerequisites" in User's Guide.

@@ -1,4 +1,4 @@
-name: ubuntu
+name: Ubuntu system packages
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
@@ -32,8 +32,8 @@ jobs:
           python3-sphinx python3-sphinx-rtd-theme python3-numpydoc python3-ipython \
           latexmk texlive-fonts-recommended texlive-latex-recommended \
           texlive-latex-extra texlive-plain-generic
-        # In our pyproject.toml these are required for building
-        pip install "cython==3.1" "numpy==2.0" "numexpr==2.10.0"
+        # Extract build dependency versions dynamically: cython numpy numexpr
+        pip install $(grep -oE '^(cython)==[^ \\]+' .github/workflows/requirements/build-requirements.txt) $(grep -oE '^(numpy|numexpr)==[^ \\]+' requirements.txt)
     - name: Build PyTables
       run: make build
       env:
