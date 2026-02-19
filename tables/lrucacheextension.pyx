@@ -373,7 +373,8 @@ cdef class ObjectCache(BaseCache):
     # Protection against too large data cache size
     while size + self.cachesize > self.maxcachesize:
       # Remove the LRU node among the 10 largest ones
-      largidx = self.sizes.argsort()[-10:]
+      not_nones = [x is not None for x in self.__list]
+      largidx = self.sizes[not_nones].argsort()[-10:]
       nslot1 = self.atimes[largidx].argmin()
       nslot2 = largidx[nslot1]
       self.removeslot_(nslot2)
