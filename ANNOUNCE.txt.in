@@ -8,7 +8,8 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-XXX version-specific blurb XXX
+This release of PyTables is mostly intended to make available a
+complete set of Python wheel packages for Python 3.14.
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
