@@ -48,7 +48,6 @@ jobs:
           python-version: 3.x
 
       - name: Install APT packages
-        if: contains(${{ matrix.os }}, 'ubuntu')
         run: |
           sudo apt update
           # Keep in sync with "Prerequisites" in User's Guide.
@@ -100,7 +99,9 @@ jobs:
           environment-name: build
           create-args: >
             python=3.14 blosc c-blosc2 bzip2 hdf5 lz4 snappy zstd zlib pkgconfig
-          init-shell: bash powershell
+          init-shell: >-
+            bash
+            powershell
         if: runner.os == 'Windows'
 
       - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
