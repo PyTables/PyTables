@@ -5,21 +5,15 @@ Downloads
 Stable Versions
 ---------------
 
-The stable versions of PyTables can be downloaded from the file `download
-area`_ on SourceForge.net.  The full distribution contains a copy of this
-documentation in HTML.  The documentation in both HTML and PDF formats can
-also be downloaded separately from the same URL.
+The stable versions of PyTables can be downloaded from
+https://pypi.org/project/tables/.
+
+The documentation in both HTML and PDF formats can be downloaded from
+https://readthedocs.org/projects/pytables.
 
 A *pure source* version of the package (mainly intended for developers and
 packagers) is available on the `tags page`_ on GitHub.  It contains all files
-under SCM but not the (generated) files, HTML doc and *cythonized* C
-extensions, so it is smaller that the standard package (about 3.5MB).
-
-Windows binaries can be obtained from many different distributions, like
-`Python(x,y)`_, ActiveState_, or Enthought_.
-In addition, Christoph Gohlke normally does an excellent job by providing
-binaries for many interesting software on his
-`website <http://www.lfd.uci.edu/~gohlke/pythonlibs/>`_.
+under SCM but not the (generated) files.
 
 You may be interested to install the latest released stable version::
 
