@@ -7,6 +7,11 @@ concurrency:
 # Publish when a (published) GitHub Release is created.
 on:
   push:
+    push:
+      branches:
+        - master
+        - 'releases/**'
+        - 'ci/**'
     tags:
       - v*
   release:

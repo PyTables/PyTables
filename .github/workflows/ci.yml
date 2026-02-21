@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [ "master" ] # Run after merging into the "master" target
+    # branches: [ "master" ] # Run after merging into the "master" target
     paths: # Run only if files relevant to CI have changed (i.e. not bench, contrib, doc, examples, utils or submodule folders)
       - '.flake8'
       - '.github/workflows/**'
