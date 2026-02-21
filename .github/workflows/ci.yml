@@ -6,8 +6,36 @@ concurrency:
 
 on:
   push:
+    branches: [ "master" ] # Run after merging into the "master" target
+    paths: # Run only if files relevant to CI have changed (i.e. not bench, contrib, doc, examples, utils or submodule folders)
+      - '.flake8'
+      - '.github/workflows/**'
+      - 'MANIFEST.in'
+      - 'Makefile'
+      - 'ci/**'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - 'setup.py'
+      - 'src/**'
+      - 'tables/**'
+
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ] # Run in PRs targeting the "master" branch
+    types: # Avoid low-impact events like "edited" or "labeled"
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - '.flake8'
+      - '.github/workflows/**'
+      - 'MANIFEST.in'
+      - 'Makefile'
+      - 'ci/**'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - 'setup.py'
+      - 'src/**'
+      - 'tables/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -128,8 +156,10 @@ jobs:
       if: ${{ matrix.numpy == 'dev' }}
       run: |
         python -m pip install --force-reinstall --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
-    - name: NumPy version
-      run: python3 --version && numpy-config --version
+    - name: Python and NumPy version
+      run: |
+        echo "$(python --version) ($(python -c 'import os, sys; print(os.path.abspath(sys.executable))'))"
+        echo "NumPy $(numpy-config --version)"
     - name: Get source distribution
       uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:

@@ -7,47 +7,49 @@ to efficiently cope with extremely large amounts of data.
 
 """
 
-import os
-import platform
-from ctypes import cdll
-from ctypes.util import find_library
 
-# Load the blosc2 library, and if not found in standard locations,
-# try this directory (it should be automatically copied in setup.py).
-current_dir = os.path.dirname(__file__)
-platform_system = platform.system()
-blosc2_lib_hardcoded = "libblosc2"
-if platform_system == "Linux":
-    blosc2_lib_hardcoded += ".so"
-elif platform_system == "Darwin":
-    blosc2_lib_hardcoded += ".dylib"
-else:
-    blosc2_lib_hardcoded += ".dll"
-blosc2_found = False
-blosc2_search_paths = [
-    blosc2_lib_hardcoded,
-    os.path.join(current_dir, blosc2_lib_hardcoded),
-    # delvewheel will put it here
-    os.path.join(
-        os.path.dirname(current_dir), "tables.libs", blosc2_lib_hardcoded
-    ),
-]
-if find_library("blosc2"):
-    blosc2_search_paths.append(find_library("blosc2"))
-for blosc2_lib in blosc2_search_paths:
-    if blosc2_lib:
-        try:
-            cdll.LoadLibrary(blosc2_lib)
-        except OSError:
-            pass
-        else:
-            blosc2_found = True
-            break
-if not blosc2_found:
-    raise RuntimeError(
-        f"Blosc2 library not found. "
-        f"I looked for {', '.join(blosc2_search_paths)}"
+# Load the blosc2 library:
+# 1. Without a path (default, only the filename)
+# 2. In site-packages/blosc2/lib/ (venv, conda env, or system Python; same one where this tables is running)
+# 3. In tables.libs/ sibling (delvewheel, Windows-only)
+def _load_blosc2():
+    import ctypes
+    import platform
+    import sysconfig
+    from pathlib import Path
+
+    search_paths = ("default", "site-packages", "delvewheel")
+    platform_system = platform.system()
+    ext = (
+        "so"
+        if platform_system == "Linux"
+        else ("dylib" if platform_system == "Darwin" else "dll")
     )
+    lib_file = f"libblosc2.{ext}"
+
+    for where in search_paths:
+        lib_path = (
+            Path(lib_file)
+            if where == "default"
+            else (
+                Path(__file__).parent.with_suffix(".libs")
+                if where == "delvewheel"
+                else Path(sysconfig.get_path("purelib")) / "blosc2" / "lib"
+            )
+            / lib_file
+        )
+        if where == "default" or lib_path.exists():
+            try:
+                ctypes.CDLL(str(lib_path))  # may be Path in Python 3.12+
+                return True
+            except OSError:
+                pass
+
+    return False
+
+
+if not _load_blosc2():
+    raise RuntimeError("Blosc2 library not found.")
 
 from ._version import __version__
 
