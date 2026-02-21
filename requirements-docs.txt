@@ -157,9 +157,9 @@ imagesize==1.4.1 \
     --hash=sha256:0d8d18d08f840c19d0ee7ca1fd82490fdc3729b7ac93f49870406ddde8ef8d8b \
     --hash=sha256:69150444affb9cb0d5cc5a92b3676f0b2fb7cd9ae39e947a5e11a36b4497cd4a
     # via sphinx
-ipython==9.8.0 \
-    --hash=sha256:8e4ce129a627eb9dd221c41b1d2cdaed4ef7c9da8c17c63f6f578fe231141f83 \
-    --hash=sha256:ebe6d1d58d7d988fbf23ff8ff6d8e1622cfdb194daf4b7b73b792c4ec3b85385
+ipython==9.9.0 \
+    --hash=sha256:48fbed1b2de5e2c7177eefa144aba7fcb82dac514f09b57e2ac9da34ddb54220 \
+    --hash=sha256:b457fe9165df2b84e8ec909a97abcf2ed88f565970efba16b1f7229c283d252b
     # via -r requirements-docs.in
 ipython-pygments-lexers==1.1.1 \
     --hash=sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81 \
@@ -268,9 +268,9 @@ matplotlib-inline==0.2.1 \
     --hash=sha256:d56ce5156ba6085e00a9d54fead6ed29a9c47e215cd1bba2e976ef39f5710a76 \
     --hash=sha256:e1ee949c340d771fc39e241ea75683deb94762c8fa5f2927ec57c83c4dffa9fe
     # via ipython
-packaging==25.0 \
-    --hash=sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484 \
-    --hash=sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f
+packaging==26.0 \
+    --hash=sha256:00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4 \
+    --hash=sha256:b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529
     # via sphinx
 parso==0.8.5 \
     --hash=sha256:034d7354a9a018bdce352f48b2a8a450f05e9d6ee85db84764e9b6bd96dafe5a \
@@ -322,9 +322,9 @@ sphinx==8.2.3 \
     #   -r requirements-docs.in
     #   sphinx-rtd-theme
     #   sphinxcontrib-jquery
-sphinx-rtd-theme==3.0.2 \
-    --hash=sha256:422ccc750c3a3a311de4ae327e82affdaf59eb695ba4936538552f3b00f4ee13 \
-    --hash=sha256:b7457bc25dda723b20b086a670b9953c859eab60a2a03ee8eb2bb23e176e5f85
+sphinx-rtd-theme==3.1.0 \
+    --hash=sha256:1785824ae8e6632060490f67cf3a72d404a85d2d9fc26bce3619944de5682b89 \
+    --hash=sha256:b44276f2c276e909239a4f6c955aa667aaafeb78597923b1c60babc76db78e4c
     # via -r requirements-docs.in
 sphinxcontrib-applehelp==2.0.0 \
     --hash=sha256:2f29ef331735ce958efa4734873f084941970894c6090408b079c61b2e1c06d1 \
