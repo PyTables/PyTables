@@ -23,6 +23,8 @@ def _load_blosc2():
         # "default"
         "",
         # "site-packages"
+        Path(sysconfig.get_path("platlib")) / "blosc2" / "lib",
+        # "site-packages" purelib - this should be redundant
         Path(sysconfig.get_path("purelib")) / "blosc2" / "lib",
         # "delvewheel"
         Path(__file__).parent.with_suffix(".libs"),
