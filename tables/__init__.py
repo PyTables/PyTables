@@ -9,10 +9,10 @@ to efficiently cope with extremely large amounts of data.
 
 
 # Load the blosc2 library:
-# 1. Without a path (default, only the filename)
-# 2. In site-packages/blosc2/lib/ (venv, conda env, or system Python; same one where this tables is running)
-# 3. In tables.libs/ sibling (delvewheel, Windows-only)
-# 4. In tables
+# 1. In tables.libs/ sibling (delvewheel, Windows-only)
+# 2. In tables
+# 3. In site-packages/blosc2/lib/ (venv, conda env, or system Python; same one where this tables is running)
+# 4. Without a path (default, only the filename)
 def _load_blosc2():
     import ctypes
     import platform
@@ -20,16 +20,16 @@ def _load_blosc2():
     from pathlib import Path
 
     search_paths = (
-        # "default"
-        "",
-        # "site-packages"
-        Path(sysconfig.get_path("platlib")) / "blosc2" / "lib",
-        # "site-packages" purelib - this should be redundant
-        Path(sysconfig.get_path("purelib")) / "blosc2" / "lib",
         # "delvewheel"
         Path(__file__).parent.with_suffix(".libs"),
         # tables package
         Path(__file__).parent,
+        # "site-packages"
+        Path(sysconfig.get_path("platlib")) / "blosc2" / "lib",
+        # "site-packages" purelib - this should be redundant
+        Path(sysconfig.get_path("purelib")) / "blosc2" / "lib",
+        # "default"
+        "",
     )
     platform_system = platform.system()
     ext = (
@@ -37,7 +37,8 @@ def _load_blosc2():
         if platform_system == "Linux"
         else ("dylib" if platform_system == "Darwin" else "dll")
     )
-    lib_file = f"libblosc2.{ext}"
+    lib_name = "blosc2"
+    lib_file = f"lib{lib_name}.{ext}"
 
     for where in search_paths:
         lib_path = Path(where) / lib_file
@@ -47,6 +48,11 @@ def _load_blosc2():
                 return True
             except OSError:
                 pass
+
+    import ctypes.util
+
+    if ctypes.util.find_library(lib_name):
+        return True
 
     return False
 
