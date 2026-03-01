@@ -7,6 +7,12 @@
 
 .. py:currentmodule:: tables
 
+Changes from 3.11.1 to 3.11.2
+=============================
+
+* TBW
+
+
 Changes from 3.11.0 to 3.11.1
 =============================
 

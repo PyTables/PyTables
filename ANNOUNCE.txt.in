@@ -8,7 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-Hot-fix release to solve an issue with blosc2 loading.
+XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
