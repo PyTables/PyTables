@@ -161,7 +161,7 @@ jobs:
         echo "$(python --version) ($(python -c 'import os, sys; print(os.path.abspath(sys.executable))'))"
         echo "NumPy $(numpy-config --version)"
     - name: Get source distribution
-      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: tables-sdist
     - name: Installation
@@ -206,7 +206,7 @@ jobs:
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install bzip2 hdf5 lzo zlib blosc c-blosc2 pip setuptools wheel packaging py-cpuinfo "numpy>=2" cython numexpr
     - name: Get source distrubtion
-      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: tables-sdist
     - name: Installation
