@@ -204,7 +204,7 @@ jobs:
       run: |
         # Keep in sync with "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
-        conda install bzip2 hdf5 lzo zlib blosc c-blosc2 pip setuptools wheel packaging py-cpuinfo "numpy>=2" cython numexpr
+        conda install bzip2 hdf5 lzo zlib blosc "c-blosc2<3.0" pip setuptools wheel packaging py-cpuinfo "numpy>=2" cython numexpr
     - name: Get source distrubtion
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:

@@ -97,8 +97,17 @@ jobs:
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-name: build
-          create-args: >
-            python=3.14 blosc c-blosc2 bzip2 hdf5 lz4 snappy zstd zlib pkgconfig
+          create-args: >-
+            python=3.14
+            blosc
+            c-blosc2<3.0
+            bzip2
+            hdf5
+            lz4
+            snappy
+            zstd
+            zlib
+            pkgconfig
           init-shell: >-
             bash
             powershell
