@@ -372,8 +372,15 @@ cdef class ObjectCache(BaseCache):
     self.removeslot_(nslot)
     # Protection against too large data cache size
     while size + self.cachesize > self.maxcachesize:
-      # Remove the LRU node among the 10 largest ones
+      # Remove the LRU node among the 10 largest ones.
+      # Only consider occupied slots (size > 0): empty slots have atime 0,
+      # which is always less than any occupied slot's atime (>= 1), so
+      # argmin would always pick an empty slot, making removeslot_ a no-op
+      # and causing an infinite loop when fewer than 10 slots are occupied.
       largidx = self.sizes.argsort()[-10:]
+      largidx = largidx[self.sizes[largidx] > 0]
+      if len(largidx) == 0:
+        break  # cachesize bookkeeping error; exit to avoid infinite loop
       nslot1 = self.atimes[largidx].argmin()
       nslot2 = largidx[nslot1]
       self.removeslot_(nslot2)
