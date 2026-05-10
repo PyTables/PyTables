@@ -1,10 +1,11 @@
 """Tests for LRU cache implementations in lrucacheextension."""
 
-import threading
-import unittest
 
-from tables.lrucacheextension import ObjectCache
+import unittest
+import threading
+
 from tables.tests import common
+from tables.lrucacheextension import ObjectCache
 
 
 class TestObjectCacheUpdateSlot(unittest.TestCase):
@@ -82,7 +83,9 @@ class TestObjectCacheUpdateSlot(unittest.TestCase):
         t, result = self._setitem_in_thread(cache, "key_new", "v_new", 500)
         t.join(self.TIMEOUT)
 
-        self.assertTrue(result, "ObjectCache.setitem hung with 10 occupied slots")
+        self.assertTrue(
+            result, "ObjectCache.setitem hung with 10 occupied slots"
+        )
 
     def test_normal_insertion_no_eviction_needed(self):
         """Basic sanity: insertion that does not exceed maxcachesize must work."""
