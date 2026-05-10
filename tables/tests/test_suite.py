@@ -36,6 +36,7 @@ def suite():
         "tables.tests.test_aux",
         "tables.tests.test_utils",
         "tables.tests.test_direct_chunk",
+        "tables.tests.test_lrucache",
         # Sub-packages
         "tables.nodes.tests.test_filenode",
     ]
