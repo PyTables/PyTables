@@ -129,8 +129,7 @@ if __name__ == "__main__":
             -2 use sqlite2 (default is use sqlite3)
             -R select a range in a field in the form "start,stop" (def "0,10")
             -n sets the number of rows (in krows) in each table
-            \n"""
-        % sys.argv[0]
+            \n""" % sys.argv[0]
     )
 
     try:

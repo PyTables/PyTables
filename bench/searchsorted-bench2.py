@@ -178,7 +178,7 @@ def search_file(filename, atom, verbose, item):
         print("Number of elements per slice:", idxcol.sorted.nelemslice)
         print("Slice number in", table._v_pathname, ":", idxcol.sorted.nrows)
 
-    (positions, niter) = idxcol.search(item)
+    positions, niter = idxcol.search(item)
     if verbose:
         print("Positions for item", item, "==>", positions)
         print("Total iterations in search:", niter)
@@ -209,8 +209,7 @@ if __name__ == "__main__":
     except Exception:
         psyco_imported = 0
 
-    usage = (
-        """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize ] [-a
+    usage = """usage: %s [-v] [-p] [-R range] [-r] [-w] [-s recsize ] [-a
     atom] [-c level] [-l complib] [-S] [-F] [-i item] [-n nrows] [-x]
     [-k niter] file
             -v verbose
@@ -227,9 +226,7 @@ if __name__ == "__main__":
             -i item to search
             -n set the number of rows in tables
             -x don't make indexes
-            -k number of iterations for reading\n"""
-        % sys.argv[0]
-    )
+            -k number of iterations for reading\n""" % sys.argv[0]
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], "vpSFR:rwxk:s:a:c:l:i:n:")
@@ -317,7 +314,7 @@ if __name__ == "__main__":
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(create_file)
-        (rowsw, rowsz) = create_file(
+        rowsw, rowsz = create_file(
             file, nrows, filters, atom, recsize, index, verbose
         )
         t2 = clock()
@@ -339,10 +336,10 @@ if __name__ == "__main__":
         t1 = clock()
         cpu1 = cpuclock()
         if rng or item:
-            (rowsr, uncompr_b, niter) = search_file(file, atom, verbose, item)
+            rowsr, uncompr_b, niter = search_file(file, atom, verbose, item)
         else:
             for i in range(1):
-                (rowsr, rowsel, rowsz) = read_file(file, atom, niter, verbose)
+                rowsr, rowsel, rowsz = read_file(file, atom, niter, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

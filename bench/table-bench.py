@@ -396,7 +396,7 @@ if __name__ == "__main__":
             stats.sort_stats("time", "calls")
             stats.print_stats(20)
         else:
-            (rowsw, rowsz) = create_file(file, nrows, filters, recsize)
+            rowsw, rowsz = create_file(file, nrows, filters, recsize)
         t2 = clock()
         cpu2 = cpuclock()
         tapprows = t2 - t1
@@ -413,11 +413,11 @@ if __name__ == "__main__":
         t1 = clock()
         cpu1 = cpuclock()
         if rng or field_name:
-            (rowsr, rowsz) = read_field(file, field_name, rng, verbose)
+            rowsr, rowsz = read_field(file, field_name, rng, verbose)
             pass
         else:
             for i in range(1):
-                (rowsr, rowsz) = read_file(file, recsize, verbose)
+                rowsr, rowsz = read_file(file, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

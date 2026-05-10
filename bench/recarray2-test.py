@@ -7,12 +7,9 @@ import recarray
 import chararray
 import recarray2  # This is my modified version
 
-usage = (
-    """usage: %s recordlength
+usage = """usage: %s recordlength
      Set recordlength to 1000 at least to obtain decent figures!
-"""
-    % sys.argv[0]
-)
+""" % sys.argv[0]
 
 try:
     reclen = int(sys.argv[1])

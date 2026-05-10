@@ -98,14 +98,11 @@ class PostgresDB(DB):
         return con
 
     def create_table(self, con):
-        self.cur.execute(
-            """create table %s(
+        self.cur.execute("""create table %s(
                           col1 integer,
                           col2 integer,
                           col3 double precision,
-                          col4 double precision)"""
-            % TABLE_NAME
-        )
+                          col4 double precision)""" % TABLE_NAME)
         con.commit()
 
     def fill_table(self, con):

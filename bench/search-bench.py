@@ -186,7 +186,7 @@ def bench_create(
     else:
         table = bf.get_node("/" + recsize + "/create_best")
 
-    (rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2, size1, size2) = (
+    rowsw, irows, rowsz, time1, time2, tcpu1, tcpu2, size1, size2 = (
         create_file(file, nrows, filters, index, heavy, noise, verbose)
     )
     # Collect data
@@ -355,7 +355,7 @@ def bench_search(
     for atom in atomlist:
         tablepath = tableparent + atom
         table = bf.get_node(tablepath)
-        (rowsr, rowsel, rowssz, time1, time2, tcpu1, tcpu2) = read_file(
+        rowsr, rowsel, rowssz, time1, time2, tcpu1, tcpu2 = read_file(
             file, atom, riter, indexmode, dselect, verbose
         )
         row = table.row

@@ -200,13 +200,10 @@ if __name__ == "__main__":
     import getopt
     from time import perf_counter as clock
 
-    usage = (
-        """usage: %s [-v] [-s recsize] [-i iterations] file
+    usage = """usage: %s [-v] [-s recsize] [-i iterations] file
             -v verbose
             -s use [big] record, [medium] or [small]
-            -i sets the number of rows in each table\n"""
-        % sys.argv[0]
-    )
+            -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], "s:vi:")
@@ -241,7 +238,7 @@ if __name__ == "__main__":
 
     t1 = clock()
     psyco.bind(create_file)
-    (rowsw, rowsz) = create_file(file, iterations, recsize, verbose)
+    rowsw, rowsz = create_file(file, iterations, recsize, verbose)
     t2 = clock()
     tapprows = t2 - t1
 

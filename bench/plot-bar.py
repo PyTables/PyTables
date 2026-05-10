@@ -82,15 +82,12 @@ if __name__ == "__main__":
     import sys
     import getopt
 
-    usage = (
-        """usage: %s [-g] [-m] [-o file] [-t title] files
+    usage = """usage: %s [-g] [-m] [-o file] [-t title] files
             -g grand total
             -m show memory instead of time
             -o filename for output (only .png and .jpg extensions supported)
             -t title of the plot
-            \n"""
-        % sys.argv[0]
-    )
+            \n""" % sys.argv[0]
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], "gmo:t:")

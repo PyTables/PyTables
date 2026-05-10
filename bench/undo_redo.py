@@ -167,16 +167,13 @@ if __name__ == "__main__":
     import sys
     import getopt
 
-    usage = (
-        """usage: %s [-v] [-p] [-t test] [-s vecsize] [-n niter] datafile
+    usage = """usage: %s [-v] [-p] [-t test] [-s vecsize] [-n niter] datafile
               -v verbose  (total dump of profiling)
               -p do profiling
               -t {createNode|copy_children|set_attr|all} run the specified test
               -s the size of vectors that are undone/redone
               -n number of objects in operations
-              -i number of iterations for reading\n"""
-        % sys.argv[0]
-    )
+              -i number of iterations for reading\n""" % sys.argv[0]
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], "vpt:s:n:i:")

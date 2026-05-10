@@ -1,6 +1,5 @@
 """Tests for LRU cache implementations in lrucacheextension."""
 
-
 import unittest
 import threading
 

@@ -158,7 +158,7 @@ if __name__ == "__main__":
     make_file(file_path, n)
 
     num_processors = 3
-    (read_queue, result_queues, write_queue, shutdown_send) = make_queues(
+    read_queue, result_queues, write_queue, shutdown_send = make_queues(
         num_processors
     )
 

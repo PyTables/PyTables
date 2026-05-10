@@ -31,12 +31,12 @@ def _compute(result, function, arguments, start=None, stop=None, step=None):
     arg0 = arguments[0]
     if hasattr(arg0, "maindim"):
         maindim = arg0.maindim
-        (start, stop, step) = arg0._process_range_read(start, stop, step)
+        start, stop, step = arg0._process_range_read(start, stop, step)
         nrowsinbuf = arg0.nrowsinbuf
         print("nrowsinbuf-->", nrowsinbuf)
     else:
         maindim = 0
-        (start, stop, step) = (0, len(arg0), 1)
+        start, stop, step = (0, len(arg0), 1)
         nrowsinbuf = len(arg0)
     shape = list(arg0.shape)
     shape[maindim] = len(range(start, stop, step))

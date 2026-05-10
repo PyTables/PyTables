@@ -8,6 +8,7 @@ This requires Scientific from
 http://starship.python.net/~hinsen/ScientificPython
 
 """
+
 import sys
 
 from Scientific.IO import NetCDF

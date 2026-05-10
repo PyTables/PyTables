@@ -145,7 +145,7 @@ def save2(hdf_file, data):
     count = 0
 
     while stack:
-        (group_obj_path, data, cache) = stack.pop()
+        group_obj_path, data, cache = stack.pop()
         for grp_name in data:
             count += 1
             cache[grp_name] = {}

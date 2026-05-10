@@ -207,7 +207,7 @@ if __name__ == "__main__":
     if testwrite:
         t1 = clock()
         cpu1 = cpuclock()
-        (rowsw, rowsz) = create_file(
+        rowsw, rowsz = create_file(
             file, ngroups, ntables, nrows, complevel, complib, recsize
         )
         t2 = clock()
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     if testread:
         t1 = clock()
         cpu1 = cpuclock()
-        (rowsr, rowsz, bufsz) = read_file(file, ngroups, recsize, verbose)
+        rowsr, rowsz, bufsz = read_file(file, ngroups, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

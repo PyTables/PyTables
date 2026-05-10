@@ -217,7 +217,7 @@ if __name__ == "__main__":
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(create_file)
-        (rowsw, rowsz) = create_file(
+        rowsw, rowsz = create_file(
             file, ngroups, ntables, nrows, complevel, complib, recsize
         )
         t2 = clock()
@@ -237,7 +237,7 @@ if __name__ == "__main__":
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(read_file)
-        (rowsr, rowsz, bufsz) = read_file(file, ngroups, recsize, verbose)
+        rowsr, rowsz, bufsz = read_file(file, ngroups, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

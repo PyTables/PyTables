@@ -296,9 +296,9 @@ def test_method(
         t1 = clock()
         cpu1 = cpuclock()
         if usearray:
-            (rowsw, rowsz) = create_file_arr(file, ngroups, ntables, nrows)
+            rowsw, rowsz = create_file_arr(file, ngroups, ntables, nrows)
         else:
-            (rowsw, rowsz) = create_file(
+            rowsw, rowsz = create_file(
                 file, ngroups, ntables, nrows, complevel, complib, recsize
             )
         t2 = clock()
@@ -317,11 +317,11 @@ def test_method(
         t1 = clock()
         cpu1 = cpuclock()
         if usearray:
-            (rowsr, rowsz, bufsz) = read_file_arr(
+            rowsr, rowsz, bufsz = read_file_arr(
                 file, ngroups, recsize, verbose
             )
         else:
-            (rowsr, rowsz, bufsz) = read_file(file, ngroups, recsize, verbose)
+            rowsr, rowsz, bufsz = read_file(file, ngroups, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1
