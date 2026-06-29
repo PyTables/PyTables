@@ -1251,7 +1251,6 @@ if __name__ == "__main__":
         "include_dirs": inc_dirs,
     }
     def_macros.extend(abi3_macros)
-    def_macros.append(("BLOSC2_MAX_DIM", 8))
     extension_kwargs.update(abi3_ext_kwargs)
 
     extensions = [

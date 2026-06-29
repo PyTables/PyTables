@@ -29,6 +29,13 @@
 
 #define GET_FILTER(a, b, c, d, e, f, g) H5Pget_filter_by_id(a,b,c,d,e,f,g,NULL)
 
+/* BLOSC2_MAX_DIM was removed from blosc2.h in c-blosc2 3.x
+   (renamed to B2ND_MAX_DIM in b2nd.h).  Keep the pre-3.0 default
+   since hdf5-blosc2's CD-values layout assumes at most 8 dims. */
+#ifndef BLOSC2_MAX_DIM
+#define BLOSC2_MAX_DIM 8
+#endif
+
 /* Auxiliary filter values are:
  *
  * - 0: filter revision (FILTER_BLOSC2_VERSION)
