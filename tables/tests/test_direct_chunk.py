@@ -197,34 +197,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen()
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
-    def test_write_chunk_filtermask(self):
-        no_shuffle_mask = 0x00000004  # to turn shuffle off
-
-        chunk_start = (0,) * self.obj.ndim
-        obj_slice = tuple(
-            slice(s, s + cs) for (s, cs) in zip(chunk_start, self.chunkshape)
-        )
-        new_obj = self.obj.copy()
-        new_obj[obj_slice] = self.modified(new_obj[obj_slice])
-        obj_bytes = self.compress_chunk(
-            new_obj[obj_slice].tobytes(), shuffle=False
-        )
-        self.array.write_chunk(
-            chunk_start, obj_bytes, filter_mask=no_shuffle_mask
-        )
-
-        self._reopen()
-        arr_obj = self.array[:]  # first chunk is shuffled, fix it
-        fixed_bytes = self.shuffled(arr_obj[obj_slice].tobytes())
-        fixed_chunk = np.ndarray(
-            self.chunkshape, dtype=self.obj.dtype, buffer=fixed_bytes
-        )
-        arr_obj[obj_slice] = fixed_chunk
-        self.assertTrue(common.areArraysEqual(arr_obj, new_obj))
-
-        chunk_info = self.array.chunk_info(chunk_start)
-        self.assertEqual(chunk_info.filter_mask, no_shuffle_mask)
-
     def test_write_chunk_unaligned(self):
         self.assertRaises(
             tb.NotChunkAlignedError,
@@ -326,6 +298,51 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
 
     def test_write_chunk_missing2(self):
         return self._test_write_chunk_missing(shrink_after=True)
+
+    def test_write_chunk_filtermask(self):
+        # Verify that a non-zero direct-chunk filter mask is stored and
+        # reported back.  We write into a freshly created (previously
+        # missing) chunk rather than overwriting an existing one: when an
+        # existing chunk is overwritten in place with the same stored size,
+        # HDF5 keeps the old filter mask, which would make this check depend
+        # on the incidental compressed size of the chunk (see GH #1325).
+        no_shuffle_mask = 0x00000004  # to turn shuffle off
+
+        # Enlarge the array to create a new chunk in the enlargeable
+        # dimension, just beyond the current shape.
+        assert self.array.extdim == 0
+        chunk_start = (
+            ((self.shape[0] + self.chunkshape[0] - 1) // self.chunkshape[0])
+            * self.chunkshape[0],
+            *((0,) * (self.array.ndim - 1)),
+        )
+        self.array.truncate(chunk_start[0] + self.chunkshape[0])
+
+        obj_slice = tuple(
+            slice(s, s + cs) for (s, cs) in zip(chunk_start, self.chunkshape)
+        )
+        new_obj = self.array[:]
+        # Reuse the (modified) data of the first chunk for the new chunk.
+        source_slice = tuple(slice(0, cs) for cs in self.chunkshape)
+        new_obj[obj_slice] = self.modified(self.obj[source_slice])
+        obj_bytes = self.compress_chunk(
+            new_obj[obj_slice].tobytes(), shuffle=False
+        )
+        self.array.write_chunk(
+            chunk_start, obj_bytes, filter_mask=no_shuffle_mask
+        )
+
+        self._reopen()
+        arr_obj = self.array[:]  # the new chunk is shuffled, fix it
+        fixed_bytes = self.shuffled(arr_obj[obj_slice].tobytes())
+        fixed_chunk = np.ndarray(
+            self.chunkshape, dtype=self.obj.dtype, buffer=fixed_bytes
+        )
+        arr_obj[obj_slice] = fixed_chunk
+        self.assertTrue(common.areArraysEqual(arr_obj, new_obj))
+
+        chunk_info = self.array.chunk_info(chunk_start)
+        self.assertEqual(chunk_info.filter_mask, no_shuffle_mask)
 
 
 class CArrayDirectChunkingTestCase(DirectChunkingTestCase):
