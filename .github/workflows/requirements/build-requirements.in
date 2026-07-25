@@ -3,7 +3,7 @@
 build
 cython>=3.0.11
 importlib-metadata>=4.6  # deps not resolved
-pip>=26.1
+pip>=26.1.2
 setuptools>=83.0.0
 tomli>=1.1.0
 wheel
