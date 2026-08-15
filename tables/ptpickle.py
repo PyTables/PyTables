@@ -1,6 +1,8 @@
 import pickle as _pickle
 from pickle import DEFAULT_PROTOCOL, HIGHEST_PROTOCOL
 
+from . import parameters
+
 __all__ = [
     "DEFAULT_PROTOCOL",
     "HIGHEST_PROTOCOL",
@@ -29,6 +31,9 @@ def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     into *file* as part of the pickle stream.  It is an error if
     *buffer_callback* is not None and *protocol* is None or smaller than 5.
     """
+    if not parameters.ALLOW_PICKLE:
+        raise RuntimeError("the use of pickle in PyTables has been disabled.")
+
     return _pickle.dumps(
         obj, protocol, fix_imports=fix_imports, buffer_callback=buffer_callback
     )
@@ -58,6 +63,9 @@ def loads(
     respectively.  The *encoding* can be 'bytes' to read these 8-bit
     string instances as bytes objects.
     """
+    if not parameters.ALLOW_PICKLE:
+        raise RuntimeError("the use of pickle in PyTables has been disabled.")
+
     return _pickle.loads(
         data,
         fix_imports=fix_imports,

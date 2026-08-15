@@ -440,3 +440,28 @@ by replacing '%s' with the name passed as the first parameter instead.
 .. versionadded:: 3.1
 
 """
+
+
+ALLOW_PICKLE: bool = True
+"""Globally enable/disable the use of pickle.
+
+Pickle is used in PyTables mostly to serialize attributes and data that are
+not representable as numpy arrays or native types.
+
+Unfortunately the use of pickle is not secure and can be exploited for
+remote code execution.
+
+The ``ALOW_PICKLE`` global parameter is used to enable/disable globally the
+use of pickle in PyTables.
+
+For compatibility reasons, the use of pickle is enabled by default.
+
+The used can disable it by setting ``ALOW_PICKLE`` to ``False`` just after
+imparting ``tables``::
+
+    import tables.parameters
+
+    tables.parameters.ALLOW_PICKLE = False
+
+.. versionadded:: 3.12
+"""

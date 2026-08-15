@@ -136,6 +136,8 @@ Miscellaneous
 
 .. autodata:: ALLOW_PADDING
 
+.. autodata:: ALLOW_PICKLE
+
 
 HDF5 driver management
 ~~~~~~~~~~~~~~~~~~~~~~
