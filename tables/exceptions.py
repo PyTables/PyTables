@@ -350,7 +350,7 @@ class PickleNotAllowedError(ValueError):
 
 
 class PickleSecurityWarning(Warning):
-    """Warning issued when automatic unpickling is explicitly enabled.
+    """Warning issued for pickle serialization or explicitly enabled loading.
 
     .. versionadded:: 3.12
     """

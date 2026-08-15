@@ -130,6 +130,9 @@ class AttributeSet(hdf5extension.AttributeSet):
     objects* (for example, numpy.int64(1) or numpy.array([1, 2, 3],
     dtype='int16')).
 
+    Serializing a non-native value issues :exc:`PickleSecurityWarning`, since
+    reading the resulting attribute later requires unpickling.
+
     Automatic unpickling is disabled by default because loading pickle data
     can execute arbitrary code.  Pickled attributes are returned as raw bytes
     unless the file was opened with ``allow_pickle=True``.  Only enable this

@@ -101,11 +101,16 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_serialization_remains_enabled_when_loading_is_disabled(self):
         expected = {"answer": 42}
-        self.h5file.root._v_attrs.payload = expected
+        with self.assertWarnsRegex(
+            tb.PickleSecurityWarning, "requires unpickling"
+        ):
+            payload = ptpickle.dumps(expected)
+        self._store_attribute_payload(payload)
 
         self._reopen("r")
-        payload = self.h5file.root._v_attrs.payload
-        self.assertIsInstance(payload, np.bytes_)
+        actual = self.h5file.root._v_attrs.payload
+        self.assertIsInstance(actual, np.bytes_)
+        self.assertEqual(bytes(actual), payload)
 
         self._reopen_trusted()
         self.assertEqual(self.h5file.root._v_attrs.payload, expected)
@@ -144,7 +149,10 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "objects", atom=tb.ObjectAtom()
         )
-        vlarray.append(expected)
+        with self.assertWarnsRegex(
+            tb.PickleSecurityWarning, "requires unpickling"
+        ):
+            vlarray.append(expected)
 
         self._reopen("r")
         with self.assertRaises(tb.PickleNotAllowedError):
@@ -195,7 +203,8 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "objects", atom=tb.ObjectAtom()
         )
-        vlarray.append({"answer": 42})
+        with self.assertWarns(tb.PickleSecurityWarning):
+            vlarray.append({"answer": 42})
 
         with mock.patch.object(tb.parameters, "ALLOW_PICKLE", True):
             with self.assertRaises(tb.PickleNotAllowedError):
@@ -237,7 +246,8 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expected = {"answer": 42}
         atom = _DirectLegacyObjectAtom()
         vlarray = self.h5file.create_vlarray("/", "safe_objects", atom=atom)
-        vlarray.append(expected)
+        with self.assertWarns(tb.PickleSecurityWarning):
+            vlarray.append(expected)
 
         with self.assertRaises(tb.PickleNotAllowedError):
             vlarray.read()
@@ -249,10 +259,12 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "trusted_objects", atom=_LegacyObjectAtom()
         )
-        vlarray.append(expected)
+        with self.assertWarns(tb.PickleSecurityWarning):
+            vlarray.append(expected)
 
         self.assertEqual(vlarray.read(), [expected])
-        raw = tb.ObjectAtom().toarray(expected)
+        with self.assertWarns(tb.PickleSecurityWarning):
+            raw = tb.ObjectAtom().toarray(expected)
         with self.assertRaises(tb.PickleNotAllowedError):
             tb.ObjectAtom().fromarray(raw)
 

@@ -1,7 +1,8 @@
 import pickle as _pickle
+import warnings
 from pickle import DEFAULT_PROTOCOL, HIGHEST_PROTOCOL
 
-from .exceptions import PickleNotAllowedError
+from .exceptions import PickleNotAllowedError, PickleSecurityWarning
 
 __all__ = [
     "DEFAULT_PROTOCOL",
@@ -29,6 +30,12 @@ def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     into *file* as part of the pickle stream.  It is an error if
     *buffer_callback* is not None and *protocol* is None or smaller than 5.
     """
+    warnings.warn(
+        "serializing objects with pickle creates data that requires "
+        "unpickling to read; only unpickle data from trusted sources",
+        PickleSecurityWarning,
+        stacklevel=2,
+    )
     return _pickle.dumps(
         obj, protocol, fix_imports=fix_imports, buffer_callback=buffer_callback
     )
@@ -75,6 +82,9 @@ def loads(
         "encoding": encoding,
         "errors": errors,
     }
+    # pandas.compat.pickle_compat.patch_pickle() temporarily replaces
+    # pickle.loads with a compatibility loader that has no buffers argument.
+    # Do not forward the unused default so trusted pandas reads keep working.
     if buffers is not None:
         kwargs["buffers"] = buffers
     return _pickle.loads(data, **kwargs)

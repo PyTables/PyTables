@@ -1370,6 +1370,9 @@ class ObjectAtom(_BufferedAtom):
 
     .. warning::
 
+        Writing object atoms issues :exc:`PickleSecurityWarning`, because the
+        resulting data requires unpickling to be read.
+
         Reading object atoms requires unpickling and is disabled by default.
         Open a trusted file with ``allow_pickle=True`` to enable it.  Never
         enable unpickling for files from untrusted sources.

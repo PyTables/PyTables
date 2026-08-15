@@ -28,9 +28,10 @@ Changes from 3.11.1 to 3.12.0
 
   Trusted pandas files can be read with
   ``pandas.read_hdf(..., allow_pickle=True)`` or by constructing
-  ``pandas.HDFStore(..., allow_pickle=True)``.  Writing remains enabled.
-  The :program:`ptdump` utility provides the equivalent
-  ``--allow-pickle`` option.
+  ``pandas.HDFStore(..., allow_pickle=True)``.  Writing remains enabled and
+  emits :exc:`PickleSecurityWarning`, since the resulting data requires
+  unpickling to be read.  The :program:`ptdump` utility provides the
+  equivalent ``--allow-pickle`` option.
 
 
 Thanks to:
