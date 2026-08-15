@@ -1,3 +1,4 @@
+import io
 import pickle as _pickle
 import warnings
 from pickle import DEFAULT_PROTOCOL, HIGHEST_PROTOCOL
@@ -15,6 +16,56 @@ __all__ = [
 
 class PickleDeprecationWarning(DeprecationWarning):
     pass
+
+
+FORBIDDEN_MODULES: set[str] = {
+    "io",
+    "os",
+    "sys",
+    "json",
+    "pickle",
+    "shutil",
+    "pathlib",
+    "subprocess",
+}
+
+
+SAFE_BUILTINS: set[str] = {
+    "complex",
+    "dict",
+    "list",
+    "tuple",
+}
+
+
+class RestrictedUnpickler(_pickle.Unpickler):
+    def find_class(self, module, name):
+        if module in FORBIDDEN_MODULES or (
+            module == "builtins" and name not in SAFE_BUILTINS
+        ):
+            raise _pickle.UnpicklingError(
+                f"global '{module}.{name}' is forbidden"
+            )
+        return super().find_class(module, name)
+
+
+def _restricted_loads(
+    data,
+    /,
+    *,
+    fix_imports=True,
+    encoding="ASCII",
+    errors="strict",
+    buffers=None,
+):
+    """Restricted pickle.loads()."""
+    return RestrictedUnpickler(
+        io.BytesIO(data),
+        fix_imports=fix_imports,
+        encoding=encoding,
+        errors=errors,
+        buffers=buffers,
+    ).load()
 
 
 def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
@@ -86,7 +137,7 @@ def loads(
         stacklevel=2,
     )
 
-    return _pickle.loads(
+    return _restricted_loads(
         data,
         fix_imports=fix_imports,
         encoding=encoding,
