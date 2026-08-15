@@ -1,4 +1,5 @@
 import pickle as _pickle
+import warnings
 from pickle import DEFAULT_PROTOCOL, HIGHEST_PROTOCOL
 
 from . import parameters
@@ -6,9 +7,14 @@ from . import parameters
 __all__ = [
     "DEFAULT_PROTOCOL",
     "HIGHEST_PROTOCOL",
+    "PickleDeprecationWarning",
     "dumps",
     "loads",
 ]
+
+
+class PickleDeprecationWarning(DeprecationWarning):
+    pass
 
 
 def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
@@ -33,6 +39,13 @@ def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     """
     if not parameters.ALLOW_PICKLE:
         raise RuntimeError("the use of pickle in PyTables has been disabled.")
+
+    warnings.warn(
+        "the use of pickle in PyTables is deprecated for security reasons. "
+        "Support to pickle may be removed in the future.",
+        category=PickleDeprecationWarning,
+        stacklevel=2,
+    )
 
     return _pickle.dumps(
         obj, protocol, fix_imports=fix_imports, buffer_callback=buffer_callback
@@ -65,6 +78,13 @@ def loads(
     """
     if not parameters.ALLOW_PICKLE:
         raise RuntimeError("the use of pickle in PyTables has been disabled.")
+
+    warnings.warn(
+        "the use of pickle in PyTables is deprecated for security reasons. "
+        "Support to pickle may be removed in the future.",
+        category=PickleDeprecationWarning,
+        stacklevel=2,
+    )
 
     return _pickle.loads(
         data,
