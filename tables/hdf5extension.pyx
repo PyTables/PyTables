@@ -37,10 +37,9 @@ ObjInfo = namedtuple('ObjInfo', ['addr', 'rc'])
 ObjTimestamps = namedtuple('ObjTimestamps', ['atime', 'mtime',
                                              'ctime', 'btime'])
 
-import pickle
-
 import numpy as np
 
+from . import ptpickle as pickle
 from .atom import Atom
 from .utils import check_file_access, byteorders, correct_byteorder, SizeType
 from .exceptions import HDF5ExtError, DataTypeWarning

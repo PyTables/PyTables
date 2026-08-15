@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import pickle
 import inspect
 import warnings
 from typing import Any, NoReturn, dataclass_transform
@@ -12,6 +11,7 @@ from collections.abc import Callable
 import numpy as np
 from numpy.typing import DTypeLike
 
+from . import ptpickle as pickle
 from .utils import SizeType
 from .misc.enum import Enum
 from .exceptions import FlavorWarning

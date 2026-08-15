@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import pickle
 import warnings
 from typing import Any, Literal, TYPE_CHECKING
 from collections.abc import Callable
@@ -11,6 +10,7 @@ from collections.abc import Callable
 import numpy as np
 
 from . import hdf5extension
+from . import ptpickle as pickle
 from .path import check_attribute_name
 from .utils import SizeType
 from .filters import Filters
