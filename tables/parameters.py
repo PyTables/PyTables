@@ -442,26 +442,25 @@ by replacing '%s' with the name passed as the first parameter instead.
 """
 
 
-ALLOW_PICKLE: bool = True
-"""Globally enable/disable the use of pickle.
+ALLOW_PICKLE: bool = False
+"""Globally allow/disallow automatic unpickling when reading files.
 
-Pickle is used in PyTables mostly to serialize attributes and data that are
-not representable as numpy arrays or native types.
+Pickle payloads can execute arbitrary code while they are loaded.  Automatic
+unpickling is therefore disabled by default.  When it is disabled, pickled
+attributes are returned as raw bytes and :class:`~tables.ObjectAtom` data
+cannot be read.
 
-Unfortunately the use of pickle is not secure and can be exploited for
-remote code execution.
+This parameter supplies the default for newly opened files.  Prefer enabling
+unpickling for one trusted file at a time::
 
-The ``ALOW_PICKLE`` global parameter is used to enable/disable globally the
-use of pickle in PyTables.
+    import tables
 
-For compatibility reasons, the use of pickle is enabled by default.
+    with tables.open_file("trusted.h5", allow_pickle=True) as h5file:
+        ...
 
-The used can disable it by setting ``ALOW_PICKLE`` to ``False`` just after
-imparting ``tables``::
-
-    import tables.parameters
-
-    tables.parameters.ALLOW_PICKLE = False
+Setting the global parameter to ``True`` enables automatic unpickling for all
+files opened afterwards that do not specify an ``allow_pickle`` argument.  It
+does not change the policy of files that are already open.
 
 .. versionadded:: 3.12
 """

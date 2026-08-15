@@ -124,6 +124,8 @@ __all__ = [
     "UndoRedoError",
     "UndoRedoWarning",
     "PerformanceWarning",
+    "PickleNotAllowedError",
+    "PickleSecurityWarning",
     "FlavorError",
     "FlavorWarning",
     "FiltersWarning",

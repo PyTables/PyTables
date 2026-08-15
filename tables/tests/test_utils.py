@@ -37,6 +37,10 @@ class ptrepackTestCase(common.PyTablesTestCase):
 class ptdumpTestCase(common.PyTablesTestCase):
     """Test ptdump"""
 
+    def setUp(self):
+        super().setUp()
+        ptdump.options.allow_pickle = False
+
     @patch.object(ptdump.tb, "open_file")
     @patch("sys.stdout", new_callable=StringIO)
     def test_paths_windows(self, _, mock_open_file):
@@ -53,6 +57,19 @@ class ptdumpTestCase(common.PyTablesTestCase):
 
         args, kwargs = mock_open_file.call_args_list[0]
         self.assertEqual(args, (src_fn, "r"))
+        self.assertEqual(kwargs, {"allow_pickle": False})
+
+    @patch.object(ptdump.tb, "open_file")
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_allow_pickle(self, _, mock_open_file):
+        """Checking the trusted-file command-line opt-in."""
+
+        src_fn = "trusted.h5"
+        argv = ["ptdump", "--allow-pickle", src_fn]
+        with patch.object(sys, "argv", argv):
+            ptdump.main()
+
+        mock_open_file.assert_called_once_with(src_fn, "r", allow_pickle=True)
 
 
 class pttreeTestCase(common.PyTablesTestCase):

@@ -146,6 +146,10 @@ to PyTables are declared.
 
 .. autoexception:: PerformanceWarning
 
+.. autoexception:: PickleNotAllowedError
+
+.. autoexception:: PickleSecurityWarning
+
 .. autoexception:: FlavorError
 
 .. autoexception:: FlavorWarning

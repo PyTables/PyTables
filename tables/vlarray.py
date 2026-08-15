@@ -11,7 +11,12 @@ import numpy as np
 import numpy.typing as npt
 
 from . import hdf5extension
-from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
+from .atom import (
+    ObjectAtom,
+    VLStringAtom,
+    VLUnicodeAtom,
+    _allow_object_unpickling,
+)
 from .leaf import Leaf, calc_chunksize
 from .utils import (
     convert_to_np_atom,
@@ -23,6 +28,7 @@ from .utils import (
     lazyattr,
 )
 from .flavor import internal_to_flavor
+from .exceptions import PickleNotAllowedError
 
 if TYPE_CHECKING:
     from .atom import Atom, Enum
@@ -836,7 +842,22 @@ class VLArray(hdf5extension.VLArray, Leaf):
             listarr = self._read_array(start, stop, step)
 
         atom = self.atom
-        if not hasattr(atom, "size"):  # it is a pseudo-atom
+        if isinstance(atom, ObjectAtom):
+            allow_pickle = self._v_file.params["ALLOW_PICKLE"]
+            if not listarr:
+                outlistarr = []
+            elif not allow_pickle:
+                raise PickleNotAllowedError(
+                    "automatic unpickling is disabled; reopen the file with "
+                    "allow_pickle=True only if the file is trusted"
+                )
+            else:
+                # Preserve the historical ``fromarray(array)`` call shape for
+                # custom ObjectAtom subclasses.  The context also allows an
+                # old override to delegate to ``super().fromarray(array)``.
+                with _allow_object_unpickling():
+                    outlistarr = [atom.fromarray(arr) for arr in listarr]
+        elif not hasattr(atom, "size"):  # it is a pseudo-atom
             outlistarr = [atom.fromarray(arr) for arr in listarr]
         else:
             # Convert the list to the right flavor

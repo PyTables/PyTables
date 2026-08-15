@@ -26,6 +26,8 @@ __all__ = [
     "NotChunkAlignedError",
     "OldIndexWarning",
     "PerformanceWarning",
+    "PickleNotAllowedError",
+    "PickleSecurityWarning",
     "UnclosedFileWarning",
     "UndoRedoError",
     "UndoRedoWarning",
@@ -330,6 +332,27 @@ class PerformanceWarning(Warning):
     which may cause it to slow down on future operations (i.e. making
     the node tree grow too much).
 
+    """
+
+    pass
+
+
+class PickleNotAllowedError(ValueError):
+    """Automatic unpickling was requested for a file that did not allow it.
+
+    Pickle payloads can execute arbitrary code while they are loaded.  Open a
+    trusted file with ``allow_pickle=True`` to opt in explicitly.
+
+    .. versionadded:: 3.12
+    """
+
+    pass
+
+
+class PickleSecurityWarning(Warning):
+    """Warning issued when automatic unpickling is explicitly enabled.
+
+    .. versionadded:: 3.12
     """
 
     pass

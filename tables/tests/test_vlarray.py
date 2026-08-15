@@ -1,4 +1,5 @@
 import sys
+import warnings
 
 import numpy as np
 
@@ -403,8 +404,20 @@ class ShuffleComprTestCase(BasicTestCase):
 
 class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
+    open_kwargs = {"allow_pickle": True}
     compress = 0
     complib = "zlib"  # Default compression library
+
+    def setUp(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", tb.PickleSecurityWarning)
+            super().setUp()
+
+    def _reopen(self, mode="r", **kwargs):
+        kwargs.setdefault("allow_pickle", True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", tb.PickleSecurityWarning)
+            return super()._reopen(mode, **kwargs)
 
     def test01_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor)"""

@@ -1,80 +1,21 @@
-import io
 import pickle as _pickle
-import warnings
 from pickle import DEFAULT_PROTOCOL, HIGHEST_PROTOCOL
 
-from . import parameters
+from .exceptions import PickleNotAllowedError
 
 __all__ = [
     "DEFAULT_PROTOCOL",
     "HIGHEST_PROTOCOL",
-    "PickleDeprecationWarning",
     "dumps",
     "loads",
 ]
 
 
-class PickleDeprecationWarning(DeprecationWarning):
-    pass
-
-
-FORBIDDEN_MODULES: set[str] = {
-    "io",
-    "os",
-    "sys",
-    "json",
-    "pickle",
-    "shutil",
-    "pathlib",
-    "subprocess",
-}
-
-
-SAFE_BUILTINS: set[str] = {
-    "complex",
-    "dict",
-    "list",
-    "tuple",
-}
-
-
-class RestrictedUnpickler(_pickle.Unpickler):
-    def find_class(self, module, name):
-        if module in FORBIDDEN_MODULES or (
-            module == "builtins" and name not in SAFE_BUILTINS
-        ):
-            raise _pickle.UnpicklingError(
-                f"global '{module}.{name}' is forbidden"
-            )
-        return super().find_class(module, name)
-
-
-def _restricted_loads(
-    data,
-    /,
-    *,
-    fix_imports=True,
-    encoding="ASCII",
-    errors="strict",
-    buffers=None,
-):
-    """Restricted pickle.loads()."""
-    return RestrictedUnpickler(
-        io.BytesIO(data),
-        fix_imports=fix_imports,
-        encoding=encoding,
-        errors=errors,
-        buffers=buffers,
-    ).load()
-
-
 def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     """Return the pickled representation of the object as a bytes object.
 
-    The optional *protocol* argument tells the pickler to use the given
-    protocol; supported protocols are 0, 1, 2, 3, 4 and 5.  The default
-    protocol is 5. It was introduced in Python 3.8, and is incompatible
-    with previous versions.
+    The optional *protocol* argument selects the pickle protocol.  If it is
+    omitted, the interpreter's default protocol is used.
 
     Specifying a negative protocol version selects the highest protocol
     version supported.  The higher the protocol used, the more recent the
@@ -88,16 +29,6 @@ def dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     into *file* as part of the pickle stream.  It is an error if
     *buffer_callback* is not None and *protocol* is None or smaller than 5.
     """
-    if not parameters.ALLOW_PICKLE:
-        raise RuntimeError("the use of pickle in PyTables has been disabled.")
-
-    warnings.warn(
-        "the use of pickle in PyTables is deprecated for security reasons. "
-        "Support to pickle may be removed in the future.",
-        category=PickleDeprecationWarning,
-        stacklevel=2,
-    )
-
     return _pickle.dumps(
         obj, protocol, fix_imports=fix_imports, buffer_callback=buffer_callback
     )
@@ -111,6 +42,7 @@ def loads(
     encoding="ASCII",
     errors="strict",
     buffers=None,
+    allow_pickle=False,
 ):
     """Read and return an object from the given pickle data.
 
@@ -126,21 +58,23 @@ def loads(
     instances pickled by Python 2; these default to 'ASCII' and 'strict',
     respectively.  The *encoding* can be 'bytes' to read these 8-bit
     string instances as bytes objects.
+
+    *allow_pickle* must be true before any pickle opcodes are evaluated.
+    It is false by default.
     """
-    if not parameters.ALLOW_PICKLE:
-        raise RuntimeError("the use of pickle in PyTables has been disabled.")
+    if type(allow_pickle) is not bool:
+        raise TypeError("allow_pickle must be a bool")
+    if not allow_pickle:
+        raise PickleNotAllowedError(
+            "automatic unpickling is disabled; reopen the file with "
+            "allow_pickle=True only if the file is trusted"
+        )
 
-    warnings.warn(
-        "the use of pickle in PyTables is deprecated for security reasons. "
-        "Support to pickle may be removed in the future.",
-        category=PickleDeprecationWarning,
-        stacklevel=2,
-    )
-
-    return _restricted_loads(
-        data,
-        fix_imports=fix_imports,
-        encoding=encoding,
-        errors=errors,
-        buffers=buffers,
-    )
+    kwargs = {
+        "fix_imports": fix_imports,
+        "encoding": encoding,
+        "errors": errors,
+    }
+    if buffers is not None:
+        kwargs["buffers"] = buffers
+    return _pickle.loads(data, **kwargs)
