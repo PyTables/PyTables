@@ -1373,9 +1373,10 @@ class ObjectAtom(_BufferedAtom):
         Writing object atoms issues :exc:`PickleSecurityWarning`, because the
         resulting data requires unpickling to be read.
 
-        Reading object atoms requires unpickling and is disabled by default.
-        Open a trusted file with ``allow_pickle=True`` to enable it.  Never
-        enable unpickling for files from untrusted sources.
+        Reading object atoms requires unpickling and remains enabled by
+        default in PyTables 3.12.  Open untrusted files with
+        ``allow_pickle=False``.  Never enable unpickling for files from
+        untrusted sources.
 
     """
 
@@ -1395,8 +1396,7 @@ class ObjectAtom(_BufferedAtom):
 
         The *allow_pickle* argument must be true before the input is loaded.
         Direct calls deny loading by default; :class:`VLArray` applies the
-        policy of its file handle.  Set it only when the data comes from a
-        trusted source.
+        policy of its file handle.
         """
         # We have to check for an empty array because of a possible
         # bug in HDF5 which makes it claim that a dataset has one

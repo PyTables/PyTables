@@ -133,10 +133,10 @@ class AttributeSet(hdf5extension.AttributeSet):
     Serializing a non-native value issues :exc:`PickleSecurityWarning`, since
     reading the resulting attribute later requires unpickling.
 
-    Automatic unpickling is disabled by default because loading pickle data
-    can execute arbitrary code.  Pickled attributes are returned as raw bytes
-    unless the file was opened with ``allow_pickle=True``.  Only enable this
-    option for files from trusted sources, as shown in this example::
+    Automatic unpickling remains enabled by default in PyTables 3.12 for
+    compatibility.  Loading pickle data can execute arbitrary code, so open
+    untrusted files with ``allow_pickle=False``.  Disabled files return
+    pickled attributes as raw bytes, as shown in this example::
 
         >>> import os, tempfile
         >>> import tables as tb
@@ -149,10 +149,10 @@ class AttributeSet(hdf5extension.AttributeSet):
         >>> with tb.open_file(h5fname, 'w') as h5f:
         ...     h5f.root._v_attrs.obj = myObject
         ...
-        >>> with tb.open_file(h5fname, 'r') as h5f:
+        >>> with tb.open_file(h5fname, 'r', allow_pickle=False) as h5f:
         ...     print(repr(h5f.root._v_attrs.obj))
         b'ccopy_reg\\n_reconstructor...
-        >>> with tb.open_file(h5fname, 'r', allow_pickle=True) as h5f:
+        >>> with tb.open_file(h5fname, 'r') as h5f:
         ...     print(h5f.root._v_attrs.obj.foo)
         bar
         >>>

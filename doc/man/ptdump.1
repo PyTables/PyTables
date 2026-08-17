@@ -51,8 +51,9 @@ Show info of indexed column (only useful when \-v or \-d are active).
 Select a range of rows in the form "start,stop,step" for \fIall\fR leaves.
 .TP
 .B \-\-allow\-pickle
-Allow automatic unpickling while reading. Use only for files from trusted
-sources.
+Allow automatic unpickling while reading. ptdump keeps this disabled by
+default even though the library default is still enabled. Use only for
+files from trusted sources.
 .TP
 .B \-h
 Print help on usage.

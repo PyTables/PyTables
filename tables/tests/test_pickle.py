@@ -78,11 +78,22 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ):
             self._reopen("r", allow_pickle=True)
 
-    def test_attribute_payload_is_not_loaded_by_default(self):
+    def _reopen_disabled(self):
+        self._reopen("r", allow_pickle=False)
+
+    def test_pickled_attribute_is_loaded_by_default(self):
+        expected = {"answer": 42}
+        self._store_attribute_payload(pickle.dumps(expected, protocol=0))
+
+        self._reopen("r")
+
+        self.assertEqual(self.h5file.root._v_attrs.payload, expected)
+
+    def test_attribute_payload_is_not_loaded_when_disabled(self):
         payload = self._malicious_payload()
         self._store_attribute_payload(payload)
 
-        self._reopen("r")
+        self._reopen_disabled()
 
         actual = self.h5file.root._v_attrs.payload
         self.assertFalse(self.sentinel.exists())
@@ -107,12 +118,12 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
             payload = ptpickle.dumps(expected)
         self._store_attribute_payload(payload)
 
-        self._reopen("r")
+        self._reopen_disabled()
         actual = self.h5file.root._v_attrs.payload
         self.assertIsInstance(actual, np.bytes_)
         self.assertEqual(bytes(actual), payload)
 
-        self._reopen_trusted()
+        self._reopen("r")
         self.assertEqual(self.h5file.root._v_attrs.payload, expected)
 
     def test_trusted_attribute_round_trip(self):
@@ -123,10 +134,23 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.assertEqual(self.h5file.root._v_attrs.payload, expected)
 
-    def test_object_atom_payload_is_not_loaded_by_default(self):
-        self._store_object_atom_payload(self._malicious_payload())
+    def test_object_atom_is_loaded_by_default(self):
+        expected = {"answer": 42}
+        vlarray = self.h5file.create_vlarray(
+            "/", "objects", atom=tb.ObjectAtom()
+        )
+        with self.assertWarnsRegex(
+            tb.PickleSecurityWarning, "requires unpickling"
+        ):
+            vlarray.append(expected)
 
         self._reopen("r")
+        self.assertEqual(self.h5file.root.objects.read(), [expected])
+
+    def test_object_atom_payload_is_not_loaded_when_disabled(self):
+        self._store_object_atom_payload(self._malicious_payload())
+
+        self._reopen_disabled()
 
         node = self.h5file.root.payload
         accessors = {
@@ -154,7 +178,7 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ):
             vlarray.append(expected)
 
-        self._reopen("r")
+        self._reopen_disabled()
         with self.assertRaises(tb.PickleNotAllowedError):
             self.h5file.root.objects.read()
 
@@ -167,37 +191,35 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._store_attribute_payload(payload)
         self.h5file.close()
 
-        safe_file = tb.open_file(self.h5fname, "r")
-        with self.assertWarns(tb.PickleSecurityWarning):
-            trusted_file = tb.open_file(self.h5fname, "r", allow_pickle=True)
-        self.h5file = safe_file
+        default_file = tb.open_file(self.h5fname, "r")
+        disabled_file = tb.open_file(self.h5fname, "r", allow_pickle=False)
+        self.h5file = default_file
         try:
-            self.assertEqual(bytes(safe_file.root._v_attrs.payload), payload)
-            self.assertEqual(trusted_file.root._v_attrs.payload, expected)
+            self.assertEqual(default_file.root._v_attrs.payload, expected)
+            self.assertEqual(bytes(disabled_file.root._v_attrs.payload), payload)
         finally:
-            trusted_file.close()
+            disabled_file.close()
 
-    def test_explicit_false_overrides_global_true(self):
+    def test_explicit_false_overrides_default_true(self):
         expected = {"answer": 42}
         payload = pickle.dumps(expected, protocol=0)
         self._store_attribute_payload(payload)
         self.h5file.close()
 
-        with mock.patch.object(tb.parameters, "ALLOW_PICKLE", True):
-            self.h5file = tb.open_file(self.h5fname, "r", allow_pickle=False)
+        self.h5file = tb.open_file(self.h5fname, "r", allow_pickle=False)
 
         self.assertEqual(bytes(self.h5file.root._v_attrs.payload), payload)
 
-    def test_global_true_applies_to_new_file_handles(self):
+    def test_global_false_applies_to_new_file_handles(self):
         expected = {"answer": 42}
-        self._store_attribute_payload(pickle.dumps(expected, protocol=0))
+        payload = pickle.dumps(expected, protocol=0)
+        self._store_attribute_payload(payload)
         self.h5file.close()
 
-        with mock.patch.object(tb.parameters, "ALLOW_PICKLE", True):
-            with self.assertWarns(tb.PickleSecurityWarning):
-                self.h5file = tb.open_file(self.h5fname, "r")
+        with mock.patch.object(tb.parameters, "ALLOW_PICKLE", False):
+            self.h5file = tb.open_file(self.h5fname, "r")
 
-        self.assertEqual(self.h5file.root._v_attrs.payload, expected)
+        self.assertEqual(bytes(self.h5file.root._v_attrs.payload), payload)
 
     def test_global_change_does_not_affect_open_file_handle(self):
         vlarray = self.h5file.create_vlarray(
@@ -205,6 +227,10 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         )
         with self.assertWarns(tb.PickleSecurityWarning):
             vlarray.append({"answer": 42})
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, "r", allow_pickle=False)
+        vlarray = self.h5file.root.objects
 
         with mock.patch.object(tb.parameters, "ALLOW_PICKLE", True):
             with self.assertRaises(tb.PickleNotAllowedError):
@@ -244,6 +270,8 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_legacy_object_atom_override(self):
         expected = {"answer": 42}
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, "w", allow_pickle=False)
         atom = _DirectLegacyObjectAtom()
         vlarray = self.h5file.create_vlarray("/", "safe_objects", atom=atom)
         with self.assertWarns(tb.PickleSecurityWarning):

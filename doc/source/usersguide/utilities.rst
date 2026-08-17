@@ -61,8 +61,9 @@ to see the message usage:
       --allow-pickle        allow automatic unpickling while reading; use only
                             for files from trusted sources
 
-Automatic unpickling is disabled by default.  To display pickled attributes or
-``ObjectAtom`` data from a file you trust, add ``--allow-pickle``.
+The library still enables automatic unpickling by default.  ``ptdump`` keeps
+it disabled unless you pass ``--allow-pickle``.  Use that option only for
+files you trust.
 
 Read on for a brief introduction to this utility.
 

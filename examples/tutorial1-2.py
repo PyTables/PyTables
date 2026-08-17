@@ -72,8 +72,8 @@ table.attrs.temp_scale = "Celsius"
 detector = h5file.root.detector
 # Attach a general object to the parent (/detector) group
 detector._v_attrs.stuff = [5, (2.3, 4.5), "Integer and tuple"]
-# Reading this attribute after reopening requires ``allow_pickle=True`` and
-# should only be done for files from trusted sources.
+# Reading this attribute after reopening still unpickles by default.
+# Open untrusted files with ``allow_pickle=False``.
 
 # Now, get the attributes
 print("gath_date attribute of /detector/readout:", table.attrs.gath_date)

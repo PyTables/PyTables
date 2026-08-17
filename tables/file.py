@@ -267,9 +267,10 @@ def open_file(
         child nodes.
     allow_pickle : bool, optional
         Allow automatic unpickling while reading this file.  The default is
-        :data:`parameters.ALLOW_PICKLE`, initially false, because loading
-        pickle data can execute arbitrary code.  Set this to true only for
-        files from trusted sources.
+        :data:`parameters.ALLOW_PICKLE`, initially true for compatibility.
+        Loading pickle data can execute arbitrary code.  Pass ``False`` for
+        untrusted files.  The default is expected to change to false in a
+        future release.
 
     Notes
     -----
@@ -692,9 +693,10 @@ class File(hdf5extension.File):
         ones, which will in turn propagate to child nodes.
     allow_pickle : bool, optional
         Allow automatic unpickling while reading this file.  The default is
-        :data:`parameters.ALLOW_PICKLE`, initially false, because loading
-        pickle data can execute arbitrary code.  Set this to true only for
-        files from trusted sources.
+        :data:`parameters.ALLOW_PICKLE`, initially true for compatibility.
+        Loading pickle data can execute arbitrary code.  Pass ``False`` for
+        untrusted files.  The default is expected to change to false in a
+        future release.
 
     Notes
     -----
@@ -810,7 +812,9 @@ class File(hdf5extension.File):
         allow_pickle = params["ALLOW_PICKLE"]
         if type(allow_pickle) is not bool:
             raise TypeError("allow_pickle must be a bool")
-        if allow_pickle:
+        # Warn only for an explicit opt-in.  The compatibility default is
+        # already true, and warning on every open_file() would be too noisy.
+        if allow_pickle and "ALLOW_PICKLE" in kwargs:
             warnings.warn(
                 "automatic unpickling is enabled for this file; pickle data "
                 "can execute arbitrary code, so only open files you trust",

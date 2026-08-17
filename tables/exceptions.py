@@ -340,8 +340,9 @@ class PerformanceWarning(Warning):
 class PickleNotAllowedError(ValueError):
     """Automatic unpickling was requested for a file that did not allow it.
 
-    Pickle payloads can execute arbitrary code while they are loaded.  Open a
-    trusted file with ``allow_pickle=True`` to opt in explicitly.
+    Pickle payloads can execute arbitrary code while they are loaded.  This
+    error is raised when the file was opened with ``allow_pickle=False`` or
+    when :data:`~tables.parameters.ALLOW_PICKLE` was false.
 
     .. versionadded:: 3.12
     """
