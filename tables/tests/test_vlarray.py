@@ -4337,6 +4337,31 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             common.allequal(array1[3], np.array([], dtype="int16"))
         )
 
+    def test04_truncate_then_append(self):
+        """Checking VLArray.truncate() then append (gh-1102)"""
+
+        array1 = self.h5file.root.array1
+        array1.truncate(0)
+        array1.append(np.array([7, 8], dtype="int16"))
+        array1.append(np.array([9], dtype="int16"))
+
+        if self.close:
+            if common.verbose:
+                print("(closing file version)")
+            self._reopen()
+            array1 = self.h5file.root.array1
+
+        if common.verbose:
+            print("array1-->", array1.read())
+
+        self.assertEqual(array1.nrows, 2)
+        self.assertTrue(
+            common.allequal(array1[0], np.array([7, 8], dtype="int16"))
+        )
+        self.assertTrue(
+            common.allequal(array1[1], np.array([9], dtype="int16"))
+        )
+
 
 class TruncateOpenTestCase(TruncateTestCase):
     close = 0
@@ -4344,6 +4369,70 @@ class TruncateOpenTestCase(TruncateTestCase):
 
 class TruncateCloseTestCase(TruncateTestCase):
     close = 1
+
+
+class TruncateAppendVLTypesTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    """Regression for gh-1102: append after VLArray.truncate()."""
+
+    def test00_vlstring_truncate0_append(self):
+        """Checking VLStringAtom append after truncate(0) (gh-1102)"""
+
+        values = [b"sad", b"asdsad", b"asdsadasdsad"]
+        arr = self.h5file.create_vlarray(
+            "/", "sad", tb.VLStringAtom(), chunkshape=(4,)
+        )
+        for value in values:
+            arr.append(value)
+        self.assertEqual(arr[:], values)
+
+        arr.truncate(0)
+        for value in values:
+            arr.append(value)
+
+        self.assertEqual(arr.nrows, 3)
+        self.assertEqual(arr[:], values)
+
+    def test01_vlstring_truncate1_append(self):
+        """Checking VLStringAtom append after truncate(1) (gh-1102)"""
+
+        arr = self.h5file.create_vlarray("/", "sad", tb.VLStringAtom())
+        arr.append(b"keep")
+        arr.append(b"drop")
+        arr.truncate(1)
+        arr.append(b"new")
+
+        self.assertEqual(arr.nrows, 2)
+        self.assertEqual(arr[:], [b"keep", b"new"])
+
+    def test02_vlunicode_truncate0_append(self):
+        """Checking VLUnicodeAtom append after truncate(0) (gh-1102)"""
+
+        values = ["sad", "asdsad", "para\u0140lel"]
+        arr = self.h5file.create_vlarray("/", "sad", tb.VLUnicodeAtom())
+        for value in values:
+            arr.append(value)
+        arr.truncate(0)
+        for value in values:
+            arr.append(value)
+
+        self.assertEqual(arr.nrows, 3)
+        self.assertEqual(arr[:], values)
+
+    def test03_object_truncate0_append(self):
+        """Checking ObjectAtom append after truncate(0) (gh-1102)"""
+
+        values = [[1, 2, 3], "aaa", 42]
+        arr = self.h5file.create_vlarray("/", "sad", tb.ObjectAtom())
+        for value in values:
+            arr.append(value)
+        arr.truncate(0)
+        for value in values:
+            arr.append(value)
+
+        self.assertEqual(arr.nrows, 3)
+        self.assertEqual(arr[:], values)
 
 
 class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -4733,6 +4822,7 @@ def suite():
         theSuite.addTest(common.make_suite(VLUEndianTestCase))
         theSuite.addTest(common.make_suite(TruncateOpenTestCase))
         theSuite.addTest(common.make_suite(TruncateCloseTestCase))
+        theSuite.addTest(common.make_suite(TruncateAppendVLTypesTestCase))
         theSuite.addTest(common.make_suite(PointSelectionTestCase))
         theSuite.addTest(common.make_suite(SizeInMemoryPropertyTestCase))
         theSuite.addTest(common.make_suite(SizeOnDiskPropertyTestCase))

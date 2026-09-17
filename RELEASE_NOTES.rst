@@ -31,6 +31,8 @@ Changes from 3.11.1 to 3.12.0
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
+* Fix ``VLArray.append`` after ``truncate()`` writing past the new extent
+  and reading back empty values (:issue:`1102`).
 
 
 .. _Cython: https://cython.org

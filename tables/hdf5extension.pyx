@@ -2336,6 +2336,16 @@ cdef class VLArray(Leaf):
     self.nrecords = nrecords  # Initialize the number of records saved
     return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
 
+  def _g_truncate(self, hsize_t size):
+    """Truncate a VLArray to `size` nrows.
+
+    ``nrecords`` is the C-level append cursor and must stay aligned with
+    the HDF5 extent; ``Leaf._g_truncate`` only updates ``nrows``.
+    """
+
+    Leaf._g_truncate(self, size)
+    self.nrecords = size
+
   def _append(self, ndarray nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
