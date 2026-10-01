@@ -234,7 +234,7 @@ jobs:
         working-directory: wheelhouse
 
       - name: Upload wheel
-        uses: scientific-python/upload-nightly-action@e76cfec8a4611fd02808a801b0ff5a7d7c1b2d99 # 0.6.4
+        uses: scientific-python/upload-nightly-action@16fa02eacee1655195143de09f03676e60ef2bf5 # 0.6.5
         if: github.repository == 'PyTables/PyTables' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         with:
           artifacts_path: wheelhouse
