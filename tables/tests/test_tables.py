@@ -3013,6 +3013,199 @@ class NonNestedTableReadTestCase(
             self.assertIn("output array size invalid, got", str(exc))
 
 
+class TableAppendStructuredArrayTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    def check_append(self, rows, expected, description=None):
+        original = rows.tobytes()
+        original_dtype = rows.dtype
+        for byteorder in (None, "little", "big"):
+            with self.subTest(byteorder=byteorder):
+                self._reopen("w")
+                table = self.h5file.create_table(
+                    "/",
+                    "table",
+                    expected.dtype if description is None else description,
+                    byteorder=byteorder,
+                )
+                table.append(rows)
+                table.append(rows[:0])
+                table.append(rows)
+                table.flush()
+                result = np.concatenate([expected, expected])
+                self.assertEqual(table.byteorder, byteorder or sys.byteorder)
+                self.assertEqual(table.dtype, expected.dtype)
+                np.testing.assert_array_equal(table.read(), result)
+                self._reopen()
+                np.testing.assert_array_equal(
+                    self.h5file.root.table[:], result
+                )
+                self.assertEqual(rows.dtype, original_dtype)
+                self.assertEqual(rows.tobytes(), original)
+
+    def test_byteorders(self):
+        expected = np.array(
+            [
+                (0x12345678, -123, 1.25, b"one", True),
+                (0x90ABCDEF, 456, -2.5, b"two", False),
+            ],
+            dtype=[
+                ("z", "u4"),
+                ("a", "i2"),
+                ("value", "f8"),
+                ("label", "S3"),
+                ("valid", "?"),
+            ],
+        )
+        for byteorder in ("=", "<", ">"):
+            for recarray in (False, True):
+                with self.subTest(byteorder=byteorder, recarray=recarray):
+                    rows = expected.astype(
+                        expected.dtype.newbyteorder(byteorder)
+                    )
+                    if recarray:
+                        rows = rows.view(np.recarray)
+                    rows.flags.writeable = False
+                    self.check_append(rows, expected)
+
+    def test_mixed_byteorders(self):
+        expected = np.array(
+            [(12345, -1234, 1.25 + 2.5j), (45678, 2345, -3.5 - 4.75j)],
+            dtype=[("z", "u4"), ("a", "i2"), ("value", "c16")],
+        )
+        rows = expected.astype([("z", ">u4"), ("a", "<i2"), ("value", ">c16")])
+        self.check_append(rows, expected)
+
+    def test_nested_subarrays(self):
+        expected = np.zeros(
+            2,
+            dtype=[
+                ("z", "i4"),
+                ("a", [("vector", "f8", (2,)), ("code", "i2")]),
+            ],
+        )
+        expected["z"] = [12345, -45678]
+        expected["a"]["vector"] = [[1.25, -2.5], [3.75, 4.5]]
+        expected["a"]["code"] = [-123, 456]
+        rows = expected.astype(expected.dtype.newbyteorder("S"))
+        self.check_append(rows, expected)
+
+    def test_record_layouts(self):
+        expected = np.array(
+            [(3, 12345, -1.5), (7, -45678, 2.25)],
+            dtype=[("z", "u1"), ("a", "i4"), ("value", "f8")],
+        )
+        dtypes = [
+            np.dtype(expected.dtype.descr, align=True),
+            np.dtype(
+                {
+                    "names": expected.dtype.names,
+                    "formats": ["u1", "i4", "f8"],
+                    "offsets": [16, 4, 8],
+                    "itemsize": 24,
+                }
+            ),
+        ]
+        for dtype in dtypes:
+            for byteorder in ("=", "S"):
+                with self.subTest(dtype=dtype, byteorder=byteorder):
+                    rows = expected.astype(dtype.newbyteorder(byteorder))
+                    self.check_append(rows, expected)
+
+    def test_noncontiguous(self):
+        expected = np.array(
+            [(123, 1.25), (-456, 2.5), (789, -3.75), (-1234, 4.5)],
+            dtype=[("z", "i4"), ("a", "f8")],
+        )
+        for byteorder in ("=", "S"):
+            for step in (2, -1):
+                with self.subTest(byteorder=byteorder, step=step):
+                    rows = expected.astype(
+                        expected.dtype.newbyteorder(byteorder)
+                    )
+                    rows = rows[::step]
+                    rows.flags.writeable = False
+                    self.check_append(rows, expected[::step])
+
+    def test_padded_table_dtype(self):
+        formats = [("z", "u1"), ("a", "i4"), ("value", "f8")]
+        dtypes = [
+            np.dtype(formats, align=True),
+            np.dtype(
+                {
+                    "names": ["z", "a", "value"],
+                    "formats": ["u1", "i4", "f8"],
+                    "offsets": [0, 8, 16],
+                    "itemsize": 24,
+                }
+            ),
+        ]
+        for dtype in dtypes:
+            with self.subTest(dtype=dtype):
+                expected = np.array(
+                    [(3, 12345, -1.5), (7, -45678, 2.25)], dtype=dtype
+                )
+                rows = expected.astype(np.dtype(formats).newbyteorder("S"))
+                self.check_append(rows, expected)
+
+    def test_cast_to_table_dtype(self):
+        rows = np.array(
+            [(123, 1.25), (-456, -2.5)],
+            dtype=[("source_z", ">i8"), ("source_a", ">f8")],
+        )
+        expected = np.array(
+            [(123, 1.25), (-456, -2.5)],
+            dtype=[("target_z", "i4"), ("target_a", "f4")],
+        )
+        self.check_append(rows, expected)
+
+    def test_reordered_schema_fields(self):
+        dtype = np.dtype(
+            {
+                "names": ["z", "a"],
+                "formats": ["i4", "i4"],
+                "offsets": [4, 0],
+                "itemsize": 8,
+            }
+        )
+        expected_dtype = np.dtype([("a", "i4"), ("z", "i4")])
+        for nested in (False, True):
+            description = np.dtype([("group", dtype)]) if nested else dtype
+            target = (
+                np.dtype([("group", expected_dtype)])
+                if nested
+                else expected_dtype
+            )
+            expected = np.zeros(2, dtype=target)
+            fields = expected["group"] if nested else expected
+            fields["z"] = [11, 33]
+            fields["a"] = [22, 44]
+            for byteorder in ("=", "S"):
+                with self.subTest(nested=nested, byteorder=byteorder):
+                    rows = np.zeros(
+                        2, dtype=description.newbyteorder(byteorder)
+                    )
+                    fields = rows["group"] if nested else rows
+                    fields["z"] = [11, 33]
+                    fields["a"] = [22, 44]
+                    self.check_append(rows, expected, description)
+
+    def test_positional_field_names(self):
+        rows = np.array([(11, 22), (33, 44)], dtype=[("a", "i4"), ("z", "i4")])
+        expected = np.array(
+            [(11, 22), (33, 44)], dtype=[("z", "i4"), ("a", "i4")]
+        )
+        self.check_append(rows, expected)
+
+    def test_scalar_to_subarray(self):
+        rows = np.array([(1,), (2,), (3,)], dtype=[("value", ">i4")])
+        expected = np.array(
+            [([1, 1],), ([2, 2],), ([3, 3],)],
+            dtype=[("value", "i4", (2,))],
+        )
+        self.check_append(rows, expected)
+
+
 class TableReadByteorderTestCase(
     common.TempFileMixin, common.PyTablesTestCase
 ):
@@ -8126,6 +8319,7 @@ def suite():
         theSuite.addTest(common.make_suite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(common.make_suite(NonNestedTableReadTestCase))
         theSuite.addTest(common.make_suite(TableReadByteorderTestCase))
+        theSuite.addTest(common.make_suite(TableAppendStructuredArrayTestCase))
         theSuite.addTest(common.make_suite(IterRangeTestCase))
         theSuite.addTest(common.make_suite(RecArrayRangeTestCase))
         theSuite.addTest(common.make_suite(GetColRangeTestCase))

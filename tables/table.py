@@ -102,6 +102,40 @@ if hasattr(np, "complex256"):
 _npsizetype = np.array(SizeType(0)).dtype.type
 
 
+def _dtype_in_table_order(dtype: np.dtype, target: np.dtype) -> np.dtype:
+    """Match field order when a description normalized the same offsets."""
+    if dtype.subdtype is not None:
+        return np.dtype(
+            (_dtype_in_table_order(dtype.base, target.base), dtype.shape)
+        )
+    if dtype.names is None or target.names is None:
+        return dtype
+    names = dtype.names
+    if set(names) == set(target.names) and all(
+        dtype.fields[name][1] == target.fields[name][1] for name in names
+    ):
+        names = target.names
+    formats = [
+        _dtype_in_table_order(
+            dtype.fields[name][0], target.fields[target_name][0]
+        )
+        for name, target_name in zip(names, target.names, strict=True)
+    ]
+    return np.dtype(
+        {
+            "names": names,
+            "formats": formats,
+            "offsets": [dtype.fields[name][1] for name in names],
+            "titles": [
+                dtype.fields[name][2] if len(dtype.fields[name]) > 2 else None
+                for name in names
+            ],
+            "itemsize": dtype.itemsize,
+        },
+        align=dtype.isalignedstruct,
+    )
+
+
 def _index_name_of(node: Node) -> str:
     return f"_i_{node._v_name}"
 
@@ -2385,6 +2419,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
             hasattr(rows, "dtype")
             and not self.description._v_is_nested
             and rows.dtype == self.dtype
+            and rows.flags.c_contiguous
         ):
             # Shortcut for compliant arrays
             # (for some reason, not valid for nested types)
@@ -2395,9 +2430,19 @@ very small/large chunksize, you may want to increase/decrease it.""",
                 iflavor = flavor_of(rows)
                 if iflavor != "python":
                     rows = array_as_internal(rows, iflavor)
-                # Works for Python structures and always copies the original,
-                # so the resulting object is safe for in-place conversion.
-                wbuf_ra = np.rec.array(rows, dtype=self._v_dtype)
+                if (
+                    isinstance(rows, np.ndarray)
+                    and rows.dtype.names is not None
+                ):
+                    # Convert field values, not their byte representation.
+                    dtype = _dtype_in_table_order(rows.dtype, self._v_dtype)
+                    wbuf_ra = np.array(
+                        rows.view(dtype), dtype=self._v_dtype, copy=True
+                    )
+                else:
+                    # Works for Python structures and always copies the original,
+                    # so the resulting object is safe for in-place conversion.
+                    wbuf_ra = np.rec.array(rows, dtype=self._v_dtype)
             except Exception as exc:
                 raise ValueError(
                     f"rows parameter cannot be converted into a "
