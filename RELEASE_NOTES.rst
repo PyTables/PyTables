@@ -28,6 +28,9 @@ Changes from 3.11.1 to 3.12.0
   (both rated 8.8 HIGH by NVD) and the CVE-2026-17572/17573/17574 batch
   fixed in 2.2.0.
 
+* Preserve field values when :meth:`Table.append` converts structured arrays
+  with a different dtype or byteorder (:issue:`658`), and copy strided arrays
+  before appending their records.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
