@@ -90,6 +90,7 @@ from .definitions cimport (
     H5T_CSET_UTF8,
     H5ATTRset_attribute_string,
     H5ATTRset_attribute,
+    BYTEORDER_SIZE,
     get_len_of_range,
     get_order,
     is_complex,
@@ -403,7 +404,7 @@ cdef class Table(Leaf):
     cdef size_t  itemsize
     cdef char    *c_colname
     cdef H5T_class_t class_id
-    cdef char    c_byteorder2[11]  # "irrelevant" fits easily here
+    cdef char    c_byteorder2[BYTEORDER_SIZE]
     cdef object  desc, colobj, colpath2
     cdef object  byteorder
     cdef str     colname, byteorder2

@@ -156,6 +156,28 @@ class I32LETestCase(NumericTestCase):
     byteorder = "little"
 
 
+class F64VAXTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a dataset with a VAX ordered floating point datatype.
+
+    smpl_f64vax.h5 holds a chunked 6x5 ``/TestArray`` created with the
+    predefined ``H5T_VAX_F64`` datatype, for which ``H5Tget_order()``
+    reports ``H5T_ORDER_VAX``.  PyTables cannot interpret that byte order,
+    so no data is checked here; opening the dataset only has to report the
+    byte order as unsupported.
+
+    """
+
+    h5fname = common.test_filename("smpl_f64vax.h5")
+
+    def test(self):
+        arr = self.h5file.get_node("/TestArray")
+        self.assertIsInstance(arr, tb.Array)
+
+        self.assertEqual(arr.atom.type, "float64")
+        self.assertEqual(arr.shape, (6, 5))
+        self.assertEqual(arr.byteorder, "unsupported")
+
+
 class ChunkedCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
     """Test for a more complex and chunked compound structure.
 
@@ -425,6 +447,7 @@ def suite():
         theSuite.addTest(common.make_suite(I64LETestCase))
         theSuite.addTest(common.make_suite(I32BETestCase))
         theSuite.addTest(common.make_suite(I32LETestCase))
+        theSuite.addTest(common.make_suite(F64VAXTestCase))
         theSuite.addTest(common.make_suite(ChunkedCompoundTestCase))
         theSuite.addTest(common.make_suite(ContiguousCompoundTestCase))
         theSuite.addTest(common.make_suite(ContiguousCompoundAppendTestCase))

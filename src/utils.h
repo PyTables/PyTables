@@ -22,6 +22,14 @@
 #define UFAIL           (unsigned)(-1)
 
 /*
+ * Minimum size of the buffer for the `byteorder` output parameter of
+ * get_order(), H5UIget_info(), H5ARRAYget_info() and H5VLARRAYget_info().
+ * It has to fit the longest string they can write ("unsupported") plus the
+ * trailing '\0'.
+ */
+#define BYTEORDER_SIZE 12
+
+/*
  * HDF Boolean type.
  */
 #ifndef FALSE

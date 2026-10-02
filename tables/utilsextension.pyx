@@ -57,6 +57,7 @@ from numpy cimport (
 )
 
 from .definitions cimport (
+    BYTEORDER_SIZE,
     H5ARRAYget_info,
     H5ARRAYget_ndims,
     H5ATTRfind_attribute,
@@ -881,7 +882,7 @@ def which_class(hid_t loc_id, object name):
   cdef int          rank
   cdef hsize_t      *dims
   cdef hsize_t      *maxdims
-  cdef char         byteorder[11]  # "irrelevant" fits easily here
+  cdef char         byteorder[BYTEORDER_SIZE]
   cdef bytes        encoded_name
 
   if isinstance(name, unicode):
@@ -1265,7 +1266,7 @@ def load_enum(hid_t type_id):
   """
 
   cdef hid_t enumId
-  cdef char c_byteorder[11]  # "irrelevant" fits well here
+  cdef char c_byteorder[BYTEORDER_SIZE]
   cdef str byteorder
 
   # Get the enumerated type
@@ -1521,7 +1522,7 @@ cdef int load_reference(
   cdef int rank = 0
   cdef hsize_t *maxdims = NULL
   cdef hsize_t *dims = NULL
-  cdef char cbyteorder[11]
+  cdef char cbyteorder[BYTEORDER_SIZE]
   cdef H5T_class_t class_id
   cdef hsize_t nrows
   cdef ndarray nprefarr

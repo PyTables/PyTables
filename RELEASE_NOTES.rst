@@ -36,6 +36,9 @@ Changes from 3.11.1 to 3.12.0
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
 * Fix ``VLArray.append`` after ``truncate()`` writing past the new extent
   and reading back empty values (:issue:`1102`).
+* Fix a one byte stack buffer overflow when opening a dataset whose HDF5
+  datatype has a byte order PyTables does not support, i.e. VAX ordered or
+  mixed endian types.
 
 
 .. _Cython: https://cython.org
