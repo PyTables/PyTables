@@ -62,7 +62,7 @@ modern CPU and around 512 MB of main memory.""")
 def test_filename(filename):
     from importlib import resources
 
-    return resources.files("tables.tests") / filename
+    return resources.files("tables.tests.data") / filename
 
 
 def verbose_print(string, nonl=False):

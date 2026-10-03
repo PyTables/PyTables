@@ -21,7 +21,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 def test_file(name):
     from importlib import resources
 
-    return resources.files("tables.nodes.tests") / name
+    return resources.files("tables.nodes.tests.data") / name
 
 
 class NewFileTestCase(TempFileMixin, TestCase):

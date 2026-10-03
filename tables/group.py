@@ -1095,7 +1095,7 @@ class Group(hdf5extension.Group, Node):
         ::
 
             >>> import tables
-            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
+            >>> f = tables.open_file('tables/tests/data/Tables_lzo2.h5')
             >>> print(f.root.group0)
             /group0 (Group) ''
             >>> f.close()
@@ -1113,7 +1113,7 @@ class Group(hdf5extension.Group, Node):
         ::
 
             >>> import tables
-            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
+            >>> f = tables.open_file('tables/tests/data/Tables_lzo2.h5')
             >>> f.root.group0
             /group0 (Group) ''
               children := ['group1' (Group), 'tuple1' (Table)]

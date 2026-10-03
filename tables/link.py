@@ -238,7 +238,7 @@ class SoftLink(linkextension.SoftLink, Link):
         --------
         ::
 
-            >>> f = tb.open_file('tables/tests/slink.h5')
+            >>> f = tb.open_file('tables/tests/data/slink.h5')
             >>> f.root.arr2
             /arr2 (SoftLink) -> /arr
             >>> print(f.root.arr2())
@@ -333,7 +333,7 @@ class SoftLink(linkextension.SoftLink, Link):
         --------
         ::
 
-            >>> f = tb.open_file('tables/tests/slink.h5')
+            >>> f = tb.open_file('tables/tests/data/slink.h5')
             >>> f.root.arr2
             /arr2 (SoftLink) -> /arr
             >>> f.close()
@@ -402,14 +402,14 @@ class ExternalLink(linkextension.ExternalLink, Link):
         --------
         ::
 
-            >>> f = tb.open_file('tables/tests/elink.h5')
+            >>> f = tb.open_file('tables/tests/data/elink.h5')
             >>> f.root.pep.pep2
             /pep/pep2 (ExternalLink) -> elink2.h5:/pep
             >>> pep2 = f.root.pep.pep2(mode='r')  # open in 'r'ead mode
             >>> print(pep2)
             /pep (Group) ''
             >>> pep2._v_file.filename       # belongs to referenced file
-            'tables/tests/elink2.h5'
+            'tables/tests/data/elink2.h5'
             >>> f.close()
 
         """
@@ -448,7 +448,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         --------
         ::
 
-            >>> f = tb.open_file('tables/tests/elink.h5')
+            >>> f = tb.open_file('tables/tests/data/elink.h5')
             >>> f.root.pep.pep2
             /pep/pep2 (ExternalLink) -> elink2.h5:/pep
             >>> f.close()
