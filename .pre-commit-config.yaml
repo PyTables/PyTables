@@ -41,7 +41,7 @@ repos:
         args: [--py311-plus]
 
 -   repo: https://github.com/pycqa/flake8
-    rev: 7.3.0
+    rev: 7.4.1
     hooks:
     -   id: flake8
         exclude: |
@@ -57,7 +57,7 @@ repos:
 #     -   id: pydocstyle
 
 -   repo: https://github.com/pycqa/isort
-    rev: 9.0.0b5
+    rev: 9.0.2
     hooks:
     -   id: isort
         name: isort (python)
@@ -96,7 +96,7 @@ repos:
 #             )
 
 -   repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.21.0
+    rev: v0.21.1
     hooks:
     -   id: cython-lint
     -   id: double-quote-cython-strings
