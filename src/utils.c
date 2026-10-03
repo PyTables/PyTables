@@ -580,6 +580,7 @@ static H5T_order_t get_complex_order(hid_t type_id) {
 /* This is actually an extension of H5Tget_order to handle complex types */
 herr_t get_order(hid_t type_id, char *byteorder) {
   H5T_order_t h5byteorder;
+  const char *name;
   /*
   hid_t class_id;
 
@@ -593,23 +594,25 @@ herr_t get_order(hid_t type_id, char *byteorder) {
     h5byteorder = H5Tget_order(type_id);
   }
   if (h5byteorder == H5T_ORDER_LE) {
-    strcpy(byteorder, "little");
-    return h5byteorder;
+    name = "little";
   }
   else if (h5byteorder == H5T_ORDER_BE ) {
-    strcpy(byteorder, "big");
-    return h5byteorder;
+    name = "big";
   }
   else if (h5byteorder == H5T_ORDER_NONE ) {
-    strcpy(byteorder, "irrelevant");
-    return h5byteorder;
+    name = "irrelevant";
   }
   else {
-    /* This should never happen! */
+    /* VAX ordered (H5T_ORDER_VAX) and mixed endian (H5T_ORDER_MIXED)
+       datatypes end up here. */
     fprintf(stderr, "Error: unsupported byteorder <%d>\n", h5byteorder);
-    strcpy(byteorder, "unsupported");
-    return -1;
+    name = "unsupported";
+    h5byteorder = H5T_ORDER_ERROR;
   }
+  /* `byteorder` is a BYTEORDER_SIZE buffer, never write past its end */
+  snprintf(byteorder, BYTEORDER_SIZE, "%s", name);
+
+  return h5byteorder;
 }
 
 

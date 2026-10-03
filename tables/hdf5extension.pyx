@@ -174,6 +174,7 @@ from .definitions cimport (
     H5ATTRget_dims,
     H5ARRAYget_ndims,
     H5ARRAYget_info,
+    BYTEORDER_SIZE,
     set_cache_size,
     get_objinfo,
     get_linkinfo,
@@ -1693,7 +1694,7 @@ cdef class Array(Leaf):
 
   def _open_array(self):
     cdef H5T_class_t class_id
-    cdef char cbyteorder[11]  # "irrelevant" fits easily here
+    cdef char cbyteorder[BYTEORDER_SIZE]
     cdef int i
     cdef herr_t ret
     cdef object shape, chunkshapes, atom
@@ -2296,7 +2297,7 @@ cdef class VLArray(Leaf):
     return self.dataset_id
 
   def _open_array(self):
-    cdef char cbyteorder[11]  # "irrelevant" fits easily here
+    cdef char cbyteorder[BYTEORDER_SIZE]
     cdef hsize_t nrecords, chunksize
     cdef bytes encoded_name
     cdef str byteorder
@@ -2535,7 +2536,7 @@ cdef class UnImplemented(Leaf):
 
   def _open_unimplemented(self):
     cdef object shape
-    cdef char cbyteorder[11]  # "irrelevant" fits easily here
+    cdef char cbyteorder[BYTEORDER_SIZE]
     cdef bytes encoded_name
     cdef str byteorder
 

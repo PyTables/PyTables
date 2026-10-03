@@ -537,6 +537,9 @@ cdef extern from "H5ARRAY.h" nogil:
 
 # Some utilities
 cdef extern from "utils.h" nogil:
+  # Minimum size of the buffer for the `byteorder` output parameters below
+  enum: BYTEORDER_SIZE
+
   herr_t set_cache_size(hid_t file_id, size_t cache_size)
   int get_objinfo(hid_t loc_id, char *name)
   int get_linkinfo(hid_t loc_id, char *name)
