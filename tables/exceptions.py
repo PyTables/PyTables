@@ -327,16 +327,12 @@ class PickleNotAllowedError(ValueError):
     .. versionadded:: 3.12
     """
 
-    pass
-
 
 class PickleSecurityWarning(Warning):
     """Warning issued for pickle serialization or explicitly enabled loading.
 
     .. versionadded:: 3.12
     """
-
-    pass
 
 
 class FlavorError(ValueError):

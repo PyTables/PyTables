@@ -9,16 +9,16 @@ from collections.abc import Callable
 
 import numpy as np
 
-from . import hdf5extension
 from . import ptpickle as pickle
+from . import hdf5extension
 from .path import check_attribute_name
 from .utils import SizeType
 from .filters import Filters
 from .registry import class_name_dict
 from .undoredo import attr_to_shadow
 from .exceptions import (
-    ClosedNodeError,
     FiltersWarning,
+    ClosedNodeError,
     PerformanceWarning,
     PickleNotAllowedError,
 )

@@ -1,3 +1,9 @@
+"""Drop in replacement for the pickle system module.
+
+In addition to the standard features it implements guards against the
+library configuration to control unsafe pickling.
+"""
+
 import pickle as _pickle
 import warnings
 from pickle import DEFAULT_PROTOCOL, HIGHEST_PROTOCOL

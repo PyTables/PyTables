@@ -10,7 +10,7 @@ from unittest import mock
 import numpy as np
 
 import tables as tb
-import tables.ptpickle as ptpickle
+from tables import ptpickle
 from tables.tests import common
 
 
@@ -196,7 +196,9 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file = default_file
         try:
             self.assertEqual(default_file.root._v_attrs.payload, expected)
-            self.assertEqual(bytes(disabled_file.root._v_attrs.payload), payload)
+            self.assertEqual(
+                bytes(disabled_file.root._v_attrs.payload), payload
+            )
         finally:
             disabled_file.close()
 
@@ -232,9 +234,11 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file = tb.open_file(self.h5fname, "r", allow_pickle=False)
         vlarray = self.h5file.root.objects
 
-        with mock.patch.object(tb.parameters, "ALLOW_PICKLE", True):
-            with self.assertRaises(tb.PickleNotAllowedError):
-                vlarray.read()
+        with (
+            mock.patch.object(tb.parameters, "ALLOW_PICKLE", True),
+            self.assertRaises(tb.PickleNotAllowedError),
+        ):
+            vlarray.read()
 
     def test_unused_buffers_keyword_is_not_forwarded(self):
         expected = {"answer": 42}
@@ -262,9 +266,11 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         payload = self._malicious_payload()
 
         try:
-            with mock.patch.object(tb.parameters, "ALLOW_PICKLE", True):
-                with self.assertRaises(tb.PickleNotAllowedError):
-                    ptpickle.loads(payload)
+            with (
+                mock.patch.object(tb.parameters, "ALLOW_PICKLE", True),
+                self.assertRaises(tb.PickleNotAllowedError),
+            ):
+                ptpickle.loads(payload)
         finally:
             self.assertFalse(self.sentinel.exists())
 

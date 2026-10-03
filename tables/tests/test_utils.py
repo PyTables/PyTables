@@ -53,7 +53,7 @@ class PTDumpTestCase(common.PyTablesTestCase):
         with patch.object(sys, "argv", argv):
             ptdump.main()
 
-        args, _ = mock_open_file.call_args_list[0]
+        args, kwargs = mock_open_file.call_args_list[0]
         self.assertEqual(args, (src_fn, "r"))
         self.assertEqual(kwargs, {"allow_pickle": False})
 
