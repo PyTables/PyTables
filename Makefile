@@ -49,7 +49,9 @@ distclean: clean
 	$(RM) $(CYTHONIZED)
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
-	$(RM) -r .pytest_cache .mypy_cache
+	$(RM) -r .pytest_cache
+	$(RM) -r .mypy_cache
+	$(RM) -r .ruff_cache
 	# git clean -fdx
 
 html: build
@@ -93,7 +95,7 @@ requirements: \
 
 %.txt: %.in
 	pip-compile -U --allow-unsafe --generate-hashes --strip-extras $<
-	# uvx --python 3.11 pip compile -U --allow-unsafe --generate-hashes --strip-extras -o $@ $<
+	# uv pip compile --python 3.11 -U --allow-unsafe --generate-hashes --strip-extras -o $@ $<
 
 lint:
 	$(PYTHON) -m flake8 --count --statistics tables
