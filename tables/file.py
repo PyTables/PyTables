@@ -57,6 +57,7 @@ from .exceptions import (
     NoSuchNodeError,
     PerformanceWarning,
     UnclosedFileWarning,
+    PickleSecurityWarning,
 )
 from .description import (
     UInt8Col,
@@ -265,6 +266,12 @@ def open_file(
         Besides, if you do not specify filter properties for child groups,
         they will inherit these ones, which will in turn propagate to
         child nodes.
+    allow_pickle : bool, optional
+        Allow automatic unpickling while reading this file.  The default is
+        :data:`parameters.ALLOW_PICKLE`, initially true for compatibility.
+        Loading pickle data can execute arbitrary code.  Pass ``False`` for
+        untrusted files.  The default is expected to change to false in a
+        future release.
 
     Notes
     -----
@@ -677,6 +684,12 @@ class File(hdf5extension.File):
         properties are specified for these leaves. Besides, if you do not
         specify filter properties for child groups, they will inherit these
         ones, which will in turn propagate to child nodes.
+    allow_pickle : bool, optional
+        Allow automatic unpickling while reading this file.  The default is
+        :data:`parameters.ALLOW_PICKLE`, initially true for compatibility.
+        Loading pickle data can execute arbitrary code.  Pass ``False`` for
+        untrusted files.  The default is expected to change to false in a
+        future release.
 
     Notes
     -----
@@ -789,6 +802,19 @@ class File(hdf5extension.File):
 
         kwargs = {k.upper(): v for k, v in kwargs.items()}
         params.update(kwargs)
+
+        allow_pickle = params["ALLOW_PICKLE"]
+        if type(allow_pickle) is not bool:
+            raise TypeError("allow_pickle must be a bool")
+        # Warn only for an explicit opt-in.  The compatibility default is
+        # already true, and warning on every open_file() would be too noisy.
+        if allow_pickle and "ALLOW_PICKLE" in kwargs:
+            warnings.warn(
+                "automatic unpickling is enabled for this file; pickle data "
+                "can execute arbitrary code, so only open files you trust",
+                PickleSecurityWarning,
+                stacklevel=3,
+            )
 
         # If MAX_ * _THREADS is not set yet, set it to the number of cores
         # on this machine.

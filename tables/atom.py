@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import re
-import pickle
 import inspect
 import warnings
 from typing import Any, NoReturn, dataclass_transform
+from contextlib import contextmanager
+from contextvars import ContextVar
 from collections.abc import Callable
 
 import numpy as np
 from numpy.typing import DTypeLike
 
+from . import ptpickle as pickle
 from .utils import SizeType
 from .misc.enum import Enum
 from .exceptions import FlavorWarning
@@ -1354,6 +1356,20 @@ class VLUnicodeAtom(_BufferedAtom):
         return array.view(f"U{length}").item()
 
 
+_object_unpickling_allowed = ContextVar(
+    "object_unpickling_allowed", default=False
+)
+
+
+@contextmanager
+def _allow_object_unpickling():
+    token = _object_unpickling_allowed.set(True)
+    try:
+        yield
+    finally:
+        _object_unpickling_allowed.reset(token)
+
+
 class ObjectAtom(_BufferedAtom):
     """Defines an atom of type object.
 
@@ -1368,6 +1384,16 @@ class ObjectAtom(_BufferedAtom):
     always return Python objects. You can regard object atoms as an easy way to
     save an arbitrary number of generic Python objects in a VLArray dataset.
 
+    .. warning::
+
+        Writing object atoms issues :exc:`PickleSecurityWarning`, because the
+        resulting data requires unpickling to be read.
+
+        Reading object atoms requires unpickling and remains enabled by
+        default in PyTables 3.12.  Open untrusted files with
+        ``allow_pickle=False``.  Never enable unpickling for files from
+        untrusted sources.
+
     """
 
     kind = "object"
@@ -1377,14 +1403,22 @@ class ObjectAtom(_BufferedAtom):
     def _tobuffer(self, object_: object) -> bytes:
         return pickle.dumps(object_, pickle.HIGHEST_PROTOCOL)
 
-    def fromarray(self, array: np.ndarray) -> Any | None:
+    def fromarray(
+        self, array: np.ndarray, *, allow_pickle: bool | None = None
+    ) -> Any | None:
         """Deserialize data contained in the input array.
 
         A Python object is returned.
+
+        The *allow_pickle* argument must be true before the input is loaded.
+        Direct calls deny loading by default; :class:`VLArray` applies the
+        policy of its file handle.
         """
         # We have to check for an empty array because of a possible
         # bug in HDF5 which makes it claim that a dataset has one
         # record when in fact it is empty.
         if array.size == 0:
             return None
-        return pickle.loads(array.tobytes())
+        if allow_pickle is None:
+            allow_pickle = _object_unpickling_allowed.get()
+        return pickle.loads(array.tobytes(), allow_pickle=allow_pickle)

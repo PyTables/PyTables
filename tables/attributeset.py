@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import pickle
 import warnings
 from typing import TYPE_CHECKING, Any, Literal
 from collections.abc import Callable
@@ -11,12 +10,18 @@ from collections.abc import Callable
 import numpy as np
 
 from . import hdf5extension
+from . import ptpickle as pickle
 from .path import check_attribute_name
 from .utils import SizeType
 from .filters import Filters
 from .registry import class_name_dict
 from .undoredo import attr_to_shadow
-from .exceptions import FiltersWarning, ClosedNodeError, PerformanceWarning
+from .exceptions import (
+    ClosedNodeError,
+    FiltersWarning,
+    PerformanceWarning,
+    PickleNotAllowedError,
+)
 
 if TYPE_CHECKING:
     from .node import Node
@@ -69,6 +74,11 @@ _field_fill_re = re.compile("^FIELD_[0-9]+_FILL$")
 _old_filters_re = re.compile(rb"\(([ic])tables\.Leaf\n")
 # Fixed version of the previous string.
 _new_filters_sub = rb"(\1tables.filters\n"
+_UNPICKLE_FATAL_ERRORS = (
+    PickleNotAllowedError,
+    MemoryError,
+    RecursionError,
+)
 
 
 def issysattrname(name: str) -> bool:
@@ -120,11 +130,13 @@ class AttributeSet(hdf5extension.AttributeSet):
     objects* (for example, numpy.int64(1) or numpy.array([1, 2, 3],
     dtype='int16')).
 
-    One more advice: because of the various potential difficulties in
-    restoring a Python object stored in an attribute, you may end up
-    getting a pickle string where a Python object is expected. If this
-    is the case, you may wish to run pickle.loads() on that string to
-    get an idea of where things went wrong, as shown in this example::
+    Serializing a non-native value issues :exc:`PickleSecurityWarning`, since
+    reading the resulting attribute later requires unpickling.
+
+    Automatic unpickling remains enabled by default in PyTables 3.12 for
+    compatibility.  Loading pickle data can execute arbitrary code, so open
+    untrusted files with ``allow_pickle=False``.  Disabled files return
+    pickled attributes as raw bytes, as shown in this example::
 
         >>> import os, tempfile
         >>> import tables as tb
@@ -134,24 +146,16 @@ class AttributeSet(hdf5extension.AttributeSet):
         ...
         >>> myObject = MyClass()  # save object of custom class in HDF5 attr
         >>> h5fname = tempfile.mktemp(suffix='.h5')
-        >>> h5f = tb.open_file(h5fname, 'w')
-        >>> h5f.root._v_attrs.obj = myObject  # store the object
-        >>> print(h5f.root._v_attrs.obj.foo)  # retrieve it
-        bar
-        >>> h5f.close()
-        >>>
-        >>> del MyClass, myObject  # delete class of object and reopen file
-        >>> h5f = tb.open_file(h5fname, 'r')
-        >>> print(repr(h5f.root._v_attrs.obj))
-        b'ccopy_reg\\n_reconstructor...
-        >>> import pickle  # let's unpickle that to see what went wrong
-        >>> pickle.loads(h5f.root._v_attrs.obj)
-        Traceback (most recent call last):
+        >>> with tb.open_file(h5fname, 'w') as h5f:
+        ...     h5f.root._v_attrs.obj = myObject
         ...
-        AttributeError: Can't get attribute 'MyClass' ...
-        >>> # So the problem was not in the stored object,
-        ... # but in the *environment* where it was restored.
-        ... h5f.close()
+        >>> with tb.open_file(h5fname, 'r', allow_pickle=False) as h5f:
+        ...     print(repr(h5f.root._v_attrs.obj))
+        b'ccopy_reg\\n_reconstructor...
+        >>> with tb.open_file(h5fname, 'r') as h5f:
+        ...     print(h5f.root._v_attrs.obj.foo)
+        bar
+        >>>
         >>> os.remove(h5fname)
 
 
@@ -330,10 +334,13 @@ class AttributeSet(hdf5extension.AttributeSet):
             and value.itemsize > 0
             and value.endswith(b".")
         )
+        allow_pickle = self._v__nodefile.params["ALLOW_PICKLE"]
 
         if maybe_pickled and value in [b"0", b"0."]:
             # Workaround for a bug in many versions of Python (starting
             # somewhere after Python 2.6.1).  See ticket #253.
+            retval = value
+        elif maybe_pickled and not allow_pickle:
             retval = value
         elif (
             maybe_pickled
@@ -343,7 +350,7 @@ class AttributeSet(hdf5extension.AttributeSet):
             # This format was used during the first 1.2 releases, just
             # for string defaults.
             try:
-                retval = pickle.loads(value)
+                retval = pickle.loads(value, allow_pickle=allow_pickle)
                 retval = np.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
@@ -356,10 +363,12 @@ class AttributeSet(hdf5extension.AttributeSet):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
-            retval = pickle.loads(value)  # pass unpickling errors through
+            retval = pickle.loads(
+                value, allow_pickle=allow_pickle
+            )  # pass unpickling errors through
         elif maybe_pickled:
             try:
-                retval = pickle.loads(value)
+                retval = pickle.loads(value, allow_pickle=allow_pickle)
             # except cPickle.UnpicklingError:
             # It seems that pickle may raise other errors than UnpicklingError
             # Perhaps it would be better just an "except:" clause?
@@ -372,14 +381,28 @@ class AttributeSet(hdf5extension.AttributeSet):
                 # unpickled as bytestrings. Hence try 'latin1' first.
                 # Ref: http://bugs.python.org/issue6784
                 try:
-                    retval = pickle.loads(value, encoding="latin1")
+                    retval = pickle.loads(
+                        value,
+                        encoding="latin1",
+                        allow_pickle=allow_pickle,
+                    )
                 except TypeError:
                     try:
-                        retval = pickle.loads(value, encoding="bytes")
+                        retval = pickle.loads(
+                            value,
+                            encoding="bytes",
+                            allow_pickle=allow_pickle,
+                        )
+                    except _UNPICKLE_FATAL_ERRORS:
+                        raise
                     except Exception:
                         retval = value
+                except _UNPICKLE_FATAL_ERRORS:
+                    raise
                 except Exception:
                     retval = value
+            except _UNPICKLE_FATAL_ERRORS:
+                raise
             except Exception:
                 # catch other unpickling errors:
                 # ivb (2005-09-07): It is too hard to tell

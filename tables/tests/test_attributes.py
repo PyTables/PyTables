@@ -466,7 +466,13 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode="r+", node_cache_slots=self.node_cache_slots)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", tb.PickleSecurityWarning)
+                self._reopen(
+                    mode="r+",
+                    node_cache_slots=self.node_cache_slots,
+                    allow_pickle=True,
+                )
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -767,6 +773,12 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.group = self.h5file.create_group(
             self.root, "agroup", "Group title"
         )
+
+    def _reopen(self, mode="r", **kwargs):
+        kwargs.setdefault("allow_pickle", True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", tb.PickleSecurityWarning)
+            return super()._reopen(mode, **kwargs)
 
     def test00a_setBoolAttributes(self):
         """Checking setting Bool attributes (scalar, Python case)"""
@@ -1847,6 +1859,12 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
 
 class CompatibilityTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("issue_368.h5")
+    open_kwargs = {"allow_pickle": True}
+
+    def setUp(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", tb.PickleSecurityWarning)
+            super().setUp()
 
     @common.unittest.skipIf(
         Version(np.__version__) < Version("1.9.0"), "requires numpy >= 1.9"
@@ -1875,6 +1893,12 @@ class PicklePy2UnpicklePy3TestCase(
     common.TestFileMixin, common.PyTablesTestCase
 ):
     h5fname = common.test_filename("issue_560.h5")
+    open_kwargs = {"allow_pickle": True}
+
+    def setUp(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", tb.PickleSecurityWarning)
+            super().setUp()
 
     def test_pickled_datetime_object(self):
         # See also gh-560

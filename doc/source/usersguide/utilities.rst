@@ -33,6 +33,7 @@ to see the message usage:
 .. code-block:: bash
 
     usage: ptdump [-h] [-v] [-d] [-a] [-s] [-c] [-i] [-R RANGE]
+                  [--allow-pickle]
                   filename[:nodepath]
 
     The ptdump utility allows you look into the contents of your PyTables files.
@@ -57,6 +58,12 @@ to see the message usage:
                             select a RANGE of rows (in the form "start,stop,step")
                             during the copy of *all* the leaves. Default values
                             are "None,None,1", which means a copy of all the rows.
+      --allow-pickle        allow automatic unpickling while reading; use only
+                            for files from trusted sources
+
+The library still enables automatic unpickling by default.  ``ptdump`` keeps
+it disabled unless you pass ``--allow-pickle``.  Use that option only for
+files you trust.
 
 Read on for a brief introduction to this utility.
 

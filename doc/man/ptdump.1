@@ -21,6 +21,7 @@ ptdump \- Lets you dig into the contents of a \fIPyTables\fR file.
 .B ptdump
 .RB [\| \-dvacih \|]
 .RB [\| \-R \| \  start,stop,step]
+.RB [\| \-\-allow\-pickle \|]
 .RB file[:nodepath]
 .br
 .SH DESCRIPTION
@@ -48,6 +49,11 @@ Show info of indexed column (only useful when \-v or \-d are active).
 .TP
 .BI \-R\  start,stop,step
 Select a range of rows in the form "start,stop,step" for \fIall\fR leaves.
+.TP
+.B \-\-allow\-pickle
+Allow automatic unpickling while reading. ptdump keeps this disabled by
+default even though the library default is still enabled. Use only for
+files from trusted sources.
 .TP
 .B \-h
 Print help on usage.

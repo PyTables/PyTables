@@ -47,6 +47,22 @@ Changes from 3.11.1 to 3.12.0
 .. _GHSA-6mmx-p77c-4hmr:
     https://github.com/PyTables/PyTables/security/advisories/GHSA-6mmx-p77c-4hmr
 
+* Automatic unpickling remains enabled by default for compatibility.
+  Pickle payloads can execute arbitrary code while they are loaded.
+  Untrusted files can be opened with ``open_file(..., allow_pickle=False)``.
+  The :data:`parameters.ALLOW_PICKLE` parameter controls the default for
+  files opened without an explicit ``allow_pickle`` argument; set it to
+  ``False`` to disable unpickling globally for new file handles.
+
+  The same per-file opt-out can be passed through pandas as
+  ``pandas.read_hdf(..., allow_pickle=False)`` or
+  ``pandas.HDFStore(..., allow_pickle=False)``.  Writing remains enabled
+  and emits :exc:`PickleSecurityWarning`, since the resulting data
+  requires unpickling to be read.  The :program:`ptdump` utility keeps
+  unpickling disabled unless ``--allow-pickle`` is given.
+
+  The default is expected to change to disabled in PyTables 3.13.
+
 
 Thanks to:
 
@@ -54,3 +70,4 @@ Thanks to:
 * Jacob Rideout
 * Adrian Altenhoff
 * maxtaran2010
+* YuuLuo

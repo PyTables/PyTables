@@ -12,16 +12,10 @@ with tb.open_file("test.h5", "w") as h5f:
     h5f.root._v_attrs.obj = my_object  # store the object
     print(h5f.root._v_attrs.obj.foo)  # retrieve it
 
-# Delete class of stored object and reopen the file.
-del MyClass, my_object
-
+# Automatic unpickling is still enabled by default.
 with tb.open_file("test.h5", "r") as h5f:
     print(h5f.root._v_attrs.obj.foo)
-    # Let us inspect the object to see what is happening.
-    print(repr(h5f.root._v_attrs.obj))
-    # Maybe unpickling the string will yield more information:
-    import pickle
 
-    pickle.loads(h5f.root._v_attrs.obj)
-    # So the problem was not in the stored object,
-    # but in the *environment* where it was restored.
+# Disable it for files that are not trusted.
+with tb.open_file("test.h5", "r", allow_pickle=False) as h5f:
+    print(repr(h5f.root._v_attrs.obj))

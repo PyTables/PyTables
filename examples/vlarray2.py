@@ -98,8 +98,9 @@ vlarray.append("para\u0140lel")
 # Close the file
 fileh.close()
 
-# Open the file for reading
-fileh = tb.open_file("vlarray2.h5", mode="r")
+# Open this locally created file for reading.  ObjectAtom data uses pickle,
+# so only enable it for files from trusted sources.
+fileh = tb.open_file("vlarray2.h5", mode="r", allow_pickle=True)
 # Get the root group
 root = fileh.root
 

@@ -8,6 +8,7 @@ from tables.tests import common
 def suite():
     test_modules = [
         "tables.tests.test_attributes",
+        "tables.tests.test_pickle",
         "tables.tests.test_basics",
         "tables.tests.test_create",
         "tables.tests.test_backcompat",

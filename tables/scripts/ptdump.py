@@ -18,6 +18,7 @@ options = argparse.Namespace(
     dump=0,
     colinfo=0,
     idxinfo=0,
+    allow_pickle=False,
 )
 
 
@@ -146,6 +147,14 @@ def _get_parser():
         ),
     )
     parser.add_argument(
+        "--allow-pickle",
+        action="store_true",
+        help=(
+            "allow automatic unpickling while reading; use only for files "
+            "from trusted sources"
+        ),
+    )
+    parser.add_argument(
         "src",
         metavar="filename[:nodepath]",
         help="name of the HDF5 file to dump",
@@ -180,7 +189,7 @@ def main():
             nodename = "/"
 
     try:
-        h5file = tb.open_file(filename, "r")
+        h5file = tb.open_file(filename, "r", allow_pickle=args.allow_pickle)
     except Exception as exc:
         return f"Cannot open input file: {exc}"
 

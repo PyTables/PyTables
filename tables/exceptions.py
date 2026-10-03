@@ -26,6 +26,8 @@ __all__ = [
     "NotChunkedError",
     "OldIndexWarning",
     "PerformanceWarning",
+    "PickleNotAllowedError",
+    "PickleSecurityWarning",
     "UnclosedFileWarning",
     "UndoRedoError",
     "UndoRedoWarning",
@@ -313,6 +315,28 @@ class PerformanceWarning(Warning):
     the node tree grow too much).
 
     """
+
+
+class PickleNotAllowedError(ValueError):
+    """Automatic unpickling was requested for a file that did not allow it.
+
+    Pickle payloads can execute arbitrary code while they are loaded.  This
+    error is raised when the file was opened with ``allow_pickle=False`` or
+    when :data:`~tables.parameters.ALLOW_PICKLE` was false.
+
+    .. versionadded:: 3.12
+    """
+
+    pass
+
+
+class PickleSecurityWarning(Warning):
+    """Warning issued for pickle serialization or explicitly enabled loading.
+
+    .. versionadded:: 3.12
+    """
+
+    pass
 
 
 class FlavorError(ValueError):
