@@ -1491,11 +1491,12 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "Object", atom=tb.ObjectAtom()
         )
-        vlarray.append(
-            [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"]
-        )
-        vlarray.append([3, 4, C()])
-        vlarray.append(42)
+        with self.assertWarns(tb.PickleSecurityWarning):
+            vlarray.append(
+                [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"]
+            )
+            vlarray.append([3, 4, C()])
+            vlarray.append(42)
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1533,19 +1534,20 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "Object", atom=tb.ObjectAtom()
         )
-        # When updating an object, this seems to change the number
-        # of bytes that pickle.dumps generates
-        # vlarray.append(
-        #     ([1,2,3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"))
-        vlarray.append(([1, 2, 3], "aaa", "\xef\xbf\xbd\xef\xbf\xbd4"))
-        # vlarray.append([3,4, C()])
-        vlarray.append([3, 4, [24]])
+        with self.assertWarns(tb.PickleSecurityWarning):
+            # When updating an object, this seems to change the number
+            # of bytes that pickle.dumps generates
+            # vlarray.append(
+            #     ([1,2,3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"))
+            vlarray.append(([1, 2, 3], "aaa", "\xef\xbf\xbd\xef\xbf\xbd4"))
+            # vlarray.append([3,4, C()])
+            vlarray.append([3, 4, [24]])
 
-        # Modify the rows
-        # vlarray[0] = ([1,2,4], "aa4", "aaa\xef\xbf\xbd\xef\xbf\xbd4")
-        vlarray[0] = ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5")
-        # vlarray[1] = (3,4, C())
-        vlarray[1] = [4, 4, [24]]
+            # Modify the rows
+            # vlarray[0] = ([1,2,4], "aa4", "aaa\xef\xbf\xbd\xef\xbf\xbd4")
+            vlarray[0] = ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5")
+            # vlarray[1] = (3,4, C())
+            vlarray[1] = [4, 4, [24]]
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1582,9 +1584,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "Object", atom=tb.ObjectAtom()
         )
-        vlarray.append(np.array([[1, 2], [0, 4]], "i4"))
-        vlarray.append(np.array([0, 1, 2, 3], "i8"))
-        vlarray.append(np.array(42, "i1"))
+        with self.assertWarns(tb.PickleSecurityWarning):
+            vlarray.append(np.array([[1, 2], [0, 4]], "i4"))
+            vlarray.append(np.array([0, 1, 2, 3], "i8"))
+            vlarray.append(np.array(42, "i1"))
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1615,16 +1618,17 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarray = self.h5file.create_vlarray(
             "/", "Object", atom=tb.ObjectAtom()
         )
-        vlarray.append(np.array([[1, 2], [0, 4]], "i4"))
-        vlarray.append(np.array([0, 1, 2, 3], "i8"))
-        vlarray.append(np.array(42, "i1"))
+        with self.assertWarns(tb.PickleSecurityWarning):
+            vlarray.append(np.array([[1, 2], [0, 4]], "i4"))
+            vlarray.append(np.array([0, 1, 2, 3], "i8"))
+            vlarray.append(np.array(42, "i1"))
 
-        # Modify the rows.  Since PyTables 2.2.1 we use a binary
-        # pickle for arrays and ObjectAtoms, so the next should take
-        # the same space than the above.
-        vlarray[0] = np.array([[1, 0], [0, 4]], "i4")
-        vlarray[1] = np.array([0, 1, 0, 3], "i8")
-        vlarray[2] = np.array(22, "i1")
+            # Modify the rows.  Since PyTables 2.2.1 we use a binary
+            # pickle for arrays and ObjectAtoms, so the next should take
+            # the same space than the above.
+            vlarray[0] = np.array([[1, 0], [0, 4]], "i4")
+            vlarray[1] = np.array([0, 1, 0, 3], "i8")
+            vlarray[2] = np.array(22, "i1")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -4438,11 +4442,12 @@ class TruncateAppendVLTypesTestCase(
 
         values = [[1, 2, 3], "aaa", 42]
         arr = self.h5file.create_vlarray("/", "sad", tb.ObjectAtom())
-        for value in values:
-            arr.append(value)
-        arr.truncate(0)
-        for value in values:
-            arr.append(value)
+        with self.assertWarns(tb.PickleSecurityWarning):
+            for value in values:
+                arr.append(value)
+            arr.truncate(0)
+            for value in values:
+                arr.append(value)
 
         self.assertEqual(arr.nrows, 3)
         self.assertEqual(arr[:], values)
@@ -4566,9 +4571,10 @@ class SizeInMemoryPropertyTestCase(
         complevel = 0
         self.create_array(atom, complevel)
         obj = [1, 2, 3]
-        for i in range(10):
-            self.array.append(obj)
-        pickle_array = atom.toarray(obj)
+        with self.assertWarns(tb.PickleSecurityWarning):
+            for i in range(10):
+                self.array.append(obj)
+            pickle_array = atom.toarray(obj)
         expected_size = 10 * pickle_array.nbytes
         self.assertEqual(self.array.size_in_memory, expected_size)
 

@@ -104,6 +104,8 @@ from .exceptions import (
     NaturalNameWarning,
     PerformanceWarning,
     NotChunkAlignedError,
+    PickleNotAllowedError,
+    PickleSecurityWarning,
 )
 from .expression import Expr
 from .description import *  # noqa: F403

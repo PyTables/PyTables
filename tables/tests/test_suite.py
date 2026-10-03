@@ -66,7 +66,7 @@ def suite():
     return alltests
 
 
-def test(verbose=False, heavy=False):
+def test(verbose=False, heavy=False, failfast=False):
     """Run all the tests in the test suite.
 
     If *verbose* is set, the test suite will emit messages with full
@@ -89,7 +89,7 @@ def test(verbose=False, heavy=False):
     oldheavy, common.heavy = common.heavy, heavy
     try:
         result = common.unittest.TextTestRunner(
-            verbosity=1 + int(verbose)
+            verbosity=1 + int(verbose), failfast=failfast
         ).run(suite())
         if result.wasSuccessful():
             return 0

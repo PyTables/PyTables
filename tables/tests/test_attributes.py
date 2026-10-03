@@ -11,7 +11,7 @@ from packaging.version import Version
 
 import tables as tb
 from tables.tests import common
-from tables.exceptions import HDF5ExtError
+from tables.exceptions import HDF5ExtError, PickleSecurityWarning
 
 
 class Record(tb.IsDescription):
@@ -461,7 +461,8 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # overwrite attributes
         self.group._v_attrs.pq = "4"
         self.group._v_attrs.qr = 2
-        self.group._v_attrs.rs = [1, 2, 3]
+        with self.assertWarns(PickleSecurityWarning):
+            self.group._v_attrs.rs = [1, 2, 3]
 
         if self.close:
             if common.verbose:
@@ -1209,9 +1210,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking setting Object attributes."""
 
         # Set some attrs
-        self.array.attrs.pq = [1.0, 2]
-        self.array.attrs.qr = (1, 2)
-        self.array.attrs.rs = {"ddf": 32.1, "dsd": 1}
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = [1.0, 2]
+            self.array.attrs.qr = (1, 2)
+            self.array.attrs.rs = {"ddf": 32.1, "dsd": 1}
 
         # Check the results
         if common.verbose:
@@ -1260,7 +1262,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04b_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 1-elem case)"""
 
-        self.array.attrs.pq = np.array(["foo"])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(["foo"])
 
         # Check the results
         if common.verbose:
@@ -1281,7 +1284,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking setting string attributes (empty unidimensional
         1-elem case)"""
 
-        self.array.attrs.pq = np.array([""])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array([""])
 
         # Check the results
         if common.verbose:
@@ -1303,7 +1307,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04d_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 2-elem case)"""
 
-        self.array.attrs.pq = np.array(["foo", "bar3"])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(["foo", "bar3"])
 
         # Check the results
         if common.verbose:
@@ -1324,7 +1329,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking setting string attributes (empty unidimensional
         2-elem case)"""
 
-        self.array.attrs.pq = np.array(["", ""])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(["", ""])
 
         # Check the results
         if common.verbose:
@@ -1344,7 +1350,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04f_setStringAttributes(self):
         """Checking setting string attributes (bidimensional 4-elem case)"""
 
-        self.array.attrs.pq = np.array([["foo", "foo2"], ["foo3", "foo4"]])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array([["foo", "foo2"], ["foo3", "foo4"]])
 
         # Check the results
         if common.verbose:
@@ -1511,7 +1518,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test06b_setUnicodeAttributes(self):
         """Checking setting unicode attributes (unidimensional 1-elem case)"""
 
-        self.array.attrs.pq = np.array(["para\u0140lel"])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(["para\u0140lel"])
 
         # Check the results
         if common.verbose:
@@ -1535,7 +1543,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The next raises a `TypeError` when unpickled. See:
         # http://projects.scipy.org/numpy/ticket/1037
         # self.array.attrs.pq = np.array([''])
-        self.array.attrs.pq = np.array([""], dtype="U1")
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array([""], dtype="U1")
 
         # Check the results
         if common.verbose:
@@ -1557,7 +1566,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test06d_setUnicodeAttributes(self):
         """Checking setting unicode attributes (unidimensional 2-elem case)"""
 
-        self.array.attrs.pq = np.array(["para\u0140lel", "bar3"])
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(["para\u0140lel", "bar3"])
 
         # Check the results
         if common.verbose:
@@ -1578,7 +1588,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking setting unicode attributes (empty unidimensional
         2-elem case)"""
 
-        self.array.attrs.pq = np.array(["", ""], dtype="U1")
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(["", ""], dtype="U1")
 
         # Check the results
         if common.verbose:
@@ -1598,9 +1609,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test06f_setUnicodeAttributes(self):
         """Checking setting unicode attributes (bidimensional 4-elem case)"""
 
-        self.array.attrs.pq = np.array(
-            [["para\u0140lel", "foo2"], ["foo3", "para\u0140lel4"]]
-        )
+        with self.assertWarns(PickleSecurityWarning):
+            self.array.attrs.pq = np.array(
+                [["para\u0140lel", "foo2"], ["foo3", "para\u0140lel4"]]
+            )
 
         # Check the results
         if common.verbose:
