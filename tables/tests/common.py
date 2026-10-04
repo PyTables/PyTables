@@ -127,7 +127,7 @@ def allequal(a, b, flavor="numpy"):
     return result
 
 
-def areArraysEqual(arr1, arr2, *, check_type=True):
+def are_arrays_equal(arr1, arr2, *, check_type=True):
     """Are both `arr1` and `arr2` equal arrays?
 
     Arguments can be regular NumPy arrays, chararray arrays or
@@ -208,7 +208,7 @@ class PyTablesTestCase(unittest.TestCase):
                 "node1 and node2 does not have the same pathnames.",
             )
         self.assertTrue(
-            areArraysEqual(node1[:], node2[:]),
+            are_arrays_equal(node1[:], node2[:]),
             "node1 and node2 does not have the same values.",
         )
 

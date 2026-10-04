@@ -128,7 +128,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1))
             print("Should look like:", repr(r2))
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -145,7 +145,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1))
             print("Should look like:", repr(r2))
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -166,7 +166,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1))
             print("Should look like:", repr(r2))
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -280,7 +280,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Should look like:", repr(r2), r2.dtype)
 
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -318,7 +318,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Computed expression:", repr(r1), r1.dtype)
                 print("Should look like:", repr(r2), r2.dtype)
             self.assertTrue(
-                common.areArraysEqual(r1, r2),
+                common.are_arrays_equal(r1, r2),
                 "Evaluate is returning a wrong value.",
             )
 
@@ -347,7 +347,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # On NumPy 2 type promotion is different so don't check type
             # strictly here
             self.assertTrue(
-                common.areArraysEqual(r1, r2, check_type=False), msg=msg
+                common.are_arrays_equal(r1, r2, check_type=False), msg=msg
             )
             self.assertEqual(r1.dtype.kind, r2.dtype.kind)
 
@@ -364,7 +364,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -381,7 +381,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -398,7 +398,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -417,7 +417,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -467,7 +467,7 @@ class UnalignedObject(common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -494,7 +494,7 @@ class UnalignedObject(common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -519,7 +519,7 @@ class NonContiguousObject(common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -541,7 +541,7 @@ class NonContiguousObject(common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -563,7 +563,7 @@ class NonContiguousObject(common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -698,7 +698,7 @@ class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -780,7 +780,7 @@ class DiffLengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -835,7 +835,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -863,7 +863,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(
-                common.areArraysEqual(r1, r2),
+                common.are_arrays_equal(r1, r2),
                 "Evaluate is returning a wrong value.",
             )
             # Remove created leaves
@@ -892,7 +892,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(
-                common.areArraysEqual(r1, r2),
+                common.are_arrays_equal(r1, r2),
                 "Evaluate is returning a wrong value.",
             )
             # Remove created leaves
@@ -921,7 +921,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(
-                common.areArraysEqual(r1, r2),
+                common.are_arrays_equal(r1, r2),
                 "Evaluate is returning a wrong value.",
             )
             # Remove created leaves
@@ -950,7 +950,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Should look like:", repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
             self.assertTrue(
-                common.areArraysEqual(r1, r2),
+                common.are_arrays_equal(r1, r2),
                 "Evaluate is returning a wrong value.",
             )
             # Remove created leaves
@@ -975,7 +975,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1036,7 +1036,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1076,7 +1076,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1119,7 +1119,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1163,7 +1163,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1266,7 +1266,7 @@ class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1318,7 +1318,7 @@ class IterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1338,7 +1338,7 @@ class IterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1358,7 +1358,7 @@ class IterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1378,7 +1378,7 @@ class IterTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r2),
+            common.are_arrays_equal(r1[:], r2),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1448,7 +1448,7 @@ class SetOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r), r.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r),
+            common.are_arrays_equal(r1[:], r),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1493,7 +1493,7 @@ class SetOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Computed expression:", repr(r1[:]), r1.dtype)
             print("Should look like:", repr(r), r.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1[:], r),
+            common.are_arrays_equal(r1[:], r),
             "Evaluate is returning a wrong value.",
         )
 
@@ -1607,7 +1607,7 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Ten last rows:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
         self.assertTrue(
-            common.areArraysEqual(r1, r2),
+            common.are_arrays_equal(r1, r2),
             "Evaluate is returning a wrong value.",
         )
 

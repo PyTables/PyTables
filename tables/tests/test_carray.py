@@ -1008,11 +1008,11 @@ class Blosc2NDNoChunkshape(common.TestFileMixin, common.PyTablesTestCase):
 
     def test_data_opt(self):
         array = self.h5file.get_node("/data")
-        self.assertTrue(common.areArraysEqual(array[:], self.adata[:]))
+        self.assertTrue(common.are_arrays_equal(array[:], self.adata[:]))
 
     def test_data_filter(self):
         array = self.h5file.get_node("/data")
-        self.assertTrue(common.areArraysEqual(array[::2], self.adata[::2]))
+        self.assertTrue(common.are_arrays_equal(array[::2], self.adata[::2]))
 
 
 @common.unittest.skipIf(

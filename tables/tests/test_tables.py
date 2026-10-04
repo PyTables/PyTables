@@ -375,10 +375,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     "desc.dflts-->", desc._v_dflts[v], type(desc._v_dflts[v])
                 )
             self.assertTrue(
-                common.areArraysEqual(tbl.coldflts[v], columns[v].dflt)
+                common.are_arrays_equal(tbl.coldflts[v], columns[v].dflt)
             )
             self.assertTrue(
-                common.areArraysEqual(desc._v_dflts[v], columns[v].dflt)
+                common.are_arrays_equal(desc._v_dflts[v], columns[v].dflt)
             )
 
         # Column path names.

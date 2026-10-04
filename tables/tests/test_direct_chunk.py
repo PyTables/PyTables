@@ -209,7 +209,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.write_chunk(chunk_start, obj_bytes)
 
         self._reopen()
-        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+        self.assertTrue(common.are_arrays_equal(self.array[:], new_obj))
 
     def test_write_chunk_unaligned(self):
         self.assertRaises(
@@ -307,7 +307,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
             ]
 
         self._reopen()
-        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+        self.assertTrue(common.are_arrays_equal(self.array[:], new_obj))
 
     def test_write_chunk_missing1(self):
         return self._test_write_chunk_missing(shrink_after=False)
@@ -356,7 +356,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
             self.chunkshape, dtype=self.obj.dtype, buffer=fixed_bytes
         )
         arr_obj[obj_slice] = fixed_chunk
-        self.assertTrue(common.areArraysEqual(arr_obj, new_obj))
+        self.assertTrue(common.are_arrays_equal(arr_obj, new_obj))
 
         chunk_info = self.array.chunk_info(chunk_start)
         self.assertEqual(chunk_info.filter_mask, no_shuffle_mask)

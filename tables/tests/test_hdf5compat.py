@@ -46,7 +46,7 @@ class PaddedArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
                 "itemsize": 16,
             },
         )
-        self.assertTrue(common.areArraysEqual(data, expectedData))
+        self.assertTrue(common.are_arrays_equal(data, expectedData))
 
 
 class EnumTestCase(common.TestFileMixin, common.PyTablesTestCase):
@@ -118,7 +118,7 @@ class NumericTestCase(common.TestFileMixin, common.PyTablesTestCase):
             ],
             dtype=self.type,
         )
-        self.assertTrue(common.areArraysEqual(data, expectedData))
+        self.assertTrue(common.are_arrays_equal(data, expectedData))
 
 
 class F64BETestCase(NumericTestCase):
@@ -348,7 +348,7 @@ class ExtendibleTestCase(common.TestFileMixin, common.PyTablesTestCase):
             dtype=arr.atom.type,
         )
 
-        self.assertTrue(common.areArraysEqual(data, expectedData))
+        self.assertTrue(common.are_arrays_equal(data, expectedData))
 
 
 class SzipTestCase(common.TestFileMixin, common.PyTablesTestCase):
@@ -396,7 +396,7 @@ class ObjectReferenceTestCase(common.TestFileMixin, common.PyTablesTestCase):
         array = self.h5file.get_node("/ANN/my_arr")
 
         self.assertTrue(
-            common.areArraysEqual(
+            common.are_arrays_equal(
                 array[0][0][0], np.array([0, 0], dtype=np.uint64)
             )
         )
@@ -415,7 +415,7 @@ class ObjectReferenceRecursiveTestCase(
         array = self.h5file.get_node("/var")
 
         self.assertTrue(
-            common.areArraysEqual(
+            common.are_arrays_equal(
                 array[1][0][0],
                 np.array([[116], [101], [115], [116]], dtype=np.uint16),
             )
@@ -424,7 +424,7 @@ class ObjectReferenceRecursiveTestCase(
     def test_double_ref(self):
         array = self.h5file.get_node("/var")
         self.assertTrue(
-            common.areArraysEqual(
+            common.are_arrays_equal(
                 array[2][0][0][1][0],
                 np.array(
                     [[105], [110], [115], [105], [100], [101]], dtype=np.uint16

@@ -154,7 +154,7 @@ def areDescriptionsEqual(desc1, desc2):
             and desc2.dtype == desc2.dtype
             and desc1._v_pos == desc2._v_pos
             # and desc1.dflt == desc2.dflt)
-            and common.areArraysEqual(desc1.dflt, desc2.dflt)
+            and common.are_arrays_equal(desc1.dflt, desc2.dflt)
         )
 
     if hasattr(desc1, "_v_colobjects"):  # quacks like a Description
@@ -287,7 +287,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         nrarr = np.array(test_buffer, dtype=tbl.description._v_nested_descr)
         self.assertTrue(
-            common.areArraysEqual(nrarr, self._testAData),
+            common.are_arrays_equal(nrarr, self._testAData),
             "Can not create a compatible structured array.",
         )
 
@@ -303,7 +303,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read data:", readAData)
             print("Should look like:", self._testAData)
         self.assertTrue(
-            common.areArraysEqual(self._testAData, readAData),
+            common.are_arrays_equal(self._testAData, readAData),
             "Written and read values differ.",
         )
 
@@ -322,7 +322,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         readAData2 = tbl2.read()
 
         self.assertTrue(
-            common.areArraysEqual(self._testAData, readAData2),
+            common.are_arrays_equal(self._testAData, readAData2),
             "Written and read values differ.",
         )
 
@@ -370,7 +370,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         readAData = tbl.read()
         self.assertTrue(
-            common.areArraysEqual(self._testAData, readAData),
+            common.are_arrays_equal(self._testAData, readAData),
             "Written and read values differ.",
         )
 
@@ -395,7 +395,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         readAData = tbl.read()
         self.assertTrue(
-            common.areArraysEqual(self._testAData, readAData),
+            common.are_arrays_equal(self._testAData, readAData),
             "Written and read values differ.",
         )
 
@@ -506,7 +506,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Compare it to the written one.
         self.assertTrue(
-            common.areArraysEqual(raTable, raReadTable),
+            common.are_arrays_equal(raTable, raReadTable),
             "Written and read values differ.",
         )
 
@@ -542,7 +542,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Compare it to the written one.
         self.assertTrue(
-            common.areArraysEqual(raTable, raReadTable),
+            common.are_arrays_equal(raTable, raReadTable),
             "Written and read values differ.",
         )
 
@@ -586,7 +586,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Compare it to the written one.
         self.assertTrue(
-            common.areArraysEqual(raCols, raCols2),
+            common.are_arrays_equal(raCols, raCols2),
             "Written and read values differ.",
         )
 
@@ -618,7 +618,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Compare it to the written one.
         self.assertTrue(
-            common.areArraysEqual(raTable, raReadTable),
+            common.are_arrays_equal(raTable, raReadTable),
             "Written and read values differ.",
         )
 
@@ -855,7 +855,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -883,11 +883,11 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
         self.assertTrue(
-            common.areArraysEqual(nrarr[0::2], all_cols),
+            common.are_arrays_equal(nrarr[0::2], all_cols),
             "Output buffer does not match full table.",
         )
 
@@ -909,7 +909,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         )
         nrarrcols = nrarr["Info"]["value"][0::2]
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -932,7 +932,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         )
         nrarrcols = nrarr["Info"]["value"][0::2]
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1131,7 +1131,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1154,7 +1154,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1177,7 +1177,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1200,7 +1200,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1223,7 +1223,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1247,7 +1247,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1292,7 +1292,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
@@ -1316,7 +1316,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Read cols:", tblcols)
             print("Should look like:", nrarrcols)
         self.assertTrue(
-            common.areArraysEqual(nrarrcols, tblcols),
+            common.are_arrays_equal(nrarrcols, tblcols),
             "Original array are retrieved doesn't match.",
         )
 
