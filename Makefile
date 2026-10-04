@@ -103,6 +103,6 @@ lint:
 	$(PYTHON) -m isort --check tables
 	$(PYTHON) -m black --check tables
 	# $(PYTHON) -m mypy --check-untyped-defs --ignore-missing-imports tables
-	# ruff check tables
+	ruff check tables
 	# cython-lint
 	codespell
