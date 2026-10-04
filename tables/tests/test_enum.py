@@ -297,7 +297,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
         tbl.flavor = "python"
         read = tbl.read()
-        common.verbosePrint(
+        common.verbose_print(
             f"* appended value: {appended[:-1]}\n* read value: {read}\n"
         )
         self.assertEqual(
@@ -317,7 +317,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.flush()
         tbl.flavor = "python"
         read = tbl.read()
-        common.verbosePrint(
+        common.verbose_print(
             f"* appended value: {appended}\n* read value: {read}\n"
         )
         self.assertEqual(appended, read, "Written and read values differ.")
@@ -336,7 +336,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl[:] = written
         tbl.flavor = "python"
         read = tbl.read()
-        common.verbosePrint(
+        common.verbose_print(
             f"* written value: {written}\n* read value: {read}\n"
         )
         self.assertEqual(written, read, "Written and read values differ.")
@@ -397,7 +397,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             (row["rid"], row["rcolor"])
             for row in tbl.where("rcolor == v", {"v": self.valueInEnum})
         ]
-        common.verbosePrint(
+        common.verbose_print(
             f"* ``valueInEnum``: {self.valueInEnum}\n"
             f"* ``rcolor`` column: ``{tbl.cols.rcolor}``\n"
             f"* ``searched``: {searched}\n"
@@ -662,7 +662,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarr.append(appended[1])
         vlarr.flush()
         read = vlarr.read()
-        common.verbosePrint(
+        common.verbose_print(
             f"* appended value: {appended}\n* read value: {read}\n"
         )
         self.assertEqual(appended, read, "Written and read values differ.")
@@ -689,7 +689,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         vlarr.append(appended[1])
         vlarr.flush()
         read = vlarr.read()
-        common.verbosePrint(
+        common.verbose_print(
             f"* appended value: {appended}\n* read value: {read}\n"
         )
         self.assertEqual(appended, read, "Written and read values differ.")
@@ -708,7 +708,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         written = [self.valueInEnum, self.valueOutOfEnum]
         vlarr[0] = written
         read = vlarr.read()
-        common.verbosePrint(
+        common.verbose_print(
             f"* written value: {written}\n* read value: {read}\n"
         )
         self.assertEqual(written, read[0], "Written and read values differ.")

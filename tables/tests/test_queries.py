@@ -267,7 +267,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
             return
         try:
             kind = self.kind
-            common.verbosePrint(
+            common.verbose_print(
                 f"* Indexing ``{colname}`` columns. Type: {kind}."
             )
             for acolname in [colname, ncolname, extracolname]:
@@ -407,15 +407,15 @@ def create_test_method(type_, op, extracond, func=None):
                     msg = se.args[0]
                 else:
                     msg = "<skipped>"
-                common.verbosePrint(f"\nSkipped test: {msg}")
+                common.verbose_print(f"\nSkipped test: {msg}")
             finally:
-                common.verbosePrint("")  # separator line between tests
+                common.verbose_print("")  # separator line between tests
 
         return newmethod
 
     @ignore_skipped
     def test_method(self):
-        common.verbosePrint(f"* Condition is ``{cond}``.")
+        common.verbose_print(f"* Condition is ``{cond}``.")
         # Replace bitwise operators with their logical counterparts.
         pycond = cond
         for ptop, pyop in [("&", "and"), ("|", "or"), ("~", "not")]:
@@ -454,7 +454,7 @@ def create_test_method(type_, op, extracond, func=None):
             pyrownos = np.array(pyrownos)  # row numbers already sorted
             pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
-            common.verbosePrint(
+            common.verbose_print(
                 f"* {len(pyrownos)} rows selected by Python "
                 f"from ``{acolname}``."
             )
@@ -493,12 +493,12 @@ def create_test_method(type_, op, extracond, func=None):
                 )
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
-            common.verbosePrint(
+            common.verbose_print(
                 f"* {len(ptrownos[0])} rows selected by "
                 f"PyTables from ``{acolname}``",
                 nonl=True,
             )
-            common.verbosePrint(f"(indexing: {'yes' if isidxq else 'no'}).")
+            common.verbose_print(f"(indexing: {'yes' if isidxq else 'no'}).")
             self.assertTrue(np.all(ptrownos[0] == rownos))
             self.assertTrue(np.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
@@ -899,7 +899,7 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
                 f"\n``{c_str_expr}``\nand should be:\n"
                 f"``{self.str_expr}``",
             )
-            common.verbosePrint(
+            common.verbose_print(
                 f"* Query with condition ``{condition}`` will use variables "
                 f"``{compiled.index_variables}`` for indexing."
             )

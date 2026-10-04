@@ -143,7 +143,7 @@ def test_filename(filename):
     return resources.files("tables.tests") / filename
 
 
-def verbosePrint(string, nonl=False):
+def verbose_print(string, nonl=False):
     """Print out the `string` if verbose output is enabled."""
     if not verbose:
         return
