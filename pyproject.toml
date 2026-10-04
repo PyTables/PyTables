@@ -237,7 +237,9 @@ skip = [
     "./c-blosc",
     "./hdf5-blosc2",
     "./doc/build",
+    "./doc/html",
     "./tables/*.c",
+    "./dist",
 ]
 ignore-words = "./doc/source/spelling_wordlist.txt"
 ignore-words-list = [
