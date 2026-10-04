@@ -76,7 +76,8 @@ from .node import Node
 from .array import Array
 from .group import Group
 from .table import Cols, Table, Column
-from .tests import test, print_versions
+from .tests import test
+from .utils import print_versions
 from .carray import CArray
 from .earray import EArray
 from .flavor import restrict_flavors

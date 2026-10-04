@@ -8,12 +8,12 @@ from pathlib import Path
 
 from tables import NoSuchNodeError, file, open_file
 from tables.nodes import filenode
+from tables.utils import print_versions
 from tables.tests.common import (
     TempFileMixin,
     unittest,
     make_suite,
     parse_argv,
-    print_versions,
 )
 from tables.tests.common import PyTablesTestCase as TestCase
 

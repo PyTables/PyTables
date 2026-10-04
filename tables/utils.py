@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import math
+import locale
 import weakref
+import platform
 import warnings
+import contextlib
 from time import perf_counter as clock
 from typing import TYPE_CHECKING, Any, TextIO, Literal
 from pathlib import Path
@@ -457,3 +461,102 @@ def detect_number_of_cores() -> int:
         if ncpus > 0:
             return ncpus
     return 1  # Default
+
+
+@contextlib.contextmanager
+def override_locale(category, locale_string):
+    """Context manager to temporary override locales."""
+    prev_locale_string = locale.setlocale(category)
+    locale.setlocale(category, locale_string)
+    yield
+    locale.setlocale(category, prev_locale_string)
+
+
+# locale.getdefaultlocale()
+def getdefaultlocale():
+    """Return the default locale.
+
+    This is a replacement for the deprecated ``locale.getdefaultlocale()``.
+    """
+    with override_locale(locale.LC_ALL, ""):
+        current_encoding = locale.getencoding()
+        current_locale = locale.setlocale(locale.LC_ALL)
+    return current_locale, current_encoding
+
+
+def print_versions():
+    """Print all the versions of software that PyTables relies on."""
+    import numexpr as ne
+
+    from ._version import __version__
+    from .utilsextension import (
+        which_lib_version,
+    )
+    from .utilsextension import (
+        blosc_get_complib_info_ as blosc_get_complib_info,
+    )
+    from .utilsextension import (
+        blosc2_get_complib_info_ as blosc2_get_complib_info,
+    )
+
+    print("-=" * 38)
+    print(f"PyTables version:    {__version__}")
+    print(f"HDF5 version:        {which_lib_version('hdf5')[1]}")
+    print(f"NumPy version:       {np.__version__}")
+    tinfo = which_lib_version("zlib")
+    if ne.use_vml:
+        # Get only the main version number and strip out all the rest
+        vml_version = ne.get_vml_version()
+        vml_version = re.findall("[0-9.]+", vml_version)[0]
+        vml_avail = f"using VML/MKL {vml_version}"
+    else:
+        vml_avail = "not using Intel's VML/MKL"
+    print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
+    if tinfo is not None:
+        print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
+    tinfo = which_lib_version("lzo")
+    if tinfo is not None:
+        print(f"LZO version:         {tinfo[1]} ({tinfo[2]})")
+    tinfo = which_lib_version("bzip2")
+    if tinfo is not None:
+        print(f"BZIP2 version:       {tinfo[1]} ({tinfo[2]})")
+    tinfo = which_lib_version("blosc")
+    if tinfo is not None:
+        blosc_date = tinfo[2].split()[1]
+        print(f"Blosc version:       {tinfo[1]} ({blosc_date})")
+        blosc_cinfo = blosc_get_complib_info()
+        blosc_cinfo = [f"{k} ({v[1]})" for k, v in sorted(blosc_cinfo.items())]
+        print("Blosc compressors:   {}".format(", ".join(blosc_cinfo)))
+        blosc_finfo = ["shuffle", "bitshuffle"]
+        print("Blosc filters:       {}".format(", ".join(blosc_finfo)))
+    tinfo = which_lib_version("blosc2")
+    if tinfo is not None:
+        blosc2_date = tinfo[2].split()[1]
+        print(f"Blosc2 version:      {tinfo[1]} ({blosc2_date})")
+        blosc2_cinfo = blosc2_get_complib_info()
+        blosc2_cinfo = [
+            f"{k} ({v[1]})" for k, v in sorted(blosc2_cinfo.items())
+        ]
+        print("Blosc2 compressors:  {}".format(", ".join(blosc2_cinfo)))
+        blosc2_finfo = ["shuffle", "bitshuffle"]
+        print("Blosc2 filters:      {}".format(", ".join(blosc2_finfo)))
+    try:
+        from Cython import __version__ as cython_version
+
+        print(f"Cython version:      {cython_version}")
+    except ImportError:
+        pass
+    print(f"Python version:      {sys.version}")
+    print(f"Platform:            {platform.platform()}")
+    # if os.name == 'posix':
+    #     (sysname, nodename, release, version, machine) = os.uname()
+    #     print(f"Platform:          {sys.platform}-{machine}")
+    print(f"Byte-ordering:       {sys.byteorder}")
+    print(f"Detected cores:      {detect_number_of_cores()}")
+    print(f"Default encoding:    {sys.getdefaultencoding()}")
+    print(f"Default FS encoding: {sys.getfilesystemencoding()}")
+    print(f"Default locale:      {getdefaultlocale()}")
+    print("-=" * 38)
+
+    # This should improve readability when tests are run by CI tools
+    sys.stdout.flush()

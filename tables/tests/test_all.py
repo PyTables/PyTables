@@ -10,6 +10,7 @@ from packaging.version import Version
 import tables as tb
 from tables import req_versions
 from tables.tests import common
+from tables.utils import print_versions
 
 # Give people a way to opt out of enabling faulthandler
 if os.getenv("PYTABLES_DISABLE_FAULTHANDLER", "").lower() not in ("1", "true"):
@@ -52,7 +53,7 @@ if __name__ == "__main__":
             common.show_memory = True
             sys.argv.remove(arg)
 
-    common.print_versions()
+    print_versions()
     if not only_versions:
         common.print_heavy(common.heavy)
         common.unittest.main(defaultTest="tb.tests.suite")

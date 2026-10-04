@@ -3,6 +3,7 @@
 import sys
 
 from tables.tests import common
+from tables.utils import print_versions
 
 
 def suite():
@@ -81,7 +82,7 @@ def test(verbose=False, heavy=False, failfast=False):
 
     """
 
-    common.print_versions()
+    print_versions()
     common.print_heavy(heavy)
 
     # What a context this is!

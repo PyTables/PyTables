@@ -6,6 +6,7 @@ import numpy as np
 
 import tables as tb
 from tables.tests import common
+from tables.utils import print_versions
 
 # warnings.resetwarnings()
 
@@ -2866,6 +2867,6 @@ def suite():
 
 
 if __name__ == "__main__":
+    print_versions()
     common.parse_argv(sys.argv)
-    common.print_versions()
     common.unittest.main(defaultTest="suite")

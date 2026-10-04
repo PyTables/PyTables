@@ -5,10 +5,10 @@ from numpy import testing as npt
 
 import tables as tb
 from tables.tests import common
+from tables.utils import print_versions
+
 
 # An example of record
-
-
 class Record(tb.IsDescription):
     colInt32 = tb.Int32Col()
     colInt64 = tb.Int64Col()
@@ -1725,6 +1725,6 @@ def suite():
 if __name__ == "__main__":
     import sys
 
+    print_versions()
     common.parse_argv(sys.argv)
-    common.print_versions()
     common.unittest.main(defaultTest="suite")

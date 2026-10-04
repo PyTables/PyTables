@@ -1,27 +1,15 @@
 """Utilities for PyTables' test suites."""
 
 import os
-import re
-import sys
-import locale
-import platform
 import tempfile
 import unittest
-import contextlib
 from time import perf_counter as clock
 from pathlib import Path
 
 import numpy as np
-import numexpr as ne
-from packaging.version import Version
 
 import tables as tb
 from tables.utilsextension import which_lib_version
-
-hdf5_version = Version(tb.hdf5_version)
-blosc_version = Version(which_lib_version("blosc")[1])
-blosc2_version = Version(which_lib_version("blosc2")[1])
-
 
 verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"
 """Show detailed output of the testing process."""
@@ -31,6 +19,13 @@ heavy = False
 
 show_memory = False
 """Show the progress of memory consumption."""
+
+
+# zlib_avail = which_lib_version("zlib") is not None
+lzo_avail = which_lib_version("lzo") is not None
+bzip2_avail = which_lib_version("bzip2") is not None
+blosc_avail = which_lib_version("blosc") is not None
+blosc2_avail = which_lib_version("blosc2") is not None
 
 
 def parse_argv(argv):
@@ -51,13 +46,6 @@ def parse_argv(argv):
     return argv
 
 
-zlib_avail = which_lib_version("zlib") is not None
-lzo_avail = which_lib_version("lzo") is not None
-bzip2_avail = which_lib_version("bzip2") is not None
-blosc_avail = which_lib_version("blosc") is not None
-blosc2_avail = which_lib_version("blosc2") is not None
-
-
 def print_heavy(heavy):
     if heavy:
         print("""Performing the complete test suite!""")
@@ -69,72 +57,6 @@ If you want a more complete test, try passing the --heavy flag to this script
 The whole suite will take more than 4 hours to complete on a relatively
 modern CPU and around 512 MB of main memory.""")
     print("-=" * 38)
-
-
-def print_versions():
-    """Print all the versions of software that PyTables relies on."""
-
-    print("-=" * 38)
-    print(f"PyTables version:    {tb.__version__}")
-    print(f"HDF5 version:        {which_lib_version('hdf5')[1]}")
-    print(f"NumPy version:       {np.__version__}")
-    tinfo = which_lib_version("zlib")
-    if ne.use_vml:
-        # Get only the main version number and strip out all the rest
-        vml_version = ne.get_vml_version()
-        vml_version = re.findall("[0-9.]+", vml_version)[0]
-        vml_avail = f"using VML/MKL {vml_version}"
-    else:
-        vml_avail = "not using Intel's VML/MKL"
-    print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
-    if tinfo is not None:
-        print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
-    tinfo = which_lib_version("lzo")
-    if tinfo is not None:
-        print(f"LZO version:         {tinfo[1]} ({tinfo[2]})")
-    tinfo = which_lib_version("bzip2")
-    if tinfo is not None:
-        print(f"BZIP2 version:       {tinfo[1]} ({tinfo[2]})")
-    tinfo = which_lib_version("blosc")
-    if tinfo is not None:
-        blosc_date = tinfo[2].split()[1]
-        print(f"Blosc version:       {tinfo[1]} ({blosc_date})")
-        blosc_cinfo = tb.blosc_get_complib_info()
-        blosc_cinfo = [f"{k} ({v[1]})" for k, v in sorted(blosc_cinfo.items())]
-        print("Blosc compressors:   {}".format(", ".join(blosc_cinfo)))
-        blosc_finfo = ["shuffle", "bitshuffle"]
-        print("Blosc filters:       {}".format(", ".join(blosc_finfo)))
-    tinfo = which_lib_version("blosc2")
-    if tinfo is not None:
-        blosc2_date = tinfo[2].split()[1]
-        print(f"Blosc2 version:      {tinfo[1]} ({blosc2_date})")
-        blosc2_cinfo = tb.blosc2_get_complib_info()
-        blosc2_cinfo = [
-            f"{k} ({v[1]})" for k, v in sorted(blosc2_cinfo.items())
-        ]
-        print("Blosc2 compressors:  {}".format(", ".join(blosc2_cinfo)))
-        blosc2_finfo = ["shuffle", "bitshuffle"]
-        print("Blosc2 filters:      {}".format(", ".join(blosc2_finfo)))
-    try:
-        from Cython import __version__ as cython_version
-
-        print(f"Cython version:      {cython_version}")
-    except ImportError:
-        pass
-    print(f"Python version:      {sys.version}")
-    print(f"Platform:            {platform.platform()}")
-    # if os.name == 'posix':
-    #     (sysname, nodename, release, version, machine) = os.uname()
-    #     print(f"Platform:          {sys.platform}-{machine}")
-    print(f"Byte-ordering:       {sys.byteorder}")
-    print(f"Detected cores:      {tb.utils.detect_number_of_cores()}")
-    print(f"Default encoding:    {sys.getdefaultencoding()}")
-    print(f"Default FS encoding: {sys.getfilesystemencoding()}")
-    print(f"Default locale:      {getdefaultlocale()}")
-    print("-=" * 38)
-
-    # This should improve readability when tests are run by CI tools
-    sys.stdout.flush()
 
 
 def test_filename(filename):
@@ -400,20 +322,3 @@ def first(iterable, default=_FIRST_MARKER):
             "and no default value was provided."
         )
     return default
-
-
-@contextlib.contextmanager
-def override_locale(category, locale_string):
-    prev_locale_string = locale.setlocale(category)
-    locale.setlocale(category, locale_string)
-    yield
-    locale.setlocale(category, prev_locale_string)
-
-
-# locale.getdefaultlocale()
-def getdefaultlocale():
-    """Replacement for the deprecated ``locale.getdefaultlocale()``."""
-    with override_locale(locale.LC_ALL, ""):
-        current_encoding = locale.getencoding()
-        current_locale = locale.setlocale(locale.LC_ALL)
-    return current_locale, current_encoding

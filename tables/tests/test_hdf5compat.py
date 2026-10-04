@@ -8,6 +8,7 @@ import numpy as np
 
 import tables as tb
 from tables.tests import common
+from tables.utils import print_versions
 
 
 class PaddedArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
@@ -463,6 +464,6 @@ def suite():
 if __name__ == "__main__":
     import sys
 
+    print_versions()
     common.parse_argv(sys.argv)
-    common.print_versions()
     common.unittest.main(defaultTest="suite")
