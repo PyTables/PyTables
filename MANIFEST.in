@@ -1,30 +1,30 @@
 include MANIFEST.in
 include *.txt *.rst THANKS
 include setup.py Makefile
-recursive-exclude * *
+recursive-exclude *
 
 recursive-include tables *.py *.pyx *.pxd
 recursive-exclude tables *.c
 recursive-include tables/tests/data *.h5 *.mat
 recursive-include tables/nodes/tests/data *.h5 *.dat *.xbm
+recursive-exclude tables/tests/_testtools *
 recursive-include src *.c *.h
-recursive-include tables.egg-info *
+
+include doc/Makefile doc/make.bat
+recursive-include doc *.rst *.conf *.py *.*_t
+recursive-include doc *.html *.js *.css *.png *.svg *.ico
+recursive-include doc/source spelling_wordlist.txt objecttree.svg *.pdf
+recursive-include doc/scripts *.py
+recursive-include doc/sphinxext *
+recursive-exclude doc/build *
+
+recursive-include LICENSES *
+recursive-include utils *
+recursive-include examples *.py *.sh
+recursive-include bench *.sh *.py *.txt *.h5 *.gnuplot
+recursive-include contrib README *.py
 
 include hdf5-blosc/src/blosc_filter.?
 include hdf5-blosc2/src/blosc2_filter.?
 recursive-include c-blosc/blosc *.c *.h *.inc
 recursive-include c-blosc/internal-complibs *.c *.cc *.h
-
-recursive-include LICENSES *
-recursive-include utils *
-include doc/Makefile doc/make.bat
-recursive-include doc *.rst *.conf *.py *.*_t
-recursive-include doc *.html *.js *.css *.png *.ico
-recursive-include doc/source *.pdf objecttree.svg
-#recursive-include doc/source *.pdf *.svg
-recursive-include doc/scripts *.py
-recursive-include doc/sphinxext *
-recursive-exclude doc/build *
-recursive-include examples *.py *.sh
-recursive-include bench *.sh *.py *.txt *.h5 *.gnuplot
-recursive-include contrib README *.py

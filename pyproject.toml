@@ -114,15 +114,24 @@ pttree = "tables.scripts.pttree:main"
 version = { attr = "tables._version.__version__" }
 
 
-[tool.setuptools.packages.find]
-exclude = [ "bench" ]
-namespaces = false
+[tool.setuptools]
+packages = [
+    "tables",
+    "tables.tests",
+    "tables.tests.data",
+    "tables.scripts",
+    "tables.nodes",
+    "tables.nodes.tests",
+    "tables.nodes.tests.data",
+    "tables.misc",
+]
 
 
 [tool.setuptools.package-data]
 tables = [ "*.dll", "*.so*", "*.dylib" ]
-"tables.tests" = [ "*.h5", "*.mat" ]
-"tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
+"tables.tests.data" = [ "*.h5", "*.mat" ]
+"tables.nodes.tests.data" = [ "*.dat", "*.xbm", "*.h5" ]
+
 
 [tool.cibuildwheel]
 skip = "*-musllinux_*"
