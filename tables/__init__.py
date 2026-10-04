@@ -99,6 +99,7 @@ from .exceptions import (
     DataTypeWarning,
     NoSuchNodeError,
     NotChunkedError,
+    OldIndexWarning,
     UndoRedoWarning,
     NoSuchChunkError,
     NaturalNameWarning,
@@ -106,6 +107,7 @@ from .exceptions import (
     NotChunkAlignedError,
     PickleNotAllowedError,
     PickleSecurityWarning,
+    ExperimentalFeatureWarning,
 )
 from .expression import Expr
 from .description import *  # noqa: F403
@@ -152,6 +154,8 @@ __all__ = [
     "NotChunkedError",
     "NotChunkAlignedError",
     "NoSuchChunkError",
+    "OldIndexWarning",
+    "ExperimentalFeatureWarning",
     # Functions:
     "is_hdf5_file",
     "is_pytables_file",
