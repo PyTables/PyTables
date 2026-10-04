@@ -76,7 +76,6 @@ from .node import Node
 from .array import Array
 from .group import Group
 from .table import Cols, Table, Column
-from .tests import test
 from .utils import print_versions
 from .carray import CArray
 from .earray import EArray
@@ -288,3 +287,32 @@ def get_hdf5_version() -> str:
         stacklevel=2,
     )
     return hdf5_version
+
+
+def test(verbose=False, heavy=False, failfast=False):
+    """Run all the tests in the test suite.
+
+    If *verbose* is set, the test suite will emit messages with full
+    verbosity (not recommended unless you are looking into a certain
+    problem).
+
+    If *heavy* is set, the test suite will be run in *heavy* mode (you
+    should be careful with this because it can take a lot of time and
+    resources from your computer).
+
+    Return 0 (os.EX_OK) if all tests pass, 1 in case of failure
+
+    """
+    import warnings
+
+    from .tests import test as runtests
+
+    warnings.warn(
+        "the 'test()' function is deprecated and could be removed in future "
+        "versions. "
+        "Please refer to the Users Manual for information about how to run "
+        "unit tests for PyTables.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return runtests(verbose=verbose, heavy=heavy, failfast=failfast)
