@@ -6,16 +6,16 @@ import tempfile
 import warnings
 from pathlib import Path
 
-from ... import NoSuchNodeError, file, open_file
-from ...nodes import filenode
-from ...tests.common import (
+from tables import NoSuchNodeError, file, open_file
+from tables.nodes import filenode
+from tables.tests.common import (
     TempFileMixin,
     unittest,
     make_suite,
     parse_argv,
     print_versions,
 )
-from ...tests.common import PyTablesTestCase as TestCase
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
 def test_file(name):
