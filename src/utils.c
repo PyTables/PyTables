@@ -477,7 +477,7 @@ PyObject *H5UIget_info( hid_t loc_id,
     else if (order == H5T_ORDER_BE)
       strcpy(byteorder, "big");
     else {
-      fprintf(stderr, "Error: unsupported byteorder: %d\n", order);
+      // fprintf(stderr, "Error: unsupported byteorder: %d\n", order);
       goto out;
     }
   }
@@ -605,7 +605,7 @@ herr_t get_order(hid_t type_id, char *byteorder) {
   else {
     /* VAX ordered (H5T_ORDER_VAX) and mixed endian (H5T_ORDER_MIXED)
        datatypes end up here. */
-    fprintf(stderr, "Error: unsupported byteorder <%d>\n", h5byteorder);
+    // fprintf(stderr, "Error: unsupported byteorder <%d>\n", h5byteorder);
     name = "unsupported";
     h5byteorder = H5T_ORDER_ERROR;
   }
@@ -633,7 +633,7 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
 /*       status = H5Tset_order(type_id, H5T_ORDER_NONE ); */
     }
     else {
-      fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
+      // fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
       status = -1;
     }
   }
