@@ -14,7 +14,6 @@ MD5SUM = md5sum
 CYTHONIZED = tables/_comp_*.c tables/*extension.c
 TAG = $(shell $(PYTHON) -c 'import sys, sysconfig; print(f"""{sysconfig.get_platform()}-{sys.implementation.cache_tag}{"t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""}""")')
 
-
 .PHONY: default dist sdist build check heavycheck parallelcheck clean distclean html latex requirements lint clean-requirements
 
 default: $(GENERATED) build
@@ -71,14 +70,14 @@ build:
 	$(PYTHON) setup.py build
 
 check: build
-	cd build/lib.${TAG} && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
-	cd build/lib.${TAG} && env PYTHONPATH=. $(PYTHON) -Werror tables/tests/test_all.py
+	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
+	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
 
 heavycheck: build
-	cd build/lib.${TAG} && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
+	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/test_all.py --heavy
 
 parallelcheck: build
-	cd build/lib.${TAG} && env PYTHONPATH=. $(PYTHON) tables/tests/run_ft.py --max-tests=400
+	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/run_ft.py --max-tests=400
 
 clean-requirements:
 	$(RM) \
@@ -98,11 +97,11 @@ requirements: \
 	# uv pip compile --python 3.11 -U --allow-unsafe --generate-hashes --strip-extras -o $@ $<
 
 lint:
-	$(PYTHON) -m flake8 --count --statistics tables
+	$(PYTHON) -m flake8 --count --statistics tables tests
 	$(PYTHON) -m pydocstyle --count tables
-	$(PYTHON) -m isort --check tables
-	$(PYTHON) -m black --check tables
-	# $(PYTHON) -m mypy --check-untyped-defs --ignore-missing-imports tables
-	ruff check tables
+	$(PYTHON) -m isort --check tables tests
+	$(PYTHON) -m black --check tables tests
+	# $(PYTHON) -m mypy --check-untyped-defs --ignore-missing-imports tables  tests
+	ruff check tables tests
 	# cython-lint
 	codespell

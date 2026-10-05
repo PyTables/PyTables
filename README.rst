@@ -119,7 +119,7 @@ Installation
 
 2. To run the test suite::
 
-       $ python3 -m tables.tests.test_all
+       $ python3 -m tests.test_all
 
    If there is some test that does not pass, please send us the
    complete output using the

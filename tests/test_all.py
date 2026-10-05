@@ -1,0 +1,59 @@
+"""Run all test cases."""
+
+import os
+import sys
+import faulthandler
+
+import numpy as np
+from packaging.version import Version
+
+import tables as tb
+import tests.common
+from tables import req_versions
+from tables.utils import print_versions
+
+# Give people a way to opt out of enabling faulthandler
+if os.getenv("PYTABLES_DISABLE_FAULTHANDLER", "").lower() not in ("1", "true"):
+    faulthandler.enable()
+
+
+def get_tuple_version(hexversion):
+    """Get a tuple from a compact version in hex."""
+
+    h = hexversion
+    return (h & 0xFF0000) >> 16, (h & 0xFF00) >> 8, h & 0xFF
+
+
+if __name__ == "__main__":
+    tests.common.parse_argv(sys.argv)
+
+    hdf5_version = get_tuple_version(tb.which_lib_version("hdf5")[0])
+    hdf5_version_str = "{}.{}.{}".format(*hdf5_version)
+    if Version(hdf5_version_str) < req_versions.min_hdf5_version:
+        print(
+            f"*Warning*: HDF5 version is lower than recommended: "
+            f"{hdf5_version} < {req_versions.min_hdf5_version}"
+        )
+
+    if Version(np.__version__) < req_versions.min_numpy_version:
+        print(
+            f"*Warning*: NumPy version is lower than recommended: "
+            f"{np.__version__} < {req_versions.min_numpy_version}"
+        )
+
+    # Handle some global flags (i.e. only useful for test_all.py)
+    only_versions = 0
+    args = sys.argv[:]
+    for arg in args:
+        # Remove 'show-versions' for PyTables 2.3 or higher
+        if arg in ["--print-versions", "--show-versions"]:
+            only_versions = True
+            sys.argv.remove(arg)
+        elif arg == "--show-memory":
+            tests.common.show_memory = True
+            sys.argv.remove(arg)
+
+    print_versions()
+    if not only_versions:
+        tests.common.print_heavy(tests.common.heavy)
+        tests.common.unittest.main(defaultTest="tests.suite")
