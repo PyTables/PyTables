@@ -39,6 +39,9 @@ Changes from 3.11.1 to 3.12.0
 * Fix a one byte stack buffer overflow when opening a dataset whose HDF5
   datatype has a byte order PyTables does not support, i.e. VAX ordered or
   mixed endian types.
+* Fix a heap buffer overflow when reading a compound (record) attribute whose
+  HDF5 datatype carries trailing padding; the read buffer now keeps the
+  on-disk itemsize, matching how padded tables are already handled.
 
 
 .. _Cython: https://cython.org

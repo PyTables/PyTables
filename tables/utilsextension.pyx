@@ -1295,10 +1295,13 @@ def hdf5_to_np_nested_type(hid_t type_id):
   cdef H5T_class_t class_id
   cdef object  desc
   cdef str     colname
+  cdef size_t  packed_size, type_size
 
   desc = {}
   # Get the number of members
   nfields = H5Tget_nmembers(type_id)
+  # Running sum of the member sizes, to spot trailing padding below
+  packed_size = 0
   # Iterate thru the members
   for i in range(<long>nfields):
     # Get the member name
@@ -1308,6 +1311,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
     member_offset = H5Tget_member_offset(type_id, i)
+    packed_size += H5Tget_size(member_type_id)
 
     # Get the HDF5 class
     class_id = H5Tget_class(member_type_id)
@@ -1322,6 +1326,14 @@ def hdf5_to_np_nested_type(hid_t type_id):
     # Release resources
     H5Tclose(member_type_id)
     H5free_memory(c_colname)
+
+  # When the on-disk type is larger than its packed members it carries
+  # trailing padding; keep that itemsize so the NumPy container built from
+  # this description matches H5Tget_size and H5Aread cannot write past it
+  # (same reasoning as the table reader, see #765).
+  type_size = H5Tget_size(type_id)
+  if packed_size < type_size:
+    desc["_v_itemsize"] = type_size
 
   return desc
 

@@ -49,6 +49,51 @@ class PaddedArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.are_arrays_equal(data, expectedData))
 
 
+class PaddedCompoundAttrTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
+    """Test for a padded H5T_COMPOUND stored as an attribute.
+
+    Companion to PaddedArrayTestCase for the attribute reader (see #765):
+    the same trailing padding that tables already handle also has to be
+    honored when the compound comes from an attribute, otherwise the NumPy
+    container is allocated too small and the attribute read runs past it.
+
+    padded_compound_attr.h5 was created with h5py; the dataset `/Test`
+    carries an attribute `compound_attr` holding the array `expectedData`
+    (see below).  'A' and 'B' are 4 + 4 bytes with 8 bytes of trailing
+    padding, so the on-disk compound is 16 bytes wide.
+
+    $ h5dump -A -H padded_compound_attr.h5
+    ATTRIBUTE "compound_attr" {
+       DATATYPE  H5T_COMPOUND {
+          H5T_STD_U32LE "A";
+          H5T_STD_U32LE "B";
+       } 16 bytes
+       DATASPACE  SIMPLE { ( 3 ) / ( 3 ) }
+    }
+
+    """
+
+    h5fname = common.test_filename("padded_compound_attr.h5")
+
+    def test(self):
+        expectedData = np.array(
+            [(1, 11), (2, 12), (3, 13)],
+            dtype={
+                "names": ["A", "B"],
+                "formats": ["<u4", "<u4"],
+                "offsets": [0, 4],
+                "itemsize": 16,
+            },
+        )
+        attr = self.h5file.get_node("/Test")._v_attrs.compound_attr
+        # The container must keep the on-disk itemsize, otherwise H5Aread
+        # writes the padded 16-byte records into a packed 8-byte buffer.
+        self.assertEqual(attr.dtype.itemsize, expectedData.dtype.itemsize)
+        self.assertTrue(common.are_arrays_equal(attr, expectedData))
+
+
 class EnumTestCase(common.TestFileMixin, common.PyTablesTestCase):
     """Test for enumerated datatype.
 
@@ -441,6 +486,7 @@ def suite():
 
     for i in range(niter):
         theSuite.addTest(common.make_suite(PaddedArrayTestCase))
+        theSuite.addTest(common.make_suite(PaddedCompoundAttrTestCase))
         theSuite.addTest(common.make_suite(EnumTestCase))
         theSuite.addTest(common.make_suite(F64BETestCase))
         theSuite.addTest(common.make_suite(F64LETestCase))
