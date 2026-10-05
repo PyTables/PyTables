@@ -1,7 +1,6 @@
 include MANIFEST.in
 include *.txt *.rst THANKS
 include setup.py Makefile
-recursive-exclude *
 
 recursive-include tables *.py *.pyx *.pxd
 recursive-exclude tables *.c
@@ -13,6 +12,7 @@ recursive-include src *.c *.h
 include doc/Makefile doc/make.bat
 recursive-include doc *.rst *.conf *.py *.*_t
 recursive-include doc *.html *.js *.css *.png *.svg *.ico
+recursive-include doc/man *.1
 recursive-include doc/source spelling_wordlist.txt objecttree.svg *.pdf
 recursive-include doc/scripts *.py
 recursive-include doc/sphinxext *
