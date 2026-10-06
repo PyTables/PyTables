@@ -310,7 +310,7 @@ you can proceed with the PyTables package itself.
       In the sh shell and its variants::
 
         $ cd build/lib.linux-x86_64-3.3
-        $ env PYTHONPATH=. python3 tables/tests/test_all.py
+        $ env PYTHONPATH=. python3 tests/test_all.py
 
       or, if you prefer::
 
@@ -325,7 +325,7 @@ you can proceed with the PyTables package itself.
           some path before existing ones, then the safest syntax to use is
           the following::
 
-            $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python3 tables/tests/test_all.py
+            $ env PYTHONPATH=.${PYTHONPATH:+:$PYTHONPATH} python3 tests/test_all.py
 
           Please refer to your :program:`sh` documentation for details.
 
@@ -355,24 +355,24 @@ you can proceed with the PyTables package itself.
    specify it::
 
       # change to backslashes for win
-      $ python3 tables/tests/test_types.py -v
+      $ python3 tests/test_types.py -v
 
    You have other options to pass to the :file:`test_all.py` driver::
 
       # change to backslashes for win
-      $ python3 tables/tests/test_all.py --heavy
+      $ python3 tests/test_all.py --heavy
 
    The command above runs every test in the test unit. Beware, it can take a
    lot of time, CPU and memory resources to complete::
 
       # change to backslashes for win
-      $ python3 tables/tests/test_all.py --print-versions
+      $ python3 tests/test_all.py --print-versions
 
    The command above shows the versions for all the packages that PyTables
    relies on. Please be sure to include this when reporting bugs::
 
       # only under Linux 2.6.x
-      $ python3 tables/tests/test_all.py --show-memory
+      $ python3 tests/test_all.py --show-memory
 
    The command above prints out the evolution of the memory consumption after
    each test module completion. It's useful for locating memory leaks in
@@ -380,7 +380,7 @@ you can proceed with the PyTables package itself.
    And last, but not least, in case a test fails, please run the failing test
    module again and enable the verbose output::
 
-      $ python3 tables/tests/test_<module>.py -v verbose
+      $ python3 tests/test_<module>.py -v verbose
 
    and, very important, obtain your PyTables version information by using the
    `--print-versions` flag (see above) and send back both outputs to

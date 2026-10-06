@@ -107,7 +107,7 @@ class WideTreeTestCase(unittest.TestCase):
 # ----------------------------------------------------------------------
 def suite():
     suite_ = unittest.TestSuite()
-    from tables.tests.common import make_suite
+    from tests.common import make_suite
 
     suite_.addTest(make_suite(WideTreeTestCase))
 

@@ -4,10 +4,12 @@ include setup.py Makefile
 
 recursive-include tables *.py *.pyx *.pxd
 recursive-exclude tables *.c
-recursive-include tables/tests/data *.h5 *.mat
-recursive-include tables/nodes/tests/data *.h5 *.dat *.xbm
-recursive-exclude tables/tests/_testtools *
 recursive-include src *.c *.h
+
+recursive-include tests *.py
+recursive-include tests/data *.h5 *.mat
+recursive-exclude tests/_testtools *
+recursive-include tests/nodes/data *.h5 *.dat *.xbm
 
 include doc/Makefile doc/make.bat
 recursive-include doc *.rst *.conf *.py *.*_t

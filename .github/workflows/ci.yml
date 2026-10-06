@@ -173,7 +173,8 @@ jobs:
     - name: 'Run test'
       continue-on-error: ${{ matrix.numpy == 'dev' }} # Do not abort job if NumPy dev fails
       run: |
-        cd .. && python -Werror -m tables.tests.test_all -v
+        mv tables _tables
+        python -Werror -m tests.test_all -v
         pt2to3 -h
         ptrepack -h
         ptdump -h
@@ -220,7 +221,8 @@ jobs:
         ! conda list | grep -E '^(python-)?blosc2'
     - name: 'Run test'
       run: |
-        cd .. && python -Werror -m tables.tests.test_all -v
+        mv tables _tables
+        python -Werror -m tests.test_all -v
         pt2to3 -h
         ptrepack -h
         ptdump -h

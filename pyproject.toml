@@ -117,20 +117,14 @@ version = { attr = "tables._version.__version__" }
 [tool.setuptools]
 packages = [
     "tables",
-    "tables.tests",
-    "tables.tests.data",
     "tables.scripts",
     "tables.nodes",
-    "tables.nodes.tests",
-    "tables.nodes.tests.data",
     "tables.misc",
 ]
 
 
 [tool.setuptools.package-data]
 tables = [ "*.dll", "*.so*", "*.dylib" ]
-"tables.tests.data" = [ "*.h5", "*.mat" ]
-"tables.nodes.tests.data" = [ "*.dat", "*.xbm", "*.h5" ]
 
 
 [tool.cibuildwheel]
@@ -138,9 +132,10 @@ skip = "*-musllinux_*"
 archs = "native"
 build = "cp311-* cp314t-*"
 build-verbosity = 1
+test-sources = ["tests"]
 test-command = [
     "python -c \"import tables; keys = 'zlib bzip2 blosc blosc2'.split(); missing = [key for key in keys if tables.which_lib_version(key) is None]; assert missing == [], missing\"",
-    "python -m tables.tests.test_all",
+    "env PYTHONPATH=. python tests/test_all.py",
 ]
 test-skip = "*_aarch64"
 # Keep in sync with ``build-system.requires`` above

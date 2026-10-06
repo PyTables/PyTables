@@ -2968,9 +2968,9 @@ class File(hdf5extension.File):
         ::
 
             >>> import tables
-            >>> f = tables.open_file('tables/tests/data/Tables_lzo2.h5')
+            >>> f = tables.open_file('tests/data/Tables_lzo2.h5')
             >>> print(f)
-            tables/tests/data/Tables_lzo2.h5 (File) 'Table Benchmark'
+            tests/data/Tables_lzo2.h5 (File) 'Table Benchmark'
             Last modif.: '...'
             Object Tree:
             / (RootGroup) 'Table Benchmark'
