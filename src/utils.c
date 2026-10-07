@@ -127,6 +127,14 @@ PyObject *createNamesList(char *buffer[], int nelements)
  *-------------------------------------------------------------------------
  */
 
+/*
+ * Number of filter client data values get_filter_names() can read at once.
+ * H5Pget_filter() reports how many of them the file holds, which is not
+ * bounded by this, so the count it returns has to be clamped before it is
+ * used to walk the buffer.
+ */
+#define CD_VALUES_SIZE 20
+
 PyObject *get_filter_names( hid_t loc_id,
                             const char *dset_name)
 {
@@ -137,7 +145,7 @@ PyObject *get_filter_names( hid_t loc_id,
   int      nf;             /* number of filters */
   unsigned filt_flags;     /* filter flags */
   size_t   cd_nelmts;      /* filter client number of values */
-  unsigned cd_values[20];  /* filter client data values */
+  unsigned cd_values[CD_VALUES_SIZE];  /* filter client data values */
   char     f_name[256];    /* filter name */
   PyObject *filters;
   PyObject *filter_values;
@@ -154,9 +162,11 @@ PyObject *get_filter_names( hid_t loc_id,
     filters = PyDict_New();
     if ((nf = H5Pget_nfilters(dcpl))>0) {
       for (i=0; i<nf; i++) {
-        cd_nelmts = 20;
+        cd_nelmts = CD_VALUES_SIZE;
         H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
                       cd_values, sizeof(f_name), f_name, NULL);
+        if (cd_nelmts > CD_VALUES_SIZE)
+          cd_nelmts = CD_VALUES_SIZE;
         filter_values = PyTuple_New(cd_nelmts);
         for (j=0;j<(long)cd_nelmts;j++) {
           PyTuple_SetItem(filter_values, j, PyLong_FromLong(cd_values[j]));
