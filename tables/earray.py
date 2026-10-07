@@ -199,7 +199,7 @@ class EArray(CArray):
         if myrank != narank:
             raise ValueError(
                 f"the ranks of the appended object ({narank}) and the "
-                f"``{self._v_pathname}`` EArray (myrank) differ"
+                f"``{self._v_pathname}`` EArray ({myrank}) differ"
             )
         for i in range(myrank):
             if i != self.extdim and self.shape[i] != nparr.shape[i]:

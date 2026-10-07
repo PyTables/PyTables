@@ -44,6 +44,8 @@ Changes from 3.11.1 to 3.12.0
   (:issue:`699`).
 * Setting a table row from a record scalar, e.g. ``table[2] = table[0]``,
   no longer raises ``ValueError``.
+* The error raised by :meth:`EArray.append` for an object of the wrong rank
+  now shows the rank of the EArray instead of ``(myrank)``.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
