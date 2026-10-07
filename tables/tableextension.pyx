@@ -832,6 +832,7 @@ cdef class Table(Leaf):
     cdef size_t rowsize
     cdef hsize_t nrecords=0, nrecords2
     cdef hsize_t i
+    cdef ssize_t j
     cdef bytes fname = self._v_file.filename.encode("utf8")
     cdef char* filename = fname
 
@@ -857,9 +858,12 @@ cdef class Table(Leaf):
     elif step == -1:
       nrecords = self._remove_rows(stop+1, start+1, 1)
     elif step >= 1:
-      # always want to go through the space backwards
-      for i in range(stop - step, <ssize_t>start - step, -step):
-        nrecords += self._remove_rows(i, i+1, 1)
+      # always want to go through the space backwards, starting from the
+      # last row of the range (start, start + step, ...)
+      j = start + ((stop - 1 - start) // step) * step
+      while j >= <ssize_t>start:
+        nrecords += self._remove_rows(j, j+1, 1)
+        j -= step
     elif step <= -1:
       # always want to go through the space backwards
       for i in range(start, stop, step):

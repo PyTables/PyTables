@@ -2340,7 +2340,12 @@ very small/large chunksize, you may want to increase/decrease it.""",
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            return self.modify_rows(key, key + 1, 1, [value])
+            if getattr(value, "shape", None) == ():
+                # A record scalar, e.g. ``table[0]``
+                value = self._conv_to_recarr(value)
+            else:
+                value = [value]
+            return self.modify_rows(key, key + 1, 1, value)
         if isinstance(key, slice):
             start, stop, step = self._process_range(
                 key.start, key.stop, key.step
@@ -2871,6 +2876,9 @@ very small/large chunksize, you may want to increase/decrease it.""",
 
         """
         start, stop, step = self._process_range(start, stop, step)
+        if start >= stop:
+            # empty range, nothing to remove
+            return SizeType(0)
         nrows = self._remove_rows(start, stop, step)
         # remove_rows is an invalidating index operation
         self._reindex(self.colpathnames)
@@ -2905,6 +2913,8 @@ very small/large chunksize, you may want to increase/decrease it.""",
                 table.remove_rows(15)
 
         """
+        if n < 0:
+            n += self.nrows
         self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self) -> None:

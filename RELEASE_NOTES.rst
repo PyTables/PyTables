@@ -31,6 +31,10 @@ Changes from 3.11.1 to 3.12.0
 * Preserve field values when :meth:`Table.append` converts structured arrays
   with a different dtype or byteorder (:issue:`658`), and copy strided arrays
   before appending their records.
+* Fix :meth:`Table.remove_rows` with a *step* greater than 1, which removed
+  the wrong rows or raised ``OverflowError``.  An empty range now removes
+  nothing instead of raising ``HDF5ExtError``, and :meth:`Table.remove_row`
+  accepts negative indices.
 * Indexing a multidimensional :class:`Array` with a single list or 1-D
   array of integers, e.g. ``array[[0, 2]]``, now selects along the first
   axis like NumPy instead of raising ``HDF5ExtError``.
@@ -38,6 +42,8 @@ Changes from 3.11.1 to 3.12.0
   :meth:`Table.modify_column` or :meth:`Table.modify_columns`) no longer
   raises ``KeyError``, and indexes on its subcolumns are marked dirty
   (:issue:`699`).
+* Setting a table row from a record scalar, e.g. ``table[2] = table[0]``,
+  no longer raises ``ValueError``.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
