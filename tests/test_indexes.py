@@ -2774,6 +2774,43 @@ class TestIndexingNans(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(results), 100 * 2)
 
 
+class Issue699TestCase(common.TempFileMixin, common.PyTablesTestCase):
+    """Modifying a nested column of an indexed table."""
+
+    date_t = np.dtype([("year", np.int32), ("month", np.int32)])
+    record_t = np.dtype([("id", np.int32), ("date", date_t)])
+
+    def setUp(self):
+        super().setUp()
+        data = np.zeros(5, self.record_t)
+        data["id"] = np.arange(5)
+        self.table = self.h5file.create_table("/", "test", data)
+
+    def test_row_update(self):
+        self.table.cols.id.create_csindex()
+        for row in self.table.iterrows():
+            row["date"] = (2018, 6)
+            row.update()
+        self.assertEqual(self.table.cols.date.year[:].tolist(), [2018] * 5)
+
+    def test_modify_column(self):
+        self.table.cols.id.create_csindex()
+        dates = np.array([(2018, 6)] * 5, self.date_t)
+        self.table.modify_column(colname="date", column=dates)
+        self.assertEqual(self.table.cols.date.year[:].tolist(), [2018] * 5)
+
+    def test_modify_nested_indexed_column(self):
+        self.table.cols.date.year.create_index()
+        self.table.autoindex = False
+        dates = np.array([(2018, 6)] * 5, self.date_t)
+        self.table.modify_columns(names=["date"], columns=[dates])
+        self.assertTrue(self.table.cols.date.year.index.dirty)
+        self.table.reindex_dirty()
+        condvars = {"year": self.table.cols.date.year}
+        result = self.table.get_where_list("year == 2018", condvars)
+        self.assertEqual(result.tolist(), list(range(5)))
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
 
@@ -2810,6 +2847,7 @@ def suite():
         theSuite.addTest(common.make_suite(Issue119Time32ColTestCase))
         theSuite.addTest(common.make_suite(Issue119Time64ColTestCase))
         theSuite.addTest(common.make_suite(TestIndexingNans))
+        theSuite.addTest(common.make_suite(Issue699TestCase))
     if common.heavy:
         # These are too heavy for normal testing
         theSuite.addTest(common.make_suite(AI4bTestCase))
