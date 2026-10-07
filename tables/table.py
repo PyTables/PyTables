@@ -2340,7 +2340,12 @@ very small/large chunksize, you may want to increase/decrease it.""",
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            return self.modify_rows(key, key + 1, 1, [value])
+            if getattr(value, "shape", None) == ():
+                # A record scalar, e.g. ``table[0]``
+                value = self._conv_to_recarr(value)
+            else:
+                value = [value]
+            return self.modify_rows(key, key + 1, 1, value)
         if isinstance(key, slice):
             start, stop, step = self._process_range(
                 key.start, key.stop, key.step

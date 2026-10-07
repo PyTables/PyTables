@@ -4210,6 +4210,41 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
+    def test01c(self):
+        """Checking modifying one table row with a record scalar"""
+
+        # Create a new table:
+        table = self.h5file.create_table(self.h5file.root, "recarray", Rec)
+        table.nrowsinbuf = self.buffersize  # set buffer value
+
+        # append new rows
+        r = np.rec.array(
+            [(456, b"dbe", 1.2), (2, b"ded", 1.3), (457, b"db1", 1.2)],
+            formats="i4,S3,f8",
+        )
+        table.append(r)
+
+        # Modify rows with a row read from the table and with a record
+        table[2] = table[0]
+        table[-2] = r[2]
+        # Create the modified recarray
+        r1 = np.rec.array(
+            [(456, b"dbe", 1.2), (457, b"db1", 1.2), (456, b"dbe", 1.2)],
+            formats="i4,S3,f8",
+            names="col1,col2,col3",
+        )
+        # Read the modified table
+        if self.reopen:
+            self._reopen()
+            table = self.h5file.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print("Original table-->", repr(r2))
+            print("Should look like-->", repr(r1))
+        self.assertEqual(r1.tobytes(), r2.tobytes())
+        self.assertEqual(table.nrows, 3)
+
     def test02(self):
         """Modifying one row, with a step (__setitem__)"""
 
