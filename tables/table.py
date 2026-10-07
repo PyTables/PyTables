@@ -2871,6 +2871,9 @@ very small/large chunksize, you may want to increase/decrease it.""",
 
         """
         start, stop, step = self._process_range(start, stop, step)
+        if start >= stop:
+            # empty range, nothing to remove
+            return SizeType(0)
         nrows = self._remove_rows(start, stop, step)
         # remove_rows is an invalidating index operation
         self._reindex(self.colpathnames)
@@ -2905,6 +2908,8 @@ very small/large chunksize, you may want to increase/decrease it.""",
                 table.remove_rows(15)
 
         """
+        if n < 0:
+            n += self.nrows
         self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self) -> None:
