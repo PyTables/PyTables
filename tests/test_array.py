@@ -2340,6 +2340,9 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             (Ellipsis, [1, 2]),  # one ellipsis
             (np.array([1, -2], "i4"), 2, -1),  # array 32-bit instead of list
             (np.array([-1, 2], "i8"), 2, -1),  # array 64-bit instead of list
+            [1, 3],  # a single list selects along the first axis
+            [m - 1, -3],  # unordered and negative, first axis only
+            np.array([2, 0], "i8"),  # array instead of list, first axis only
         ]
 
         # Using booleans instead of ints is deprecated since numpy 1.8

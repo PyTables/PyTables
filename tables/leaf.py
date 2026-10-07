@@ -722,6 +722,11 @@ class Leaf(Node):
                 coords = np.transpose(coords)
             else:
                 # For 1-dimensional datasets
+                if len(self.shape) != 1:
+                    # A 1-D list of indices on a multidimensional dataset
+                    # selects along the first axis, like in NumPy.  Leave it
+                    # to the fancy selection.
+                    raise TypeError(f"Invalid coordinates: {input_key!r}")
                 coords = np.asarray(key, dtype="i8")
 
             # handle negative indices
