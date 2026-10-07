@@ -7460,6 +7460,51 @@ class Issue797TestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(list(array.read(start=10)), [10])
 
 
+class RemoveRowsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    nrows = 10
+
+    def setUp(self):
+        super().setUp()
+
+        data = np.zeros(self.nrows, dtype=[("c1", "i4")])
+        data["c1"] = np.arange(self.nrows)
+        self.h5file.create_table("/", "table", data)
+
+    def test_remove_rows_step(self):
+        """remove_rows() with a step > 1 removes start, start + step, ..."""
+
+        for start, stop, step in [
+            (0, 10, 3),
+            (2, 9, 3),
+            (1, 10, 4),
+            (3, 4, 2),
+        ]:
+            with self.subTest(start=start, stop=stop, step=step):
+                table = self.h5file.root.table.copy(
+                    "/", "copy", overwrite=True
+                )
+                expected = np.delete(
+                    np.arange(self.nrows), np.arange(start, stop, step)
+                )
+                nremoved = table.remove_rows(start, stop, step)
+                self.assertEqual(nremoved, self.nrows - len(expected))
+                self.assertEqual(list(table.col("c1")), list(expected))
+
+    def test_remove_rows_empty_range(self):
+        """remove_rows() with an empty range removes nothing"""
+
+        table = self.h5file.root.table
+        self.assertEqual(table.remove_rows(5, 3), 0)
+        self.assertEqual(table.nrows, self.nrows)
+
+    def test_remove_row_negative(self):
+        """remove_row() accepts a negative index"""
+
+        table = self.h5file.root.table
+        table.remove_row(-1)
+        self.assertEqual(list(table.col("c1")), list(range(self.nrows - 1)))
+
+
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
@@ -8360,6 +8405,7 @@ def suite():
         theSuite.addTest(common.make_suite(IrregularStrideTestCase))
         theSuite.addTest(common.make_suite(Issue262TestCase))
         theSuite.addTest(common.make_suite(Issue797TestCase))
+        theSuite.addTest(common.make_suite(RemoveRowsTestCase))
         theSuite.addTest(common.make_suite(TruncateOpen1))
         theSuite.addTest(common.make_suite(TruncateOpen2))
         theSuite.addTest(common.make_suite(TruncateClose1))

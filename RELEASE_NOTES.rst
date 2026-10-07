@@ -31,6 +31,10 @@ Changes from 3.11.1 to 3.12.0
 * Preserve field values when :meth:`Table.append` converts structured arrays
   with a different dtype or byteorder (:issue:`658`), and copy strided arrays
   before appending their records.
+* Fix :meth:`Table.remove_rows` with a *step* greater than 1, which removed
+  the wrong rows or raised ``OverflowError``.  An empty range now removes
+  nothing instead of raising ``HDF5ExtError``, and :meth:`Table.remove_row`
+  accepts negative indices.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
