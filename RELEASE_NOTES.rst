@@ -44,6 +44,10 @@ Changes from 3.11.1 to 3.12.0
   (:issue:`699`).
 * Setting a table row from a record scalar, e.g. ``table[2] = table[0]``,
   no longer raises ``ValueError``.
+* :meth:`Table.iterrows` and :meth:`Table.read` with a negative *step* now
+  return the same rows as the equivalent Python slice.  Before, they could
+  raise ``OverflowError``, skip the last row or (for :meth:`Table.read`)
+  return wrong or uninitialized values.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
