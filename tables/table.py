@@ -11,7 +11,7 @@ import functools
 from time import perf_counter as clock
 from typing import TYPE_CHECKING, Any, Literal
 from pathlib import Path
-from collections.abc import Callable, Iterator, Sequence, Generator
+from collections.abc import Callable, Iterable, Iterator, Sequence, Generator
 
 import numpy as np
 import numexpr as ne
@@ -2974,28 +2974,40 @@ very small/large chunksize, you may want to increase/decrease it.""",
         colindexed[colpathname] = isindexed
         self.indexed = max(colindexed.values())  # this is an OR :)
 
+    def _indexed_colpathnames(self, colnames: Iterable[str]) -> list[str]:
+        """Return the indexed columns among `colnames`.
+
+        A nested column name stands for all the columns below it.
+
+        """
+        prefixes = tuple(f"{colname}/" for colname in colnames)
+        return [
+            colpathname
+            for colpathname, indexed in self.colindexed.items()
+            if indexed
+            and (colpathname in colnames or colpathname.startswith(prefixes))
+        ]
+
     def _mark_columns_as_dirty(self, colnames: list[str]) -> None:
         """Mark column indexes in `colnames` as dirty."""
         assert len(colnames) > 0
         if self.indexed:
-            colindexed, cols = self.colindexed, self.cols
+            cols = self.cols
             # Mark the proper indexes as dirty
-            for colname in colnames:
-                if colindexed[colname]:
-                    col = cols._g_col(colname)
-                    col.index.dirty = True
+            for colname in self._indexed_colpathnames(colnames):
+                col = cols._g_col(colname)
+                col.index.dirty = True
 
     def _reindex(self, colnames: list[str]) -> None:
         """Re-index columns in `colnames` if automatic indexing is true."""
         if self.indexed:
-            colindexed, cols = self.colindexed, self.cols
+            cols = self.cols
             colstoindex = []
             # Mark the proper indexes as dirty
-            for colname in colnames:
-                if colindexed[colname]:
-                    col = cols._g_col(colname)
-                    col.index.dirty = True
-                    colstoindex.append(colname)
+            for colname in self._indexed_colpathnames(colnames):
+                col = cols._g_col(colname)
+                col.index.dirty = True
+                colstoindex.append(colname)
             # Now, re-index the dirty ones
             if self.autoindex and colstoindex:
                 self._do_reindex(dirty=True)

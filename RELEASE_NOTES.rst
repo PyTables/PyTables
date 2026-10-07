@@ -38,6 +38,10 @@ Changes from 3.11.1 to 3.12.0
 * Indexing a multidimensional :class:`Array` with a single list or 1-D
   array of integers, e.g. ``array[[0, 2]]``, now selects along the first
   axis like NumPy instead of raising ``HDF5ExtError``.
+* Modifying a nested column of an indexed table (with :meth:`Row.update`,
+  :meth:`Table.modify_column` or :meth:`Table.modify_columns`) no longer
+  raises ``KeyError``, and indexes on its subcolumns are marked dirty
+  (:issue:`699`).
 * Setting a table row from a record scalar, e.g. ``table[2] = table[0]``,
   no longer raises ``ValueError``.
 * Fix typos in docstrings, comments and error messages.
