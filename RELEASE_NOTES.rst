@@ -31,6 +31,9 @@ Changes from 3.11.1 to 3.12.0
 * Preserve field values when :meth:`Table.append` converts structured arrays
   with a different dtype or byteorder (:issue:`658`), and copy strided arrays
   before appending their records.
+* Indexing a multidimensional :class:`Array` with a single list or 1-D
+  array of integers, e.g. ``array[[0, 2]]``, now selects along the first
+  axis like NumPy instead of raising ``HDF5ExtError``.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
