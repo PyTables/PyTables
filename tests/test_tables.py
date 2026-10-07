@@ -4629,6 +4629,33 @@ class SetItemTestCase4(SetItemTestCase):
     buffersize = 1000
 
 
+class SingleRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    """Appending and modifying a single row given as a tuple or record."""
+
+    def setUp(self):
+        super().setUp()
+        self.table = self.h5file.create_table("/", "recarray", Rec)
+        self.table.append([(1, b"a", 1.0), (2, b"b", 2.0), (3, b"c", 3.0)])
+
+    def test_append(self):
+        table = self.table
+        records = np.rec.array([(4, b"d", 4.0)], formats="i4,S3,f8")
+        table.append((5, b"e", 5.0))
+        table.append(table[0])
+        table.append(records[0])
+        self.assertEqual(table.nrows, 6)
+        self.assertEqual(table.col("col1").tolist(), [1, 2, 3, 5, 1, 4])
+        self.assertEqual(table[-1]["col2"], b"d")
+
+    def test_modify_rows(self):
+        table = self.table
+        self.assertEqual(table.modify_rows(0, rows=table[2]), 1)
+        self.assertEqual(table.modify_rows(1, 2, 1, table[2]), 1)
+        table.append((7, b"g", 7.0))
+        table[2:3] = table[3]
+        self.assertEqual(table.col("col1").tolist(), [3, 3, 7, 7])
+
+
 class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01(self):
         """Checking modifying one table row with Row.update"""
@@ -8409,6 +8436,7 @@ def suite():
         theSuite.addTest(common.make_suite(SetItemTestCase2))
         theSuite.addTest(common.make_suite(SetItemTestCase3))
         theSuite.addTest(common.make_suite(SetItemTestCase4))
+        theSuite.addTest(common.make_suite(SingleRowTestCase))
         theSuite.addTest(common.make_suite(UpdateRowTestCase1))
         theSuite.addTest(common.make_suite(UpdateRowTestCase2))
         theSuite.addTest(common.make_suite(UpdateRowTestCase3))

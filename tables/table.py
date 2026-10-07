@@ -2453,6 +2453,9 @@ very small/large chunksize, you may want to increase/decrease it.""",
                     f"rows parameter cannot be converted into a "
                     f"recarray object compliant with table '{self}'. "
                 ) from exc
+        if wbuf_ra.ndim == 0:
+            # A single row, e.g. a tuple or a row read with ``table[i]``
+            wbuf_ra = np.asarray(wbuf_ra).reshape(1)
         lenrows = wbuf_ra.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
@@ -2542,6 +2545,9 @@ very small/large chunksize, you may want to increase/decrease it.""",
             step = 1
         if rows is None:  # Nothing to be done
             return SizeType(0)
+        if getattr(rows, "shape", None) == ():
+            # A single record, e.g. a row read with ``table[i]``
+            rows = self._conv_to_recarr(rows)
         if start is None:
             start = 0
 

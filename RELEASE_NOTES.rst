@@ -44,6 +44,9 @@ Changes from 3.11.1 to 3.12.0
   (:issue:`699`).
 * Setting a table row from a record scalar, e.g. ``table[2] = table[0]``,
   no longer raises ``ValueError``.
+* :meth:`Table.append` accepts a single row given as a tuple or a record
+  (e.g. ``table.append(table[0])``) instead of raising ``IndexError``, and
+  :meth:`Table.modify_rows` accepts a single record.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
