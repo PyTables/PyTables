@@ -8,6 +8,7 @@ import numpy as np
 
 import tables as tb
 from tests import common
+from tables import utilsextension
 from tables.utils import print_versions
 
 
@@ -412,6 +413,52 @@ class SzipTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertEqual(repr(arr.filters), filters)
 
 
+class ManyFilterClientValuesTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
+    """Test for a filter pipeline holding more values than can be read.
+
+    get_filter_names() reads the client data values of each filter into a
+    fixed buffer, but H5Pget_filter() reports how many of them the file
+    holds rather than how many it stored, so a dataset written with more
+    values than the buffer takes used to be reported with the tail of the
+    tuple coming from past the end of that buffer.
+
+    many_filter_cdvalues.h5 was created with h5py; the chunked dataset
+    `/array` carries filter 32768 (an id no registered filter uses, so it
+    is reported with an empty name) with 40 client data values, the i-th
+    one being 0xAA000000 + i.
+
+        dcpl = h5p.create(h5p.DATASET_CREATE)
+        dcpl.set_chunk((4,))
+        dcpl.set_filter(
+            32768, h5z.FLAG_OPTIONAL,
+            tuple(0xAA000000 + i for i in range(40)),
+        )
+
+    """
+
+    h5fname = common.test_filename("many_filter_cdvalues.h5")
+
+    def test(self):
+        arr = self.h5file.get_node("/array")
+        self.assertTrue(
+            common.are_arrays_equal(arr.read(), np.arange(4, dtype="f8"))
+        )
+
+        (values,) = utilsextension.get_filters(
+            arr._v_parent._v_objectid, arr._v_name
+        ).values()
+
+        # Only the values that were actually read may be reported, so the
+        # tuple is shorter than the 40 the file holds and every value in it
+        # is one of those written above.
+        self.assertLess(len(values), 40)
+        self.assertEqual(
+            list(values), [0xAA000000 + i for i in range(len(values))]
+        )
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -500,6 +547,7 @@ def suite():
         theSuite.addTest(common.make_suite(ContiguousCompoundAppendTestCase))
         theSuite.addTest(common.make_suite(ExtendibleTestCase))
         theSuite.addTest(common.make_suite(SzipTestCase))
+        theSuite.addTest(common.make_suite(ManyFilterClientValuesTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))
