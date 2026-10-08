@@ -2644,7 +2644,10 @@ class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         fileh = self.h5file
         ea = fileh.root.test
         arr = np.empty(shape=(3, 0, 3), dtype="int32")
-        self.assertRaises(ValueError, ea.append, arr)
+        with self.assertRaisesRegex(
+            ValueError, r"appended object \(3\) and .* EArray \(2\) differ"
+        ):
+            ea.append(arr)
 
 
 # Test for dealing with multidimensional atoms

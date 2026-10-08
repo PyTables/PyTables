@@ -272,6 +272,14 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(vlarray.get_row_size(3), 4 * vlarray.atom.size)
         self.assertEqual(vlarray.get_row_size(4), 5 * vlarray.atom.size)
 
+        # Negative rows count from the end
+        self.assertEqual(vlarray.get_row_size(-1), 5 * vlarray.atom.size)
+        self.assertEqual(vlarray.get_row_size(-3), 0 * vlarray.atom.size)
+        with self.assertRaises(tb.HDF5ExtError):
+            vlarray.get_row_size(-6)
+        with self.assertRaises(tb.HDF5ExtError):
+            vlarray.get_row_size(5)
+
 
 class BasicNumPyTestCase(BasicTestCase):
     flavor = "numpy"

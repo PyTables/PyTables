@@ -48,6 +48,17 @@ Changes from 3.11.1 to 3.12.0
   ``table.where("a > b")`` or ``table.where("a == a")``, no longer raise
   ``AttributeError: 'Column' object has no attribute 'tolist'``.  The index
   of such a column is not used for that comparison.
+* :meth:`Table.iterrows` and :meth:`Table.read` with a negative *step* now
+  return the same rows as the equivalent Python slice.  Before, they could
+  raise ``OverflowError``, skip the last row or (for :meth:`Table.read`)
+  return wrong or uninitialized values.
+* :meth:`Table.append` accepts a single row given as a tuple or a record
+  (e.g. ``table.append(table[0])``) instead of raising ``IndexError``, and
+  :meth:`Table.modify_rows` accepts a single record.
+* The error raised by :meth:`EArray.append` for an object of the wrong rank
+  now shows the rank of the EArray instead of ``(myrank)``.
+* :meth:`VLArray.get_row_size` accepts negative row numbers, counting from
+  the end like indexing does, instead of raising ``OverflowError``.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
@@ -91,3 +102,4 @@ Thanks to:
 * Adrian Altenhoff
 * maxtaran2010
 * YuuLuo
+* Raashish Aggarwal
