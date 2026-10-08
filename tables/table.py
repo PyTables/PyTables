@@ -1472,6 +1472,21 @@ very small/large chunksize, you may want to increase/decrease it.""",
         # Now let ``compile_condition()`` do the Numexpr-related job.
         compiled = compile_condition(condition, typemap, indexedcols)
 
+        # An indexed column compared with another column (e.g. ``a > b``)
+        # has no constant limit to look up in its index, so the index of
+        # such a column is not used for this condition.
+        while True:
+            othercolcmps = frozenset(
+                var
+                for var, _, limits in compiled.index_expressions
+                for limit in limits
+                if isinstance(limit, tuple) and limit[0] in colnames
+            )
+            if not othercolcmps:
+                break
+            indexedcols -= othercolcmps
+            compiled = compile_condition(condition, typemap, indexedcols)
+
         # Check that there actually are columns in the condition.
         if not set(compiled.parameters).intersection(set(colnames)):
             raise ValueError(

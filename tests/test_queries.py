@@ -1296,6 +1296,50 @@ class IndexedTableUsage32(IndexedTableUsage):
     str_expr = ""
 
 
+class IndexedTableUsage33(IndexedTableUsage):
+    """Comparisons of an indexed column with another column."""
+
+    conditions = [
+        "c_int32 > c_extra",
+        "c_extra <= c_int32",
+        "c_int32 == c_int32",
+        "(c_int32 > 0) & (c_int32 < c_extra)",
+    ]
+    idx_expr = []
+    str_expr = ""
+
+    def test_results(self):
+        """The rows are the same as without using the index."""
+
+        data = self.table.read()
+        expected = {
+            "c_int32 > c_extra": data["c_int32"] > data["c_extra"],
+            "c_extra <= c_int32": data["c_extra"] <= data["c_int32"],
+            "c_int32 == c_int32": data["c_int32"] == data["c_int32"],
+            "(c_int32 > 0) & (c_int32 < c_extra)": (data["c_int32"] > 0)
+            & (data["c_int32"] < data["c_extra"]),
+        }
+        for condition in self.conditions:
+            self.assertEqual(
+                self.table.get_where_list(condition).tolist(),
+                np.flatnonzero(expected[condition]).tolist(),
+                f"Wrong rows for condition ``{condition}``",
+            )
+
+
+class IndexedTableUsage34(IndexedTableUsage):
+    """Other indexed columns are still used next to such comparisons."""
+
+    conditions = [
+        "(c_bool == True) & (c_int32 > c_extra)",
+        "(c_int32 > c_extra) & (c_bool == True)",
+    ]
+    idx_expr = [
+        ("c_bool", ("eq",), (True,)),
+    ]
+    str_expr = "e0"
+
+
 # Main part
 # ---------
 def suite():
@@ -1357,6 +1401,8 @@ def suite():
         testSuite.addTest(common.make_suite(IndexedTableUsage30))
         testSuite.addTest(common.make_suite(IndexedTableUsage31))
         testSuite.addTest(common.make_suite(IndexedTableUsage32))
+        testSuite.addTest(common.make_suite(IndexedTableUsage33))
+        testSuite.addTest(common.make_suite(IndexedTableUsage34))
 
     return testSuite
 

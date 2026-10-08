@@ -44,6 +44,10 @@ Changes from 3.11.1 to 3.12.0
   (:issue:`699`).
 * Setting a table row from a record scalar, e.g. ``table[2] = table[0]``,
   no longer raises ``ValueError``.
+* Queries that compare an indexed column with another column, e.g.
+  ``table.where("a > b")`` or ``table.where("a == a")``, no longer raise
+  ``AttributeError: 'Column' object has no attribute 'tolist'``.  The index
+  of such a column is not used for that comparison.
 * Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
