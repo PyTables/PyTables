@@ -2504,7 +2504,10 @@ cdef class VLArray(Leaf):
     cdef hsize_t offset[1]
     cdef hsize_t count[1]
 
-    if row >= self.nrows:
+    if row < 0:
+      # Count negative rows from the end, like in ``__getitem__()``
+      row += self.nrows
+    if row < 0 or row >= self.nrows:
       raise HDF5ExtError(
         "Asking for a range of rows exceeding the available ones!.",
         h5bt=False)
