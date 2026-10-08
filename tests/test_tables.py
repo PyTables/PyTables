@@ -3758,6 +3758,33 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         #     print rec
         #     self.fail("expected a ValueError")
 
+    def test14_negative_step(self):
+        """Checking iterrows() and read() with a negative step"""
+
+        self.h5file = tb.open_file(self.h5fname, "r")
+        table = self.h5file.get_node("/table0")
+        var2 = table.col("var2")
+        for nrowsinbuf in (3, 16, table.nrowsinbuf):
+            table.nrowsinbuf = nrowsinbuf
+            for start, stop, step in [
+                (None, None, -1),
+                (10, None, -2),
+                (12, 6, -3),
+                (50, 0, -7),
+                (2, None, -1),
+                (-1, -60, -11),
+            ]:
+                with self.subTest(
+                    nrowsinbuf=nrowsinbuf, start=start, stop=stop, step=step
+                ):
+                    expected = var2[start:stop:step].tolist()
+                    rows = table.iterrows(start, stop, step)
+                    self.assertEqual([row["var2"] for row in rows], expected)
+                    records = table.read(start, stop, step)
+                    self.assertEqual(records["var2"].tolist(), expected)
+                    column = table.read(start, stop, step, field="var2")
+                    self.assertEqual(column.tolist(), expected)
+
 
 class IterRangeTestCase(BasicRangeTestCase):
     pass
