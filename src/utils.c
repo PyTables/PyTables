@@ -169,7 +169,8 @@ PyObject *get_filter_names( hid_t loc_id,
           cd_nelmts = CD_VALUES_SIZE;
         filter_values = PyTuple_New(cd_nelmts);
         for (j=0;j<(long)cd_nelmts;j++) {
-          PyTuple_SetItem(filter_values, j, PyLong_FromLong(cd_values[j]));
+          PyTuple_SetItem(filter_values, j,
+                          PyLong_FromUnsignedLong(cd_values[j]));
         }
         PyMapping_SetItemString (filters, f_name, filter_values);
       }
