@@ -23,6 +23,7 @@ Misc variables:
 import os
 import sys
 import math
+import weakref
 import platform
 
 import numpy as np
@@ -255,6 +256,31 @@ cdef class Table(Leaf):
   cdef chunk_iter_op chunk_op
   cdef hbool_t blosc2_support_read
   cdef hbool_t blosc2_support_write
+  cdef long _mod_nrows
+  cdef object _mod_records, _mod_coords
+  cdef set _mod_fields
+
+  def _flush_mod_rows(self):
+    """Drain the shared buffer of Row.update() records."""
+    if self._mod_nrows == 0:
+      return
+    if self._mod_fields:
+      self._mark_columns_as_dirty(self._mod_fields)
+    records = self._mod_records
+    if self._time64colnames:
+      # _update_elements converts Time64 in place. Keep the pending values
+      # in NumPy format so a failed write can be retried safely.
+      records = records[:self._mod_nrows].copy()
+    self._update_elements(self._mod_nrows, self._mod_coords, records)
+    self._mod_nrows = 0
+    self._mod_fields.clear()
+    self._v_file._pending_row_updates.discard(self)
+
+  def _discard_mod_rows(self):
+    """Release pending updates when a table is explicitly closed."""
+    self._mod_nrows = 0
+    self._mod_records = self._mod_coords = self._mod_fields = None
+    self._v_file._pending_row_updates.discard(self)
 
   def _create_table(self, title, complib, obversion):
     cdef int     ret
@@ -905,7 +931,9 @@ cdef class Row:
   """
 
   cdef npy_intp _stride
-  cdef long _row, _unsaved_nrows, _mod_nrows
+  cdef long _row, _unsaved_nrows
+  cdef int _has_mod_rows
+  cdef Py_ssize_t _mod_fields_count
   cdef long long start, absstep
   # has to be long long, not hsize_t, for negative step sizes
   cdef long long stop, step, nextelement, _nrow, stopb
@@ -926,15 +954,15 @@ cdef class Row:
   cdef char    *chunkmap_data
   cdef char    *index_valid_data
   cdef object  dtype
-  cdef object  iobuf, iobufcpy
+  cdef object  iobuf
   cdef object  wrec, wreccpy
   cdef object  wfields, rfields
   cdef object  coords
   cdef object  condfunc, condargs, condkwargs
-  cdef object  mod_elements, colenums
+  cdef object  colenums
   cdef object  rfieldscache, wfieldscache
   cdef object  iterseq
-  cdef object  _table_file, _table_path
+  cdef object  _table_file, _table_path, _table_ref
   cdef object  modified_fields
   cdef object  seqcache_key
 
@@ -953,14 +981,20 @@ cdef class Row:
   property table:
     def __get__(self):
         self._table_file._check_open()
-        return self._table_file._get_node(self._table_path)
+        table = self._table_ref()
+        if table is None or not table._v_isopen:
+          table = self._table_file._get_node(self._table_path)
+          self._table_ref = weakref.ref(table)
+        return table
 
   def __cinit__(self, table):
     # Location-dependent information.
     self._table_file = table._v_file
     self._table_path = table._v_pathname
+    self._table_ref = weakref.ref(table)
     self._unsaved_nrows = 0
-    self._mod_nrows = 0
+    self._has_mod_rows = 0
+    self._mod_fields_count = 0
     self._row = 0
     self._nrow = 0   # Useful in mod_append read iterators
     self._riterator = 0
@@ -978,7 +1012,6 @@ cdef class Row:
     self.nchunksinbuf = self.nrowsinbuf // self.chunksize
     self.dtype = table._v_dtype
     self._new_buffer(table)
-    self.mod_elements = None
     self.rfieldscache = {}
     self.wfieldscache = {}
     self.modified_fields = set()
@@ -1411,9 +1444,10 @@ cdef class Row:
     self._riterator = 0        # out of iterator
     self.iterseq = None        # empty seqcache-related things
     self.seqcache_key = None
-    if self._mod_nrows > 0:    # Check if there is some modified row
+    if self._has_mod_rows:    # Check if this iterator queued any updates
       self._flush_mod_rows()     # Flush any possible modified row
     self.modified_fields = set()  # Empty the set of modified fields
+    self._mod_fields_count = 0
     raise StopIteration        # end of iteration
 
   def _fill_col(self, result, start, stop, step, field):
@@ -1585,7 +1619,8 @@ cdef class Row:
     which just updates the rows with values bigger than 3 in the first
     column.
     """
-    cdef ndarray iobufcpy, iobuf
+    cdef ndarray records, iobuf
+    cdef Table table
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -1596,43 +1631,51 @@ cdef class Row:
         "method if you are in the middle of a table iterator."
       )
 
-    if self.mod_elements is None:
-      # Initialize an array for keeping the modified elements
-      # (just in case Row.update() would be used)
-      self.mod_elements = np.empty(shape=self.nrowsinbuf, dtype=SizeType)
-      # We need a different copy for self.iobuf here
-      self.iobufcpy = self.iobuf.copy()
+    table = self._table_ref()
+    if table is None or not table._v_isopen:
+      table = self.table
+    if table._mod_coords is None:
+      # Pending updates belong to the table, not to the iterator that may
+      # be discarded before it reaches StopIteration.
+      table._mod_coords = np.empty(self.nrowsinbuf, dtype=SizeType)
+      table._mod_records = table._get_container(self.nrowsinbuf)
+      table._mod_fields = set()
+    if table._mod_nrows == 0:
+      # Keep this table in the live-node registry even with no node cache.
+      table._v_file._pending_row_updates.add(table)
+    # Field names only accumulate within an iteration. Merge them once per
+    # pending batch, or when this iterator starts modifying another field.
+    if (
+      table._mod_nrows == 0 or
+      len(self.modified_fields) != self._mod_fields_count
+    ):
+      table._mod_fields.update(self.modified_fields)
+      self._mod_fields_count = len(self.modified_fields)
 
     # Add this row to the list of elements to be modified
-    self.mod_elements[self._mod_nrows] = self._nrow
+    table._mod_coords[table._mod_nrows] = self._nrow
     # Copy the current buffer row in input to the output buffer
-    # self.iobufcpy[self._mod_nrows] = self.iobuf[self._row]
-    # The next is faster
-    iobufcpy = <ndarray>self.iobufcpy
+    records = <ndarray>table._mod_records
     iobuf = <ndarray>self.iobuf
     memcpy(
-      PyArray_BYTES(iobufcpy) + self._mod_nrows * self._stride,
+      PyArray_BYTES(records) + table._mod_nrows * self._stride,
       PyArray_BYTES(iobuf) + self._row * self._stride, self._rowsize
     )
     # Increase the modified buffer count by one
-    self._mod_nrows = self._mod_nrows + 1
+    table._mod_nrows = table._mod_nrows + 1
+    self._has_mod_rows = 1
     # No point writing seqcache -- Table.flush will invalidate it
     # since we no longer know whether this row will meet _where_condition
     self._write_to_seqcache = 0
     # When the buffer is full, flush it
-    if self._mod_nrows == self.nrowsinbuf:
+    if table._mod_nrows == len(table._mod_coords):
       self._flush_mod_rows()
 
   def _flush_mod_rows(self):
     """Flush any possible modified row using Row.update()"""
 
-    table = self.table
-    # Save the records on disk
-    table._update_elements(self._mod_nrows, self.mod_elements, self.iobufcpy)
-    # Reset the counter of modified rows to 0
-    self._mod_nrows = 0
-    # Mark the modified fields' indexes as dirty.
-    table._mark_columns_as_dirty(self.modified_fields)
+    self.table._flush_mod_rows()
+    self._has_mod_rows = 0
 
   def __contains__(self, item):
     """__contains__(item)

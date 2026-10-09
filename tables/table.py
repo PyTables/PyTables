@@ -3229,6 +3229,7 @@ very small/large chunksize, you may want to increase/decrease it.""",
             # Flush rows that remains to be appended
             if "row" in self.__dict__:
                 self.row._flush_buffered_rows()
+            self._flush_mod_rows()
             if self.indexed and self.autoindex:
                 # Flush any unindexed row
                 rowsadded = self.flush_rows_to_index(_lastrow=True)
@@ -3300,6 +3301,8 @@ very small/large chunksize, you may want to increase/decrease it.""",
         # Flush right now so the row object does not get in the middle.
         if flush:
             self.flush()
+
+        self._discard_mod_rows()
 
         # Some warnings can be issued after calling `self._g_set_location()`
         # in `self.__init__()`.  If warnings are turned into exceptions,

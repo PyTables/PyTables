@@ -842,6 +842,8 @@ class File(hdf5extension.File):
         # because it is a bound method of the root group itself.
         node_cache_slots = params["NODE_CACHE_SLOTS"]
         self._node_manager = NodeManager(nslots=node_cache_slots)
+        # Dirty tables must survive eviction until their Row updates flush.
+        self._pending_row_updates = set()
 
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
