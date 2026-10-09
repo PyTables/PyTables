@@ -493,8 +493,9 @@ class Group(hdf5extension.Group, Node):
             # Recursive algorithm
             yield from self._f_walk_groups()
         else:
-            for group in self._f_walk_groups():
-                yield from group._f_iter_nodes(classname)
+            for group, descend in self._g_walk_groups():
+                if descend:
+                    yield from group._f_iter_nodes(classname)
 
     def _g_join(self, name: str) -> str:
         """Concatenate a name child object with the pathname of this group."""
@@ -787,20 +788,34 @@ class Group(hdf5extension.Group, Node):
         recursively iterate over all child groups in alphanumerical order, top
         to bottom (preorder), following the same procedure.
 
+        A group hard-linked to an ancestor is yielded, but its children are
+        not traversed again. Other hard links are traversed at each path.
+
         """
+        for group, _ in self._g_walk_groups():
+            yield group
+
+    def _g_walk_groups(self) -> Iterator[tuple[Group, bool]]:
+        """Yield groups and whether their children should be traversed."""
         self._g_check_open()
 
-        stack = [self]
-        yield self
+        ancestors = frozenset({self._get_obj_info().addr})
+        stack = [(self, ancestors)]
+        yield self, True
         # Iterate over the descendants
         while stack:
-            objgroup = stack.pop()
+            objgroup, ancestors = stack.pop()
             groupnames = sorted(objgroup._v_groups)
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
             for groupname in groupnames:
-                stack.append(objgroup._v_groups[groupname])
-                yield objgroup._v_groups[groupname]
+                group = objgroup._v_groups[groupname]
+                address = group._get_obj_info().addr
+                descend = address not in ancestors
+                if descend:
+                    # Per-path identities preserve non-cyclic alias branches.
+                    stack.append((group, ancestors | {address}))
+                yield group, descend
 
     def __delattr__(self, name: str) -> None:
         """Delete a Python attribute called name.

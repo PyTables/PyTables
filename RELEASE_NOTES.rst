@@ -10,6 +10,9 @@
 Changes from 3.11.1 to 3.12.0
 =============================
 
+* Group and node walks, including ``ptdump``, terminate when group hard links
+  form cycles (:issue:`794`). Links to an ancestor are listed without
+  traversing their children again; non-cyclic aliases retain their descendants.
 * Preserve pending :meth:`Row.update` changes when iteration stops early.
   :meth:`Table.flush`, :meth:`File.flush` and :meth:`File.close` now write
   them even if the iterator has been discarded (:issue:`8`, :issue:`1098`).
