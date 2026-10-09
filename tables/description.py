@@ -589,7 +589,12 @@ class Description:
         cols_no_pos.sort()
         keys = [name for (pos, name) in cols_with_pos] + cols_no_pos
 
-        nested = False
+        # Per-column formats and on-disk offsets, kept in column order so a
+        # dtype with explicit offsets can be built below (also for nested
+        # columns, which the plain nested_dtype path would repack and strip of
+        # any gaps or trailing padding).
+        col_formats = []
+        col_offsets = []
         # Get properties for compound types
         for pos, k in enumerate(keys):
             if validate:
@@ -628,10 +633,12 @@ class Description:
                 nested_formats.append(obj.recarrtype)
                 baserecarrtype = dtype.base.str[1:]
                 nested_dtype.append((kk, baserecarrtype, dtype.shape))
+                col_formats.append((baserecarrtype, dtype.shape))
             else:  # A description
                 nested_formats.append(obj._v_nested_formats)
                 nested_dtype.append((kk, obj._v_dtype))
-                nested = True
+                col_formats.append(obj._v_dtype)
+            col_offsets.append(getattr(obj, "_v_offset", None))
 
         # Useful for debugging purposes
         # import traceback
@@ -650,17 +657,22 @@ class Description:
         # most of the unhandled situations.
         allow_padding = ptparams is None or ptparams["ALLOW_PADDING"]
         # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
+        have_col_offsets = len(keys) > 1 and all(
+            o is not None for o in col_offsets
+        )
         if (
             allow_padding
             and len(cols_offsets) > 1
             and len(keys) == len(cols_with_pos)
             and len(keys) == len(cols_offsets)
-            and not nested
+            and have_col_offsets
         ):
-            # We have to sort the offsets too, as they must follow the column
-            # order. As the offsets and the pos should be place in the same
-            # order, a single sort is enough here.
-            cols_offsets.sort()
+            # ``col_offsets`` already follows the column (and hence position)
+            # order, so it needs no extra sorting.  Using it keeps any gaps
+            # between members and the on-disk itemsize, even when a column is
+            # itself a nested compound; the plain nested_dtype path repacks
+            # the record and would leave the NumPy container smaller than
+            # H5Tget_size, letting H5Dread write past it (see #765).
             valid_offsets = True
         else:
             newdict["_v_offsets"] = []
@@ -685,8 +697,8 @@ class Description:
         if valid_offsets:
             dtype_fields = {
                 "names": newdict["_v_names"],
-                "formats": nested_formats,
-                "offsets": cols_offsets,
+                "formats": col_formats,
+                "offsets": col_offsets,
             }
             itemsize = newdict.get("_v_itemsize", None)
             if itemsize is not None:
