@@ -1,9 +1,12 @@
+import gc
 import sys
 import struct
+import weakref
 import platform
 import tempfile
 import itertools
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 
@@ -5168,6 +5171,557 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(table.nrows, nrows)
 
 
+class InterruptedRowUpdateTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    def _make_table(self, name="recarray", buffersize=10):
+        table = self.h5file.create_table("/", name, Rec)
+        table.nrowsinbuf = buffersize
+        table.append([(i, b"old", float(i)) for i in range(4)])
+        table.flush()
+        return table
+
+    def _assert_persisted(self, expected, path="/recarray"):
+        self._reopen("a")
+        self.assertEqual(self.h5file.get_node(path).read().tolist(), expected)
+
+    def test_interrupted_flush(self):
+        def change_first(table, interruption):
+            for row in table:
+                row["col1"] = 99
+                row.update()
+                if interruption == "return":
+                    return
+                if interruption == "exception":
+                    raise RuntimeError("interrupted")
+                break
+
+        for interruption, flush in itertools.product(
+            ("break", "return", "exception"), ("table", "file", "close")
+        ):
+            with self.subTest(interruption=interruption, flush=flush):
+                name = f"{interruption}_{flush}"
+                table = self._make_table(name)
+                expected = table.read().tolist()
+                expected[0] = (99, b"old", 0.0)
+                if interruption == "exception":
+                    with self.assertRaisesRegex(RuntimeError, "interrupted"):
+                        change_first(table, interruption)
+                else:
+                    change_first(table, interruption)
+                if flush == "table":
+                    table.flush()
+                elif flush == "file":
+                    self.h5file.flush()
+                else:
+                    self.h5file.close()
+                self._assert_persisted(expected, f"/{name}")
+
+    def test_discarded_row(self):
+        table = self._make_table()
+        expected = table.read().tolist()
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        del row
+        gc.collect()
+        table.flush()
+        expected[0] = (99, b"old", 0.0)
+        self._assert_persisted(expected)
+
+    def test_resume_after_flush(self):
+        table = self._make_table()
+        iterator = table.iterrows()
+        row = next(iterator)
+        row["col1"] = 99
+        row.update()
+        table.flush()
+        self.assertEqual(table[0]["col1"], 99)
+        # A later direct update must not be overwritten by replaying row 0.
+        table.cols.col1[0] = 88
+        row = next(iterator)
+        self.assertEqual(row.nrow, 1)
+        row["col1"] = 77
+        row.update()
+        self.assertEqual([r.nrow for r in iterator], [2, 3])
+        table.flush()
+        self._assert_persisted(
+            [
+                (88, b"old", 0.0),
+                (77, b"old", 1.0),
+                (2, b"old", 2.0),
+                (3, b"old", 3.0),
+            ]
+        )
+
+    def test_interleaved_iterators(self):
+        table = self._make_table()
+        first = next(table.iterrows(0, 1))
+        second = next(table.iterrows(2, 3))
+        first["col1"] = 99
+        first.update()
+        second["col2"] = b"new"
+        second.update()
+        table.flush()
+        self._assert_persisted(
+            [
+                (99, b"old", 0.0),
+                (1, b"old", 1.0),
+                (2, b"new", 2.0),
+                (3, b"old", 3.0),
+            ]
+        )
+
+    def test_overlapping_iterators(self):
+        table = self._make_table()
+        first = next(table.iterrows())
+        second = next(table.iterrows())
+        first["col1"] = 99
+        first.update()
+        second["col2"] = b"new"
+        second.update()
+        # Row.update replaces a full record; it does not merge changed fields.
+        table.flush()
+        expected = [(0, b"new", 0.0)] + [
+            (i, b"old", float(i)) for i in range(1, 4)
+        ]
+        self._assert_persisted(expected)
+
+    def test_duplicate_updates(self):
+        table = self._make_table()
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        row["col1"] = 88
+        row.update()
+        table.flush()
+        expected = [(88, b"old", 0.0)] + [
+            (i, b"old", float(i)) for i in range(1, 4)
+        ]
+        self._assert_persisted(expected)
+
+    def test_no_node_cache(self):
+        self._reopen("a", node_cache_slots=0)
+        table = self._make_table()
+        reference = weakref.ref(table)
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        del table
+        gc.collect()
+        self.assertIsNotNone(reference())
+        self.h5file.flush()
+        gc.collect()
+        self.assertIsNone(reference())
+        # Keeping a Row alive must not keep a clean Table alive.
+        self.assertEqual(row.nrow, 0)
+        self._assert_persisted(
+            [(99, b"old", 0.0)] + [(i, b"old", float(i)) for i in range(1, 4)]
+        )
+
+    def test_rename_and_move(self):
+        for move in (False, True):
+            with self.subTest(move=move):
+                table = self._make_table(f"recarray{move}")
+                row = next(table.iterrows())
+                row["col1"] = 99
+                row.update()
+                del row
+                if move:
+                    group = self.h5file.create_group("/", "destination")
+                    table.move(group, "renamed")
+                    path = "/destination/renamed"
+                else:
+                    table.rename("renamed")
+                    path = "/renamed"
+                table.flush()
+                self._assert_persisted(
+                    [(99, b"old", 0.0)]
+                    + [(i, b"old", float(i)) for i in range(1, 4)],
+                    path,
+                )
+
+    def test_indexed_updates(self):
+        for autoindex in (False, True):
+            with self.subTest(autoindex=autoindex):
+                table = self._make_table(f"indexed{autoindex}")
+                table.nrowsinbuf = 2 * table.chunkshape[0]
+                table.cols.col1.create_index()
+                table.cols.col3.create_index()
+                table.autoindex = autoindex
+                row = next(table.where("col1 == 0"))
+                row["col1"] = 99
+                row.update()
+                table.flush()
+                self.assertEqual(table.cols.col1.index.dirty, not autoindex)
+                self.assertFalse(table.cols.col3.index.dirty)
+                self.assertEqual(
+                    [r.nrow for r in table.where("col1 == 99")], [0]
+                )
+                self._assert_persisted(
+                    [(99, b"old", 0.0)]
+                    + [(i, b"old", float(i)) for i in range(1, 4)],
+                    f"/indexed{autoindex}",
+                )
+
+    def test_nested_indexes(self):
+        for autoindex, whole_group in itertools.product(
+            (False, True), (False, True)
+        ):
+            with self.subTest(autoindex=autoindex, whole_group=whole_group):
+                name = f"nested{autoindex}{whole_group}"
+                table = self.h5file.create_table(
+                    "/",
+                    name,
+                    {
+                        "group": {"value": tb.Int32Col()},
+                        "other": tb.Int32Col(),
+                        "control": tb.Int32Col(),
+                    },
+                )
+                data = np.zeros(4, dtype=table.dtype)
+                data["group"]["value"] = np.arange(4)
+                table.append(data)
+                table.flush()
+                table.nrowsinbuf = 2 * table.chunkshape[0]
+                value = table.cols._f_col("group/value")
+                for column in (value, table.cols.other, table.cols.control):
+                    column.create_index()
+                table.autoindex = autoindex
+                first = next(table.iterrows())
+                second = next(table.iterrows(1))
+                if whole_group:
+                    first["group"] = (99,)
+                else:
+                    first["group/value"] = 99
+                first.update()
+                second["other"] = 88
+                second.update()
+                table.flush()
+                self.assertEqual(value.index.dirty, not autoindex)
+                self.assertEqual(table.cols.other.index.dirty, not autoindex)
+                self.assertFalse(table.cols.control.index.dirty)
+                self.assertEqual(
+                    [
+                        r.nrow
+                        for r in table.where("value == 99", {"value": value})
+                    ],
+                    [0],
+                )
+                data["group"]["value"][0] = 99
+                data["other"][1] = 88
+                self._assert_persisted(data.tolist(), f"/{name}")
+
+    def test_retained_iterator_after_move(self):
+        table = self._make_table()
+        iterator = table.iterrows()
+        row = next(iterator)
+        row["col1"] = 99
+        row.update()
+        destination = self.h5file.create_group("/", "destination")
+        table.move(destination, "renamed")
+        table.flush()
+        self.assertIs(row.table, table)
+        row = next(iterator)
+        self.assertEqual(row.nrow, 1)
+        row["col1"] = 88
+        row.update()
+        self.assertEqual([r.nrow for r in iterator], [2, 3])
+        table.flush()
+        self._assert_persisted(
+            [
+                (99, b"old", 0.0),
+                (88, b"old", 1.0),
+                (2, b"old", 2.0),
+                (3, b"old", 3.0),
+            ],
+            "/destination/renamed",
+        )
+
+    def test_field_union_after_flush(self):
+        table = self._make_table()
+        table.nrowsinbuf = 2 * table.chunkshape[0]
+        for column in (table.cols.col1, table.cols.col2, table.cols.col3):
+            column.create_index()
+        table.autoindex = False
+        iterator = table.iterrows()
+        row = next(iterator)
+        row["col1"] = 99
+        row.update()
+        table.flush()
+        self.assertTrue(table.cols.col1.index.dirty)
+        self.assertFalse(table.cols.col2.index.dirty)
+        self.assertFalse(table.cols.col3.index.dirty)
+        table.reindex_dirty()
+        # The same field must be collected again for a fresh pending batch.
+        row = next(iterator)
+        row["col1"] = 88
+        row.update()
+        # A newly changed field joins that batch without an intervening flush.
+        row = next(iterator)
+        row["col3"] = 77.0
+        row.update()
+        table.flush()
+        self.assertTrue(table.cols.col1.index.dirty)
+        self.assertTrue(table.cols.col3.index.dirty)
+        self.assertFalse(table.cols.col2.index.dirty)
+        self._assert_persisted(
+            [
+                (99, b"old", 0.0),
+                (88, b"old", 1.0),
+                (2, b"old", 77.0),
+                (3, b"old", 3.0),
+            ]
+        )
+
+    def test_failed_flush_retains_table(self):
+        self._reopen("a", node_cache_slots=0)
+        table = self._make_table()
+        reference = weakref.ref(table)
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        with (
+            mock.patch.object(
+                table, "_update_elements", side_effect=OSError("write failed")
+            ),
+            self.assertRaisesRegex(OSError, "write failed"),
+        ):
+            self.h5file.flush()
+        del table, row
+        gc.collect()
+        self.assertIsNotNone(reference())
+        self.h5file.flush()
+        gc.collect()
+        self.assertIsNone(reference())
+        self._assert_persisted(
+            [(99, b"old", 0.0)] + [(i, b"old", float(i)) for i in range(1, 4)]
+        )
+
+    def test_changed_buffer_size(self):
+        table = self._make_table(buffersize=2)
+        for i, buffersize in enumerate((2, 10, 1, 3)):
+            table.nrowsinbuf = buffersize
+            row = next(table.iterrows(i))
+            row["col1"] = 99
+            row.update()
+        table.flush()
+        self._assert_persisted([(99, b"old", float(i)) for i in range(4)])
+
+    def test_uncached_table_before_update(self):
+        self._reopen("a", node_cache_slots=0)
+        table = self._make_table()
+        reference = weakref.ref(table)
+        row = next(table.iterrows())
+        del table
+        gc.collect()
+        self.assertIsNone(reference())
+        row["col1"] = 99
+        row.update()
+        self.h5file.close()
+        self._assert_persisted(
+            [(99, b"old", 0.0)] + [(i, b"old", float(i)) for i in range(1, 4)]
+        )
+
+    def test_failed_full_buffer_retry(self):
+        table = self._make_table(buffersize=2)
+        iterator = table.iterrows()
+        row = next(iterator)
+        row["col1"] = 99
+        row.update()
+        row = next(iterator)
+        row["col1"] = 88
+        with (
+            mock.patch.object(
+                table,
+                "_update_elements",
+                side_effect=OSError("buffer write failed"),
+            ),
+            self.assertRaisesRegex(OSError, "buffer write failed"),
+        ):
+            row.update()
+        table.flush()
+        row = next(iterator)
+        row["col1"] = 77
+        row.update()
+        table.flush()
+        self._assert_persisted(
+            [
+                (99, b"old", 0.0),
+                (88, b"old", 1.0),
+                (77, b"old", 2.0),
+                (3, b"old", 3.0),
+            ]
+        )
+
+    def test_failed_flush_invalidates_index(self):
+        table = self._make_table()
+        table.nrowsinbuf = 2 * table.chunkshape[0]
+        table.cols.col1.create_index()
+        table.cols.col3.create_index()
+        table.autoindex = False
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        with (
+            mock.patch.object(
+                table, "_update_elements", side_effect=OSError("write failed")
+            ),
+            self.assertRaisesRegex(OSError, "write failed"),
+        ):
+            table.flush()
+        self.assertTrue(table.cols.col1.index.dirty)
+        self.assertFalse(table.cols.col3.index.dirty)
+        table.flush()
+        self.assertEqual([r.nrow for r in table.where("col1 == 99")], [0])
+
+    def test_remove_pending_table(self):
+        self._reopen("a", node_cache_slots=0)
+        table = self._make_table()
+        reference = weakref.ref(table)
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        table.remove()
+        del table, row
+        gc.collect()
+        self.assertIsNone(reference())
+        self.h5file.flush()
+        self.assertNotIn("/recarray", self.h5file)
+
+    def test_retained_row_after_file_close(self):
+        table = self._make_table()
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        self.h5file.close()
+        with self.assertRaises(tb.ClosedFileError):
+            row.update()
+        self._assert_persisted(
+            [(99, b"old", 0.0)] + [(i, b"old", float(i)) for i in range(1, 4)]
+        )
+
+    def test_buffered_writes(self):
+        table = self._make_table(buffersize=4)
+        with mock.patch.object(
+            table, "_update_elements", wraps=table._update_elements
+        ) as write:
+            iterator = table.iterrows()
+            for i in range(3):
+                row = next(iterator)
+                row["col1"] = 99
+                row.update()
+            self.assertEqual(write.call_count, 0)
+            table.flush()
+            self.assertEqual(write.call_count, 1)
+            table.flush()
+            self.assertEqual(write.call_count, 1)
+        expected = [(99, b"old", float(i)) for i in range(3)]
+        self._assert_persisted(expected + [(3, b"old", 3.0)])
+
+    def test_full_buffer(self):
+        table = self._make_table(buffersize=2)
+        iterator = table.iterrows()
+        for i in range(2):
+            row = next(iterator)
+            row["col1"] = 99
+            row.update()
+        self.assertEqual(table.cols.col1[:].tolist(), [99, 99, 2, 3])
+        row = next(iterator)
+        row["col1"] = 77
+        row.update()
+        table.flush()
+        self._assert_persisted(
+            [
+                (99, b"old", 0.0),
+                (99, b"old", 1.0),
+                (77, b"old", 2.0),
+                (3, b"old", 3.0),
+            ]
+        )
+
+    def test_failed_flush_retry(self):
+        table = self._make_table()
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        with (
+            mock.patch.object(
+                table, "_update_elements", side_effect=OSError("write failed")
+            ),
+            self.assertRaisesRegex(OSError, "write failed"),
+        ):
+            table.flush()
+        table.flush()
+        self._assert_persisted(
+            [(99, b"old", 0.0)] + [(i, b"old", float(i)) for i in range(1, 4)]
+        )
+
+    def test_time64_retry(self):
+        table = self.h5file.create_table(
+            "/", "recarray", {"time": tb.Time64Col()}
+        )
+        table.append([(1.25,), (2.5,)])
+        table.flush()
+        row = next(table.iterrows())
+        row["time"] = 11.25
+        row.update()
+        original_write = table._update_elements
+
+        def write_then_fail(*args):
+            original_write(*args)
+            raise OSError("after write")
+
+        with (
+            mock.patch.object(table, "_update_elements", write_then_fail),
+            self.assertRaisesRegex(OSError, "after write"),
+        ):
+            table.flush()
+        table.flush()
+        self._assert_persisted([(11.25,), (2.5,)])
+
+    def test_close_without_flush(self):
+        self._reopen("a", node_cache_slots=0)
+        table = self._make_table()
+        reference = weakref.ref(table)
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        table.close(flush=False)
+        del table, row
+        gc.collect()
+        self.assertIsNone(reference())
+        self.h5file.flush()
+        self._assert_persisted([(i, b"old", float(i)) for i in range(4)])
+
+    def test_mixed_append(self):
+        table = self._make_table()
+        row = next(table.iterrows())
+        row["col1"] = 99
+        row.update()
+        table.row["col1"], table.row["col2"], table.row["col3"] = (
+            4,
+            b"new",
+            4.0,
+        )
+        table.row.append()
+        table.flush()
+        self._assert_persisted(
+            [(99, b"old", 0.0)]
+            + [(i, b"old", float(i)) for i in range(1, 4)]
+            + [(4, b"new", 4.0)]
+        )
+
+    def test_update_guards(self):
+        table = self._make_table()
+        with self.assertRaises(NotImplementedError):
+            table.row.update()
+        self._reopen("r")
+        row = next(self.h5file.root.recarray.iterrows())
+        with self.assertRaises(IOError):
+            row.update()
+
+
 class UpdateRowTestCase1(UpdateRowTestCase):
     reopen = 0
     buffersize = 1
@@ -8464,6 +9018,7 @@ def suite():
         theSuite.addTest(common.make_suite(SetItemTestCase3))
         theSuite.addTest(common.make_suite(SetItemTestCase4))
         theSuite.addTest(common.make_suite(SingleRowTestCase))
+        theSuite.addTest(common.make_suite(InterruptedRowUpdateTestCase))
         theSuite.addTest(common.make_suite(UpdateRowTestCase1))
         theSuite.addTest(common.make_suite(UpdateRowTestCase2))
         theSuite.addTest(common.make_suite(UpdateRowTestCase3))

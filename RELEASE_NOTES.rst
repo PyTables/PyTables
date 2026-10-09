@@ -10,6 +10,9 @@
 Changes from 3.11.1 to 3.12.0
 =============================
 
+* Preserve pending :meth:`Row.update` changes when iteration stops early.
+  :meth:`Table.flush`, :meth:`File.flush` and :meth:`File.close` now write
+  them even if the iterator has been discarded (:issue:`8`, :issue:`1098`).
 * :meth:`Table.where` (and hence :meth:`Table.read_where`,
   :meth:`Table.get_where_list` and :meth:`Table.append_where`) now treats a
   *start* with no *stop* like a Python slice, i.e. the rows from *start* to
