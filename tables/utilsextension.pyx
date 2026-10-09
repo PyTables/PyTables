@@ -1370,6 +1370,16 @@ def hdf5_to_np_ext_type(
   itemsize = H5Tget_size(type_id)
 
   if class_id == H5T_BITFIELD:
+    if itemsize != 1:
+      # Booleans are the only bitfields PyTables produces, and they are
+      # always 1 byte.  A wider bitfield from a foreign file has no 1-byte
+      # NumPy counterpart; mapping it to "b1" would size the container below
+      # H5Tget_size and let H5Aread/H5Dread write past it, so reject it like
+      # the other unsupported HDF5 classes below.
+      raise TypeError(
+        f"the HDF5 bitfield of size {itemsize} is not supported yet "
+        "(only 1-byte bitfields are supported)"
+      )
     stype = "b1"
   elif class_id == H5T_INTEGER:
     # Get the sign

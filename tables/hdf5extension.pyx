@@ -445,6 +445,13 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
   cdef object stype
 
   if class_id == H5T_BITFIELD:
+    if itemsize != 1:
+      # PyTables only ever stores booleans as 1-byte bitfields, so a wider
+      # bitfield coming from a foreign file has no 1-byte NumPy counterpart.
+      # Mapping it to "b1" anyway would size the receive buffer below
+      # H5Tget_size and let H5Aread write past it, so treat it as an
+      # unsupported type (the caller already handles a None return).
+      return None
     stype = "b1"
   elif class_id == H5T_INTEGER:
     # Get the sign

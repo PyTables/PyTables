@@ -75,6 +75,12 @@ Changes from 3.11.1 to 3.12.0
   at once; the count HDF5 reports is now clamped to the buffer it filled.
   Filter client data values above ``0x7fffffff`` are also no longer reported
   as negative numbers on platforms where ``long`` is 32 bit, i.e. Windows.
+* Fix a heap buffer overflow when reading an ``H5T_BITFIELD`` attribute or
+  dataset wider than one byte.  PyTables mapped every bitfield to the 1-byte
+  ``bool`` dtype, so the read buffer was sized below the on-disk type and
+  ``H5Aread``/``H5Dread`` wrote past it.  Only 1-byte bitfields (booleans)
+  are produced by PyTables, so wider ones from foreign files are now
+  reported as an unsupported type instead.
 
 
 .. _Cython: https://cython.org

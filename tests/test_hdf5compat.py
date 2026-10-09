@@ -95,6 +95,49 @@ class PaddedCompoundAttrTestCase(
         self.assertTrue(common.are_arrays_equal(attr, expectedData))
 
 
+class WideBitfieldAttrTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a wider-than-1-byte H5T_BITFIELD stored as an attribute.
+
+    PyTables maps every bitfield to the 1-byte NumPy ``"b1"`` (bool) type
+    regardless of its on-disk size.  For a bitfield wider than 1 byte the
+    receive buffer was therefore sized below H5Tget_size and H5Aread wrote
+    the full-width records past its end, a heap overflow driven purely by
+    the attribute datatype.  PyTables only ever writes 1-byte bitfields
+    (booleans), so a wider one comes from a foreign file and must be
+    reported as an unsupported type instead of being read into an
+    undersized container.
+
+    wide_bitfield_attr.h5 was created with h5py; the group `/Test` carries
+    a scalar and a 100-element H5T_STD_B64LE (8-byte) attribute plus a
+    1-byte H5T_STD_B8LE attribute standing in for a regular boolean.
+
+    $ h5dump -A -H wide_bitfield_attr.h5
+    GROUP "Test" {
+       ATTRIBUTE "array_bitfield"  { DATATYPE H5T_STD_B64LE ... ( 100 ) }
+       ATTRIBUTE "ok_bool"         { DATATYPE H5T_STD_B8LE  ... SCALAR }
+       ATTRIBUTE "scalar_bitfield" { DATATYPE H5T_STD_B64LE ... SCALAR }
+    }
+
+    """
+
+    h5fname = common.test_filename("wide_bitfield_attr.h5")
+
+    def test(self):
+        # Materializing the attribute set reads every attribute eagerly and
+        # flags the 8-byte bitfields as unsupported with a DataTypeWarning.
+        with self.assertWarns(tb.exceptions.DataTypeWarning):
+            attrs = self.h5file.get_node("/Test")._v_attrs
+
+        # A 1-byte bitfield is a normal boolean and keeps reading fine.
+        self.assertEqual(bool(attrs.ok_bool), True)
+
+        # Both the scalar and the array path must refuse the 8-byte bitfield
+        # as unsupported (returning None) rather than reading its full-width
+        # records into a 1-byte-per-element buffer.
+        self.assertIsNone(attrs.scalar_bitfield)
+        self.assertIsNone(attrs.array_bitfield)
+
+
 class EnumTestCase(common.TestFileMixin, common.PyTablesTestCase):
     """Test for enumerated datatype.
 
@@ -534,6 +577,7 @@ def suite():
     for i in range(niter):
         theSuite.addTest(common.make_suite(PaddedArrayTestCase))
         theSuite.addTest(common.make_suite(PaddedCompoundAttrTestCase))
+        theSuite.addTest(common.make_suite(WideBitfieldAttrTestCase))
         theSuite.addTest(common.make_suite(EnumTestCase))
         theSuite.addTest(common.make_suite(F64BETestCase))
         theSuite.addTest(common.make_suite(F64LETestCase))
