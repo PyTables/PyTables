@@ -206,49 +206,43 @@ class HardLinkTraversalTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 )
 
     def test_ptdump(self):
-        group = self.h5file.create_group("/", "group")
-        self.h5file.create_array(group, "data", [1, 2, 3])
-        self.h5file.create_hard_link(group, "self", group)
-        self.h5file.close()
-        env = os.environ.copy()
-        # The suite can use a build directory rather than an installed package.
-        env["PYTHONPATH"] = os.pathsep.join(
-            [
-                str(Path(tb.__file__).resolve().parent.parent),
-                env.get("PYTHONPATH", ""),
-            ]
-        )
-        for sort in (False, True):
-            with self.subTest(sort=sort):
-                args = [
-                    sys.executable,
-                    "-c",
-                    "from tables.scripts.ptdump import main; "
-                    "import sys; sys.exit(main())",
-                ]
-                if sort:
-                    args.append("-s")
-                # A relative file name also works with the CLI on Windows.
-                filename = Path(self.h5fname)
-                args.append(filename.name)
-                try:
-                    result = subprocess.run(
-                        args,
-                        cwd=filename.parent,
-                        env=env,
-                        capture_output=True,
-                        text=True,
-                        timeout=10,
+        # Keep the inherited cwd and environment, including relative PYTHONPATH.
+        # A local fixture also gives the CLI a relative file name on Windows.
+        with tempfile.TemporaryDirectory(dir=".") as dirname:
+            filename = Path(os.path.relpath(dirname)) / "cycle.h5"
+            with tb.open_file(filename, "w") as h5file:
+                group = h5file.create_group("/", "group")
+                h5file.create_array(group, "data", [1, 2, 3])
+                h5file.create_hard_link(group, "self", group)
+            for sort in (False, True):
+                with self.subTest(sort=sort):
+                    args = [
+                        sys.executable,
+                        "-c",
+                        "from tables.scripts.ptdump import main; "
+                        "import sys; sys.exit(main())",
+                    ]
+                    if sort:
+                        args.append("-s")
+                    args.append(str(filename))
+                    try:
+                        result = subprocess.run(
+                            args,
+                            capture_output=True,
+                            text=True,
+                            timeout=10,
+                        )
+                    except subprocess.TimeoutExpired:
+                        self.fail(
+                            "ptdump did not terminate within ten seconds"
+                        )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    paths = [
+                        line.split()[0] for line in result.stdout.splitlines()
+                    ]
+                    self.assertEqual(
+                        paths, ["/", "/group", "/group/data", "/group/self"]
                     )
-                except subprocess.TimeoutExpired:
-                    self.fail("ptdump did not terminate within ten seconds")
-                self.assertEqual(result.returncode, 0, result.stderr)
-                paths = [
-                    line.split()[0] for line in result.stdout.splitlines()
-                ]
-                self.assertEqual(
-                    paths, ["/", "/group", "/group/data", "/group/self"]
-                )
 
 
 # Test for soft links
