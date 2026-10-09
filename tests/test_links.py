@@ -1,5 +1,6 @@
 """Test module for different kind of links under PyTables."""
 
+import os
 import re
 import sys
 import tempfile
@@ -209,6 +210,14 @@ class HardLinkTraversalTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array(group, "data", [1, 2, 3])
         self.h5file.create_hard_link(group, "self", group)
         self.h5file.close()
+        env = os.environ.copy()
+        # The suite can use a build directory rather than an installed package.
+        env["PYTHONPATH"] = os.pathsep.join(
+            [
+                str(Path(tb.__file__).resolve().parent.parent),
+                env.get("PYTHONPATH", ""),
+            ]
+        )
         for sort in (False, True):
             with self.subTest(sort=sort):
                 args = [
@@ -226,6 +235,7 @@ class HardLinkTraversalTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     result = subprocess.run(
                         args,
                         cwd=filename.parent,
+                        env=env,
                         capture_output=True,
                         text=True,
                         timeout=10,
