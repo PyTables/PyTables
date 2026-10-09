@@ -2317,13 +2317,14 @@ class File(hdf5extension.File):
 
         if class_ is Group:  # only groups
             yield from self.walk_groups(where)
-        elif class_ is Node:  # all nodes
-            yield self.get_node(where)
-            for group in self.walk_groups(where):
-                yield from self.iter_nodes(group)
-        else:  # only nodes of the named type
-            for group in self.walk_groups(where):
-                yield from self.iter_nodes(group, classname)
+        else:
+            group = self.get_node(where)
+            if class_ is Node:  # all nodes
+                yield group
+            self._check_group(group)
+            for group, descend in group._g_walk_groups():
+                if descend:
+                    yield from self.iter_nodes(group, classname)
 
     def walk_groups(self, where: Group | str = "/") -> Generator[Group]:
         """Recursively iterate over groups (not leaves) hanging from where.
@@ -2335,6 +2336,9 @@ class File(hdf5extension.File):
 
         The where argument can be a path string
         or a Group instance (see :ref:`GroupClassDescr`).
+
+        A group hard-linked to an ancestor is yielded, but its children are
+        not traversed again. Other hard links are traversed at each path.
 
         """
         group = self.get_node(where)  # Does the parent exist?

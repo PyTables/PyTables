@@ -1,8 +1,11 @@
 """Test module for different kind of links under PyTables."""
 
 import re
+import sys
 import tempfile
+import subprocess
 from pathlib import Path
+from itertools import islice
 
 import tables as tb
 from tests import common
@@ -89,6 +92,153 @@ class HardLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertNotIn("/lgroup1", self.h5file)
         if common.verbose:
             print("Final object tree:", self.h5file)
+
+
+class HardLinkTraversalTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def _check_walks(self, groups, nodes, arrays, where="/"):
+        for reopen in (False, True):
+            if reopen:
+                self._reopen()
+            group = self.h5file.get_node(where)
+            walks = [
+                (self.h5file.walk_groups(where), groups),
+                (group._f_walk_groups(), groups),
+                (self.h5file.walk_nodes(where, "Group"), groups),
+                (group._f_walknodes("Group"), groups),
+                (self.h5file.walk_nodes(where), nodes),
+                (group._f_walknodes(), nodes[1:]),
+            ]
+            for classname in ("Leaf", "Array"):
+                walks.extend(
+                    [
+                        (self.h5file.walk_nodes(where, classname), arrays),
+                        (group._f_walknodes(classname), arrays),
+                    ]
+                )
+            for index, (walk, expected) in enumerate(walks):
+                with self.subTest(reopen=reopen, walker=index):
+                    # Bound the old infinite walk so a regression fails safely.
+                    paths = [
+                        node._v_pathname
+                        for node in islice(walk, len(expected) + 1)
+                    ]
+                    self.assertEqual(paths, expected)
+
+    def test_self_link(self):
+        group = self.h5file.create_group("/", "group")
+        self.h5file.create_array(group, "data", [1, 2, 3])
+        self.h5file.create_hard_link(group, "self", group)
+        self._check_walks(
+            ["/", "/group", "/group/self"],
+            ["/", "/group", "/group/data", "/group/self"],
+            ["/group/data"],
+        )
+
+    def test_link_to_root(self):
+        group = self.h5file.create_group("/", "group")
+        self.h5file.create_array(group, "data", [1, 2, 3])
+        self.h5file.create_hard_link(group, "back", "/")
+        self._check_walks(
+            ["/", "/group", "/group/back"],
+            ["/", "/group", "/group/back", "/group/data"],
+            ["/group/data"],
+        )
+
+    def test_two_group_cycle(self):
+        group = self.h5file.create_group("/", "group")
+        child = self.h5file.create_group(group, "child")
+        self.h5file.create_array(child, "data", [1, 2, 3])
+        self.h5file.create_hard_link(child, "back", group)
+        self._check_walks(
+            ["/", "/group", "/group/child", "/group/child/back"],
+            [
+                "/",
+                "/group",
+                "/group/child",
+                "/group/child/back",
+                "/group/child/data",
+            ],
+            ["/group/child/data"],
+        )
+
+    def test_shared_descendants(self):
+        group = self.h5file.create_group("/", "group")
+        child = self.h5file.create_group(group, "child")
+        self.h5file.create_array(child, "data", [1, 2, 3])
+        self.h5file.create_hard_link("/", "alias", group)
+        self.h5file.create_hard_link("/", "shared", child)
+        self._check_walks(
+            [
+                "/",
+                "/alias",
+                "/group",
+                "/shared",
+                "/group/child",
+                "/alias/child",
+            ],
+            [
+                "/",
+                "/alias",
+                "/group",
+                "/shared",
+                "/alias/child",
+                "/group/child",
+                "/shared/data",
+                "/group/child/data",
+                "/alias/child/data",
+            ],
+            ["/shared/data", "/group/child/data", "/alias/child/data"],
+        )
+
+    def test_start_at_alias(self):
+        group = self.h5file.create_group("/", "group")
+        self.h5file.create_array(group, "data", [1, 2, 3])
+        self.h5file.create_hard_link(group, "self", group)
+        self.h5file.create_hard_link("/", "alias", group)
+        for where in ("/group", "/alias", "/alias/self"):
+            with self.subTest(where=where):
+                self._check_walks(
+                    [where, where + "/self"],
+                    [where, where + "/data", where + "/self"],
+                    [where + "/data"],
+                    where,
+                )
+
+    def test_ptdump(self):
+        group = self.h5file.create_group("/", "group")
+        self.h5file.create_array(group, "data", [1, 2, 3])
+        self.h5file.create_hard_link(group, "self", group)
+        self.h5file.close()
+        for sort in (False, True):
+            with self.subTest(sort=sort):
+                args = [
+                    sys.executable,
+                    "-c",
+                    "from tables.scripts.ptdump import main; "
+                    "import sys; sys.exit(main())",
+                ]
+                if sort:
+                    args.append("-s")
+                # A relative file name also works with the CLI on Windows.
+                filename = Path(self.h5fname)
+                args.append(filename.name)
+                try:
+                    result = subprocess.run(
+                        args,
+                        cwd=filename.parent,
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                except subprocess.TimeoutExpired:
+                    self.fail("ptdump did not terminate within ten seconds")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                paths = [
+                    line.split()[0] for line in result.stdout.splitlines()
+                ]
+                self.assertEqual(
+                    paths, ["/", "/group", "/group/data", "/group/self"]
+                )
 
 
 # Test for soft links
@@ -638,6 +788,7 @@ def suite():
 
     for i in range(niter):
         theSuite.addTest(common.make_suite(HardLinkTestCase))
+        theSuite.addTest(common.make_suite(HardLinkTraversalTestCase))
         theSuite.addTest(common.make_suite(SoftLinkTestCase))
         theSuite.addTest(common.make_suite(ExternalLinkTestCase))
 
@@ -645,8 +796,6 @@ def suite():
 
 
 if __name__ == "__main__":
-    import sys
-
     print_versions()
     common.parse_argv(sys.argv)
     common.unittest.main(defaultTest="suite")

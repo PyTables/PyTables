@@ -6,7 +6,6 @@ Pass the flag -h to this for help on usage.
 
 import ast
 import argparse
-import operator
 
 import tables as tb
 
@@ -71,13 +70,15 @@ def dump_leaf(leaf):
 def dump_group(pgroup, sort=False):
     """Dump an HDF5 group."""
     node_kinds = pgroup._v_file._node_kinds[1:]
-    what = pgroup._f_walk_groups()
+    what = pgroup._g_walk_groups()
     if sort:
-        what = sorted(what, key=operator.attrgetter("_v_pathname"))
-    for group in what:
+        what = sorted(what, key=lambda item: item[0]._v_pathname)
+    for group, descend in what:
         print(str(group))
         if options.showattrs:
             print(f"  {group._v_attrs!r}")
+        if not descend:
+            continue
         for kind in node_kinds:
             for node in group._f_list_nodes(kind):
                 if options.verbose or options.dump:
