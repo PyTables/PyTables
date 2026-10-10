@@ -10,6 +10,11 @@
 Changes from 3.11.1 to 3.12.0
 =============================
 
+* Reading a table whose on-disk compound type has a nested compound column
+  with padding no longer overflows the read buffer.  The description now
+  keeps the on-disk itemsize and member offsets of nested columns (as it
+  already did for the top-level type, see #765), so the NumPy container
+  matches ``H5Tget_size`` and ``H5Dread`` cannot write past it.
 * Group and node walks, including ``ptdump``, terminate when group hard links
   form cycles (:issue:`794`). Links to an ancestor are listed without
   traversing their children again; non-cyclic aliases retain their descendants.

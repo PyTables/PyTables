@@ -468,10 +468,18 @@ cdef class Table(Leaf):
         # Create the native data in-memory
         itemsize = H5Tget_size(member_type_id)
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
-        desc[colname], itemsize = self.get_nested_type(
+        desc[colname], member_packed = self.get_nested_type(
           member_type_id, native_member_type_id, colpath2, field_byteorders)
         desc[colname]["_v_pos"] = pos
         desc[colname]["_v_offset"] = member_offset
+        # A nested compound whose members pack smaller than its on-disk
+        # size carries trailing padding.  Keep its on-disk itemsize so the
+        # NumPy container built from this description matches H5Tget_size and
+        # H5Dread cannot write past it (same reasoning as the top-level type,
+        # see #765).  The record offset below must also advance by the full
+        # on-disk size, not the packed one.
+        if member_packed < itemsize:
+          desc[colname]["_v_itemsize"] = itemsize
       else:
         # Get the member format and the corresponding Col object
         try:

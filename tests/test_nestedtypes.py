@@ -1666,13 +1666,23 @@ class NestedTypesWithGaps(common.TestFileMixin, common.PyTablesTestCase):
         type_descr = repr(tbl.description)
         if common.verbose:
             print("Type size with gaps:", tbl.description._v_itemsize)
-            print("And should be: 16")
+            print("And should be: 21")
             print("Representation of the nested type:\n", type_descr)
             print("And should be:\n", self.correct_descr)
             print("Here are the offsets: ", tbl.description._v_offsets)
 
-        self.assertEqual(tbl.description._v_itemsize, 16)
+        # The on-disk record is 21 bytes wide: a 1-byte gap before "float",
+        # a 2-byte gap before the nested "compound" and a trailing gap.  The
+        # container must keep that width (and the member offsets) so reading
+        # the rows does not write past it.
+        self.assertEqual(tbl.description._v_itemsize, 21)
+        self.assertEqual(tbl.description._v_offsets, [1, 7])
         self.assertEqual(type_descr, self.correct_descr)
+
+        # Reading the data exercises the buffer sized from the description.
+        rows = tbl.read()
+        self.assertEqual(rows.dtype.itemsize, 21)
+        self.assertEqual(len(rows), tbl.nrows)
 
         if common.verbose:
             print("Great!  Nested types with gaps recognized correctly.")
