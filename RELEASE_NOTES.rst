@@ -10,6 +10,9 @@
 Changes from 3.11.1 to 3.12.0
 =============================
 
+* Columns named like a Numexpr function (e.g. ``where`` or ``abs``) can be
+  used in :meth:`Table.where` and the other query methods.  They were taken
+  for the function, so the query failed (:issue:`638`).
 * Reading a table whose on-disk compound type has a nested compound column
   with padding no longer overflows the read buffer.  The description now
   keeps the on-disk itemsize and member offsets of nested columns (as it

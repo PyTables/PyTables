@@ -1340,6 +1340,39 @@ class IndexedTableUsage34(IndexedTableUsage):
     str_expr = "e0"
 
 
+class FunctionNamedColumnsTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    """Querying columns named like a Numexpr function (e.g. ``where``)."""
+
+    def setUp(self):
+        super().setUp()
+        rows = np.array(
+            [(b"A", b"B", 1.0), (b"C", b"D", -2.0), (b"A", b"D", 3.0)],
+            dtype=[("where", "S1"), ("where_", "S1"), ("abs", "f8")],
+        )
+        self.table = self.h5file.create_table("/", "test", rows)
+
+    def query(self, condition):
+        return [row.nrow for row in self.table.where(condition)]
+
+    def test_column(self):
+        self.assertEqual(self.query("where == b'A'"), [0, 2])
+        self.assertEqual(self.query("abs > 0"), [0, 2])
+
+    def test_function_of_column(self):
+        self.assertEqual(self.query("abs(abs) > 1.5"), [1, 2])
+        self.assertEqual(self.query("where(abs > 0, abs, 0) > 2"), [2])
+
+    def test_indexed_column(self):
+        self.table.cols.abs.create_index()
+        condition = "(abs > 0) & (where_ == b'D')"
+        self.assertEqual(
+            self.table.will_query_use_indexing(condition), frozenset(["abs"])
+        )
+        self.assertEqual(self.query(condition), [2])
+
+
 # Main part
 # ---------
 def suite():
@@ -1403,6 +1436,7 @@ def suite():
         testSuite.addTest(common.make_suite(IndexedTableUsage32))
         testSuite.addTest(common.make_suite(IndexedTableUsage33))
         testSuite.addTest(common.make_suite(IndexedTableUsage34))
+        testSuite.addTest(common.make_suite(FunctionNamedColumnsTestCase))
 
     return testSuite
 
