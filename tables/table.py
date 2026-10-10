@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import sys
 import math
 import weakref
@@ -1305,11 +1306,24 @@ very small/large chunksize, you may want to increase/decrease it.""",
                 for k in list(exprvarscache)[:10]:
                     del exprvarscache[k]
             cexpr = compile(expression, "<string>", "eval")
+            # A Numexpr function name is a variable too when it is not
+            # called, e.g. a column named ``where``.
+            tree = ast.parse(expression, mode="eval")
+            called = {
+                id(node.func)
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Call)
+            }
+            noncalled = {
+                node.id
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Name) and id(node) not in called
+            }
             exprvars = [
                 var
                 for var in cexpr.co_names
                 if var not in ["None", "False", "True"]
-                and var not in ne.expressions.functions
+                and (var not in ne.expressions.functions or var in noncalled)
             ]
             exprvarscache[expression] = exprvars
         else:

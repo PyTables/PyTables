@@ -16,7 +16,9 @@ Functions:
 
 from __future__ import annotations
 
+import io
 import re
+import tokenize
 from typing import TYPE_CHECKING, Any
 from collections.abc import Callable, Iterable
 
@@ -445,6 +447,35 @@ def _get_variable_names(
     return list(set(names))  # remove repeated names
 
 
+def _alias_function_names(
+    condition: str, names: frozenset[str]
+) -> tuple[str, dict[str, str]]:
+    """Rename the variables of `condition` that are named like a function.
+
+    Numexpr turns the names of its functions (e.g. ``where`` or ``abs``)
+    into those functions, so a column with such a name cannot be used as
+    is.  The occurrences of `names` that are not function calls get an
+    alias.  The new condition and a mapping from aliases to names are
+    returned.
+
+    """
+    tokens = list(tokenize.generate_tokens(io.StringIO(condition).readline))
+    aliases = {}
+    for i, token in enumerate(tokens):
+        if token.type != tokenize.NAME or token.string not in names:
+            continue
+        following = [t for t in tokens[i + 1 :] if t.type != tokenize.NL]
+        if following and following[0].string == "(":
+            continue  # a function call
+        alias = f"__pt_var_{token.string}"
+        aliases[alias] = token.string
+        tokens[i] = token._replace(string=alias)
+    if not aliases:
+        return condition, aliases
+    condition = tokenize.untokenize((t.type, t.string) for t in tokens)
+    return condition.strip(), aliases
+
+
 def compile_condition(
     condition: str, typemap: dict[str, type], indexedcols: frozenset[str]
 ) -> CompiledCondition:
@@ -462,6 +493,15 @@ def compile_condition(
     indicates the order of its parameters.
 
     """
+    # Give the variables named like a Numexpr function an alias.
+    condition, aliases = _alias_function_names(
+        condition, frozenset(typemap).intersection(ne.expressions.functions)
+    )
+    if aliases:
+        names = {name: alias for alias, name in aliases.items()}
+        typemap = {names.get(var, var): typ for var, typ in typemap.items()}
+        indexedcols = frozenset(names.get(col, col) for col in indexedcols)
+
     # Get the expression tree and extract index conditions.
     expr = ne.necompiler.stringToExpression(condition, typemap, {})
     if expr.astKind != "bool":
@@ -496,6 +536,18 @@ def compile_condition(
     kwargs = {"ex_uses_vml": ex_uses_vml}
 
     params = varnames
+    if aliases:
+        # Use the original names again.
+        orig = aliases.get
+        params = [orig(var, var) for var in params]
+        renamed = []
+        for var, ops, limits in idxexprs:
+            limits = tuple(
+                (orig(lim[0], lim[0]),) if isinstance(lim, tuple) else lim
+                for lim in limits
+            )
+            renamed.append((orig(var, var), ops, limits))
+        idxexprs = renamed
     # This is more comfortable to handle about than a tuple.
     return CompiledCondition(func, params, idxexprs, strexpr, **kwargs)
 
