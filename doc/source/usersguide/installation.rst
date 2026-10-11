@@ -57,7 +57,7 @@ If you don't, fetch and install them before proceeding.
 .. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
 
 * Python_ >= 3.11
-* HDF5_ >= 1.10.5 (although 2.1 or later is strongly recommended)
+* HDF5_ >= 1.14 (although 2.1 or later is strongly recommended)
 * Cython_ >= 3.2
 * NumPy_ >= 2.0
 * Numexpr_ >= 2.6.2
@@ -207,7 +207,7 @@ the relevant header files and libraries.
     :envvar:`BLOSC2_DIR` environment variables to the path to the particular
     resource.  For example::
 
-        set HDF5_DIR=c:\\stuff\\hdf5-1.10.2-32bit-VS2008-IVF101\\release
+        set HDF5_DIR=c:\\stuff\\hdf5-1.14.2-32bit-VS2008-IVF101\\release
         set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
         set LZO_DIR=c:\\Program Files (x86)\\GnuWin32
         set BZIP2_DIR=c:\\Program Files (x86)\\GnuWin32
@@ -217,7 +217,7 @@ the relevant header files and libraries.
     setup.py command line.
     For example::
 
-        --hdf5=c:\\stuff\\hdf5-1.10.1-32bit-VS2008-IVF101\\release
+        --hdf5=c:\\stuff\\hdf5-1.14.1-32bit-VS2008-IVF101\\release
         --blosc=c:\\Program Files (x86)\\Blosc
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
@@ -528,8 +528,7 @@ can be found e.g. at the
 page. Download the wheel matching the version of python and either the 32 or
 64-bit version and install using pip::
 
-    # python 3.6 64-bit:
-    $ python3 -m pip install tables-3.6.1-2-cp36-cp36m-win_amd64.whl
+    $ python3 -m pip install tables-3.24.1-2-cp314-cp314m-win_amd64.whl
 
 You can (and *you should*) test your installation by running the next
 commands::
