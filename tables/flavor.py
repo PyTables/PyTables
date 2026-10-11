@@ -42,14 +42,9 @@ from collections.abc import Callable, Sequence
 
 import numpy as np
 import numpy.typing as npt
+from numpy.exceptions import VisibleDeprecationWarning
 
 from .exceptions import FlavorError, FlavorWarning
-
-# @compatibility with numpy < 1.25
-try:
-    from numpy.exceptions import VisibleDeprecationWarning
-except ImportError:
-    from numpy import VisibleDeprecationWarning
 
 __docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""

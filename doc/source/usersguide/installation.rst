@@ -59,7 +59,7 @@ If you don't, fetch and install them before proceeding.
 * Python_ >= 3.11
 * HDF5_ >= 1.10.5 (although 2.1 or later is strongly recommended)
 * Cython_ >= 3.2
-* NumPy_ >= 1.25
+* NumPy_ >= 2.0
 * Numexpr_ >= 2.6.2
 * packaging_
 * py-cpuinfo_
