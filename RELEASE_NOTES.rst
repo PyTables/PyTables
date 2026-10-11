@@ -10,6 +10,60 @@
 Changes from 3.11.1 to 3.12.0
 =============================
 
+Breaking changes
+----------------
+
+* The ``tests`` folders have been moved outside the ``tables`` package
+  to make it lighter once installed.
+
+  Consequently the `tables.test` function is no longer available.
+
+  Moreover, the ``print_versions`` function has been moved to ``tables.utils``.
+* The setialization-de-serialization of attributes and datasets via ``pickle``
+  now raised a :exc:`PickleSecurityWarning` (see section below).
+
+
+Security fixes
+--------------
+
+* Build wheels against HDF5 2.2.0; fix blosc2 filter buffer size.
+
+  The HDF5 1.14.6 bundled in PyTables v3.11.1 wheels was affected by ~30
+  published CVEs whose fixes shipped only on the HDF5 2.x line
+  (see HDFGroup/cve_hdf5), including CVE-2025-44905 and CVE-2025-44904
+  (both rated 8.8 HIGH by NVD) and the CVE-2026-17572/17573/17574 batch
+  fixed in 2.2.0.
+* Do not use plain eval in PyTables utilities (fixes security issues
+  GHSA-54cf-28h8-9p23_ and GHSA-6mmx-p77c-4hmr_).
+* Fix NULL-pointer dereference when opening a malformed HDF5 root attribute
+  (Closes GHSA-jc4m-9v2h-9348_).
+* Pickle payloads can execute arbitrary code while they are loaded.
+
+  Untrusted files can now be opened with ``open_file(..., allow_pickle=False)``.
+
+  The :data:`parameters.ALLOW_PICKLE` parameter controls the default for
+  files opened without an explicit ``allow_pickle`` argument; set it to
+  ``False`` to disable unpickling globally for new file handles.
+
+  The same per-file opt-out can be passed through pandas_ as
+  ``pandas.read_hdf(..., allow_pickle=False)`` or
+  ``pandas.HDFStore(..., allow_pickle=False)``.
+
+  Writing remains enabled and emits :exc:`PickleSecurityWarning`, since the
+  resulting data requires unpickling to be read.
+  The :program:`ptdump` utility keeps unpickling disabled unless
+  ``--allow-pickle`` is given.
+
+  Automatic unpickling remains enabled by default for compatibility.
+
+  The default is expected to change to disabled in PyTables 3.13.
+
+  See also GHSA-3r7g-mq96-7hhc_.
+
+
+Bug fixed
+---------
+
 * Columns named like a Numexpr function (e.g. ``where`` or ``abs``) can be
   used in :meth:`Table.where` and the other query methods.  They were taken
   for the function, so the query failed (:issue:`638`).
@@ -29,19 +83,6 @@ Changes from 3.11.1 to 3.12.0
   *start* with no *stop* like a Python slice, i.e. the rows from *start* to
   the last one are considered.  Previously only one row was considered
   (:issue:`797`).
-* Add git submodule for hdf5-blosc2 v3.0.1.
-* Minimum Cython_ version is now v3.2
-* Do not use plain eval in PyTables utilities (fixes security issues
-  GHSA-54cf-28h8-9p23_ and GHSA-6mmx-p77c-4hmr_).
-* Fix compatibility with c-blosc2 3.x.
-* Build wheels against HDF5 2.2.0; fix blosc2 filter buffer size.
-
-  The HDF5 1.14.6 bundled in PyTables v3.11.1 wheels was affected by ~30
-  published CVEs whose fixes shipped only on the HDF5 2.x line
-  (see HDFGroup/cve_hdf5), including CVE-2025-44905 and CVE-2025-44904
-  (both rated 8.8 HIGH by NVD) and the CVE-2026-17572/17573/17574 batch
-  fixed in 2.2.0.
-
 * Preserve field values when :meth:`Table.append` converts structured arrays
   with a different dtype or byteorder (:issue:`658`), and copy strided arrays
   before appending their records.
@@ -73,7 +114,6 @@ Changes from 3.11.1 to 3.12.0
   now shows the rank of the EArray instead of ``(myrank)``.
 * :meth:`VLArray.get_row_size` accepts negative row numbers, counting from
   the end like indexing does, instead of raising ``OverflowError``.
-* Fix typos in docstrings, comments and error messages.
 * Fix issue with non-zero direct-chunk filter mask (:issue:`1325`).
 * Fix infinite busy loop in ``ObjectCache.updateslot`` (:issue:`1254`).
 * Fix ``VLArray.append`` after ``truncate()`` writing past the new extent
@@ -95,29 +135,21 @@ Changes from 3.11.1 to 3.12.0
   ``H5Aread``/``H5Dread`` wrote past it.  Only 1-byte bitfields (booleans)
   are produced by PyTables, so wider ones from foreign files are now
   reported as an unsupported type instead.
+* Fix typos in docstrings, comments and error messages.
 
 
-.. _Cython: https://cython.org
-.. _GHSA-54cf-28h8-9p23:
-    https://github.com/PyTables/PyTables/security/advisories/GHSA-54cf-28h8-9p23
-.. _GHSA-6mmx-p77c-4hmr:
-    https://github.com/PyTables/PyTables/security/advisories/GHSA-6mmx-p77c-4hmr
+Other changes
+-------------
 
-* Automatic unpickling remains enabled by default for compatibility.
-  Pickle payloads can execute arbitrary code while they are loaded.
-  Untrusted files can be opened with ``open_file(..., allow_pickle=False)``.
-  The :data:`parameters.ALLOW_PICKLE` parameter controls the default for
-  files opened without an explicit ``allow_pickle`` argument; set it to
-  ``False`` to disable unpickling globally for new file handles.
+* Minimum Python_ version is now 3.11.
+* Minimum Cython_ version is now v3.2.
+* Minimum numpy_ version is nor 2.0.
+* Add git submodule for hdf5-blosc2 v3.0.1.
+* Fix compatibility with c-blosc2 v3.x
+* Move test data to a dedicated sub-folder to ``tests``.
+* Add Windows ARM64 wheels builds.
+* Fix compatibility with numpy_ >= 2.5.
 
-  The same per-file opt-out can be passed through pandas as
-  ``pandas.read_hdf(..., allow_pickle=False)`` or
-  ``pandas.HDFStore(..., allow_pickle=False)``.  Writing remains enabled
-  and emits :exc:`PickleSecurityWarning`, since the resulting data
-  requires unpickling to be read.  The :program:`ptdump` utility keeps
-  unpickling disabled unless ``--allow-pickle`` is given.
-
-  The default is expected to change to disabled in PyTables 3.13.
 
 
 Thanks to:
@@ -125,6 +157,24 @@ Thanks to:
 * Teddy Tennant
 * Jacob Rideout
 * Adrian Altenhoff
-* maxtaran2010
+* Max (maxtaran2010)
 * YuuLuo
 * Raashish Aggarwal
+* Naveed
+* CAOShurong
+* Eric Larson
+* Nikhil Dabas
+
+
+.. _Python: https://www.python.org
+.. _Cython: https://cython.org
+.. _numpy: https://numpy.org
+.. _pandas: https://pandas.pydata.org
+.. _GHSA-54cf-28h8-9p23:
+    https://github.com/PyTables/PyTables/security/advisories/GHSA-54cf-28h8-9p23
+.. _GHSA-6mmx-p77c-4hmr:
+    https://github.com/PyTables/PyTables/security/advisories/GHSA-6mmx-p77c-4hmr
+.. _GHSA-jc4m-9v2h-9348:
+    https://github.com/PyTables/PyTables/security/advisories/GHSA-jc4m-9v2h-9348
+.. _GHSA-3r7g-mq96-7hhc:
+    https://github.com/PyTables/PyTables/security/advisories/GHSA-3r7g-mq96-7hhc
