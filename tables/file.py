@@ -2322,9 +2322,9 @@ class File(hdf5extension.File):
             if class_ is Node:  # all nodes
                 yield group
             self._check_group(group)
-            for group, descend in group._g_walk_groups():
+            for group_, descend in group._g_walk_groups():
                 if descend:
-                    yield from self.iter_nodes(group, classname)
+                    yield from self.iter_nodes(group_, classname)
 
     def walk_groups(self, where: Group | str = "/") -> Generator[Group]:
         """Recursively iterate over groups (not leaves) hanging from where.

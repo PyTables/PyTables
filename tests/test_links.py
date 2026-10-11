@@ -219,8 +219,10 @@ class HardLinkTraversalTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     args = [
                         sys.executable,
                         "-c",
-                        "from tables.scripts.ptdump import main; "
-                        "import sys; sys.exit(main())",
+                        (
+                            "from tables.scripts.ptdump import main; "
+                            "import sys; sys.exit(main())"
+                        ),
                     ]
                     if sort:
                         args.append("-s")
@@ -228,6 +230,7 @@ class HardLinkTraversalTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     try:
                         result = subprocess.run(
                             args,
+                            check=False,
                             capture_output=True,
                             text=True,
                             timeout=10,
