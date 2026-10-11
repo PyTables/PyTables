@@ -309,13 +309,9 @@ you can proceed with the PyTables package itself.
    **Unix**
       In the sh shell and its variants::
 
-        $ cd build/lib.linux-x86_64-3.3
+        $ cd build/lib.linux-x86_64-3.14
+        $ ln -s ../../tests
         $ env PYTHONPATH=. python3 tests/test_all.py
-
-      or, if you prefer::
-
-        $ cd build/lib.linux-x86_64-3.3
-        $ env PYTHONPATH=. python3 -c "import tables; tables.test()"
 
       .. note::
 
@@ -333,15 +329,10 @@ you can proceed with the PyTables package itself.
 
       Open the command prompt (cmd.exe or command.com) and type::
 
-        > cd build\\lib.linux-x86_64-2.7
+        > cd build\\lib.linux-x86_64-3.13
+        > xcopy /E /I /H /Y ..\\..\\tests tests
         > set PYTHONPATH=.;%PYTHONPATH%
         > python3 tables\\tests\\test_all.py
-
-      or::
-
-        > cd build\\lib.linux-x86_64-2.7
-        > set PYTHONPATH=.;%PYTHONPATH%
-        > python3 -c "import tables; tables.test()"
 
    Both commands do the same thing, but the latter still works on an already
    installed PyTables (so, there is no need to set the :envvar:`PYTHONPATH`
@@ -543,8 +534,8 @@ page. Download the wheel matching the version of python and either the 32 or
 You can (and *you should*) test your installation by running the next
 commands::
 
-    >>> import tables
-    >>> tables.test()
+    >>> import tests
+    >>> tests.test()
 
 on your favorite python shell. If all the tests pass (possibly with a few
 warnings, related to the potential unavailability of LZO lib) you already have
