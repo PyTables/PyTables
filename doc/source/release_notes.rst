@@ -2,15 +2,6 @@
 PyTables Release Notes
 ======================
 
-Migration
-----------
-
-.. toctree::
-    :maxdepth: 1
-
-    Migrating from 2.x to 3.x <MIGRATING_TO_3.x>
-    Migrating from 1.x to 2.x <MIGRATING_TO_2.x>
-
 PyTables
 --------
 
@@ -156,3 +147,9 @@ PyTables        0.5.1       2003-05-14
 PyTables        0.5         2003-05-10
 Pytables        0.4         2003-03-19
 =============== =========== ==========
+
+
+Migration
+----------
+
+Please refer to the dedicated section :doc:`migration`.

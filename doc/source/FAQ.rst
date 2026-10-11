@@ -371,8 +371,8 @@ PyTables 2.x issues
 I'm having problems migrating my apps from PyTables 1.x into PyTables 2.x. Please, help!
 ----------------------------------------------------------------------------------------
 
-Sure.  However, you should first check out the :doc:`MIGRATING_TO_2.x`
-document.
+Sure.  However, you should first check out the
+:doc:`migration/MIGRATING_TO_2.x` document.
 It should provide hints to the most frequently asked questions on this regard.
 
 

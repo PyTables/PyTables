@@ -1,6 +1,7 @@
 =====================
 PyTables User's Guide
 =====================
+
 -------------------------------
 Hierarchical datasets in Python
 -------------------------------
@@ -13,11 +14,12 @@ Hierarchical datasets in Python
 
             |copy| 2008, 2009, 2010 - Francesc Alted
 
-            |copy| 2011–2026 - PyTables maintainers
+            |copy| 2011-2026 - PyTables maintainers
 
 --------
 Contents
 --------
+
 .. toctree::
     :maxdepth: 1
 
@@ -34,9 +36,11 @@ Contents
     file_format
     bibliography
 
+
 --------------------------------------------------------
 Copyright Notice and Statement for PyTables User's Guide
 --------------------------------------------------------
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:

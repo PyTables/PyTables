@@ -200,9 +200,9 @@ Moreover:
 - The :meth:`Table.whereAppend` method has been renamed into
   :meth:`Table.append_where` (closes :issue:`248`).
 
-Please refer to the :doc:`../MIGRATING_TO_3.x` document for more details about
-API changes and for some useful hint about the migration process from the 2.X
-API to the new one.
+Please refer to the :doc:`../migration/MIGRATING_TO_3.x` document for more
+details about API changes and for some useful hint about the migration
+process from the 2.X API to the new one.
 
 
 Other possibly incompatible changes

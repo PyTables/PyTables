@@ -46,7 +46,7 @@ Contents
     Cookbook <cookbook/index>
     FAQ
     other_material
-    Migrating from 2.x to 3.x <MIGRATING_TO_3.x>
+    Migrating from older version <migration>
     downloads
     Release Notes <release_notes>
     project_pointers
