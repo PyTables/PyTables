@@ -57,13 +57,13 @@ If you don't, fetch and install them before proceeding.
 .. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
 
 * Python_ >= 3.11
-* HDF5_ >= 1.14 (although 2.1 or later is strongly recommended)
+* HDF5_ >= 1.10.5 (although 2.1 or later is strongly recommended)
 * Cython_ >= 3.2
 * NumPy_ >= 2.0
 * Numexpr_ >= 2.6.2
 * packaging_
 * py-cpuinfo_
-* c-blosc_ >= 2.17 (sources are bundled with PyTables sources but the user can
+* c-blosc_ >= 1.17 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)
 * Either

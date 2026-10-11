@@ -3,7 +3,7 @@
 
 blosc2>=2.3.0
 numexpr>=2.6.2
-numpy>=1.25
+numpy>=2
 packaging
 py-cpuinfo
 typing-extensions>=4.4.0  # workaround for anyio

@@ -97,6 +97,7 @@ requirements: \
 	# uv pip compile --python 3.11 -U --allow-unsafe --generate-hashes --strip-extras -o $@ $<
 
 lint:
+	$(PYTHON) ci/check_requirements_sync.py
 	$(PYTHON) -m flake8 --count --statistics tables tests
 	$(PYTHON) -m pydocstyle --count tables
 	$(PYTHON) -m isort --check tables tests

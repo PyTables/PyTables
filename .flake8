@@ -14,7 +14,7 @@ extend-select = W504,B950
 # D107: undocumented-public-init
 # extend-ignore = E203,W503,D105,D107  # D* are in pyproject.toml
 per-file-ignores =
-    **/tests/*: D,T003
+    tests/*: D,T003,N,A
     tables/__init__.py: E402,F401,F403,F405
     tables/array.py: A005
     tables/misc/enum.py: A005
