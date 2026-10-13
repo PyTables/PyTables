@@ -7,7 +7,6 @@ The output path is explicit and H5Fcreate replaces only that requested file.
 from __future__ import annotations
 
 import os
-import sys
 import ctypes as C
 import struct
 import hashlib
@@ -236,7 +235,6 @@ def main() -> None:
                 H5Tcreate(H5T_INTEGER, 16), "wide integer type"
             )
             wide_enum = -1
-            wide_native = -1
             wide_attr = -1
             try:
                 checked(
@@ -245,7 +243,7 @@ def main() -> None:
                 checked(H5Tset_precision(wide_base, 128), "wide precision")
                 checked(H5Tset_sign(wide_base, H5T_SGN_2), "wide sign")
                 wide_enum = checked(H5Tenum_create(wide_base), "wide enum")
-                wide_value = (1).to_bytes(16, sys.byteorder, signed=True)
+                wide_value = (1).to_bytes(16, "little", signed=True)
                 raw_value = C.create_string_buffer(wide_value)
                 checked(
                     H5Tenum_insert(wide_enum, b"VALUE", raw_value),
@@ -257,17 +255,12 @@ def main() -> None:
                     ),
                     "wide attribute",
                 )
-                wide_native = checked(
-                    H5Tget_native_type(wide_enum, 0), "wide native"
-                )
                 checked(
-                    H5Awrite(wide_attr, wide_native, raw_value), "wide write"
+                    H5Awrite(wide_attr, wide_enum, raw_value), "wide write"
                 )
             finally:
                 if wide_attr >= 0:
                     H5Aclose(wide_attr)
-                if wide_native >= 0:
-                    H5Tclose(wide_native)
                 if wide_enum >= 0:
                     H5Tclose(wide_enum)
                 H5Tclose(wide_base)
