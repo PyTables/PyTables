@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -242,6 +243,135 @@ class NumericTestCase(common.TestFileMixin, common.PyTablesTestCase):
             dtype=self.type,
         )
         self.assertTrue(common.are_arrays_equal(data, expectedData))
+
+
+class NumericAttributeTypesTestCase(common.PyTablesTestCase):
+    """Check scalar and array numeric attributes in both byte orders."""
+
+    h5fname = common.test_filename("numeric_attr_types.h5")
+
+    def test(self):
+        integer_values = {
+            "signed_i16_le": (-0x1234, np.dtype("int16")),
+            "signed_i16_be": (-0x1234, np.dtype("int16")),
+            "signed_i32_le": (-0x12345678, np.dtype("int32")),
+            "signed_i32_be": (-0x12345678, np.dtype("int32")),
+            "signed_i64_le": (-0x123456789ABCDEF, np.dtype("int64")),
+            "signed_i64_be": (-0x123456789ABCDEF, np.dtype("int64")),
+            "unsigned_u16_le": (0xCDEF, np.dtype("uint16")),
+            "unsigned_u16_be": (0xCDEF, np.dtype("uint16")),
+            "unsigned_u32_le": (0x89ABCDEF, np.dtype("uint32")),
+            "unsigned_u32_be": (0x89ABCDEF, np.dtype("uint32")),
+            "unsigned_u64_le": (0xF23456789ABCDEF0, np.dtype("uint64")),
+            "unsigned_u64_be": (0xF23456789ABCDEF0, np.dtype("uint64")),
+        }
+        float_values = {
+            "float32_le": (1234.5, np.dtype("float32")),
+            "float32_be": (1234.5, np.dtype("float32")),
+            "float64_le": (-98765.25, np.dtype("float64")),
+            "float64_be": (-98765.25, np.dtype("float64")),
+        }
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            with tb.open_file(self.h5fname) as h5file:
+                attrs = h5file.root._v_attrs
+                for name, (expected, dtype) in integer_values.items():
+                    value = getattr(attrs, name)
+                    self.assertEqual(value.dtype, dtype)
+                    self.assertEqual(value, expected)
+
+                for name, (expected, dtype) in float_values.items():
+                    value = getattr(attrs, name)
+                    self.assertEqual(value.dtype, dtype)
+                    self.assertEqual(value, expected)
+
+                for stem, dtype in (
+                    ("float32_negzero", np.dtype("float32")),
+                    ("float64_negzero", np.dtype("float64")),
+                ):
+                    for order in ("le", "be"):
+                        value = getattr(attrs, f"{stem}_{order}")
+                        self.assertEqual(value.dtype, dtype)
+                        self.assertEqual(value, 0)
+                        self.assertTrue(np.signbit(value))
+
+                for stem, dtype in (
+                    ("float32_inf", np.dtype("float32")),
+                    ("float64_inf", np.dtype("float64")),
+                ):
+                    for order in ("le", "be"):
+                        value = getattr(attrs, f"{stem}_{order}")
+                        self.assertEqual(value.dtype, dtype)
+                        self.assertTrue(np.isposinf(value))
+
+                for stem, dtype in (
+                    ("float32_nan", np.dtype("float32")),
+                    ("float64_nan", np.dtype("float64")),
+                ):
+                    for order in ("le", "be"):
+                        value = getattr(attrs, f"{stem}_{order}")
+                        self.assertEqual(value.dtype, dtype)
+                        self.assertTrue(np.isnan(value))
+
+                signed_array = attrs.signed_i32_be_array
+                self.assertEqual(signed_array.dtype, np.dtype("int32"))
+                self.assertTrue(
+                    np.array_equal(
+                        signed_array,
+                        np.array([-0x12345678, 0, 0x12345678], dtype="int32"),
+                    )
+                )
+                unsigned_array = attrs.unsigned_u64_be_array
+                self.assertEqual(unsigned_array.dtype, np.dtype("uint64"))
+                self.assertTrue(
+                    np.array_equal(
+                        unsigned_array,
+                        np.array(
+                            [0xF23456789ABCDEF0, 0x0123456789ABCDEF],
+                            dtype="uint64",
+                        ),
+                    )
+                )
+                float32_array = attrs.float32_be_special_array
+                self.assertEqual(float32_array.dtype, np.dtype("float32"))
+                self.assertEqual(float32_array[0], 0)
+                self.assertTrue(np.signbit(float32_array[0]))
+                self.assertTrue(np.isposinf(float32_array[1]))
+                self.assertTrue(np.isnan(float32_array[2]))
+                float64_array = attrs.float64_le_special_array
+                self.assertEqual(float64_array.dtype, np.dtype("float64"))
+                self.assertEqual(float64_array[0], 0)
+                self.assertTrue(np.signbit(float64_array[0]))
+                self.assertTrue(np.isposinf(float64_array[1]))
+                self.assertTrue(np.isnan(float64_array[2]))
+
+                narrow_scalars = {
+                    "narrow_i64_scalar": (-0x345, np.dtype("int16")),
+                    "narrow_u64_scalar": (0xABC, np.dtype("uint16")),
+                }
+                for name, (expected, dtype) in narrow_scalars.items():
+                    value = getattr(attrs, name)
+                    self.assertEqual(value.dtype, dtype)
+                    self.assertEqual(value, expected)
+
+                narrow_arrays = {
+                    "narrow_i64": (
+                        np.array((-0x345, 0, 0x456), dtype="int16"),
+                        np.dtype("int16"),
+                    ),
+                    "narrow_u64": (
+                        np.array((0xABC, 0x123, 0x456), dtype="uint16"),
+                        np.dtype("uint16"),
+                    ),
+                }
+                for stem, (expected, dtype) in narrow_arrays.items():
+                    for suffix in ("rank_array", "h5t_array"):
+                        value = getattr(attrs, f"{stem}_{suffix}")
+                        self.assertEqual(value.dtype, dtype)
+                        self.assertTrue(np.array_equal(value, expected))
+
+        self.assertEqual(caught, [])
 
 
 class F64BETestCase(NumericTestCase):
@@ -614,6 +744,7 @@ def suite():
         theSuite.addTest(common.make_suite(WideBitfieldAttrTestCase))
         theSuite.addTest(common.make_suite(OversizeStringAttrTestCase))
         theSuite.addTest(common.make_suite(EnumTestCase))
+        theSuite.addTest(common.make_suite(NumericAttributeTypesTestCase))
         theSuite.addTest(common.make_suite(F64BETestCase))
         theSuite.addTest(common.make_suite(F64LETestCase))
         theSuite.addTest(common.make_suite(I64BETestCase))

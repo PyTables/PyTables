@@ -96,6 +96,8 @@ from .definitions cimport (
     H5L_TYPE_EXTERNAL,
     H5T_class_t,
     H5T_sign_t,
+    H5Tget_class,
+    H5Tget_super,
     H5T_NATIVE_INT,
     H5T_cset_t,
     H5T_CSET_ASCII,
@@ -142,6 +144,7 @@ from .definitions cimport (
     H5Tget_sign,
     H5Adelete,
     H5T_BITFIELD,
+    H5T_ARRAY,
     H5T_INTEGER,
     H5T_FLOAT,
     H5T_STRING,
@@ -917,7 +920,7 @@ cdef class AttributeSet:
     cdef hsize_t *dims
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef hid_t dset_id, type_id
+    cdef hid_t dset_id, type_id, memory_type_id, super_type_id
     cdef int rank, ret
     cdef void *rbuf
     cdef char *str_value
@@ -925,6 +928,7 @@ cdef class AttributeSet:
     cdef ndarray ndvalue
     cdef object shape, retvalue
     cdef int i, nelements
+    cdef bint use_native_type
     cdef char* cattrname = NULL
     cdef bytes encoded_attrname
     cdef int cset = H5T_CSET_DEFAULT
@@ -977,6 +981,7 @@ cdef class AttributeSet:
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
       dtype_ = get_dtype_scalar(type_id, class_id, type_size)
       if dtype_ is None:
+        H5Tclose(type_id)
         warnings.warn(
           f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
           f"Offending HDF5 class: {class_id}",
@@ -1056,17 +1061,74 @@ cdef class AttributeSet:
         self._v_unimplemented.append(attrname)
         return None
 
-    # Get the container for data
-    ndvalue = np.empty(dtype=dtype_, shape=shape)
-    # Get the pointer to the buffer data area
-    rbuf = PyArray_DATA(ndvalue)
-    # Actually read the attribute from disk
-    ret = H5ATTRget_attribute(dset_id, cattrname, type_id, rbuf)
+    # HDF5 converts from the on-disk type to the memory type passed to
+    # H5Aread.  The NumPy dtypes above are native, so use native HDF5 memory
+    # types for numeric attributes as well.  Passing the file type directly
+    # leaves foreign-endian bytes in a native buffer without conversion.
+    use_native_type = class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)
+    if class_id == H5T_ARRAY:
+      super_type_id = H5Tget_super(type_id)
+      if super_type_id < 0:
+        H5Tclose(type_id)
+        raise HDF5ExtError(
+          f"Can't get base type for attribute {attrname} in node {self.name}."
+        )
+      use_native_type = H5Tget_class(super_type_id) in (
+        H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT
+      )
+      H5Tclose(super_type_id)
+
+    if use_native_type:
+      memory_type_id = get_native_type(type_id)
+      if memory_type_id < 0:
+        H5Tclose(type_id)
+        raise HDF5ExtError(
+          f"Can't get native type for attribute {attrname} in node {self.name}."
+        )
+    else:
+      memory_type_id = type_id
+
+    try:
+      # Match the NumPy container to the HDF5 memory type.  A foreign file
+      # may use a padded integer or a non-standard precision, for which the
+      # native HDF5 type can be smaller than the on-disk type.
+      if use_native_type:
+        if class_id == H5T_ARRAY:
+          stype_, shape_ = hdf5_to_np_ext_type(
+            memory_type_id, pure_numpy_types=True,
+            ptparams=node._v_file.params
+          )
+          dtype_ = np.dtype((stype_, shape_))
+        else:
+          dtype_ = get_dtype_scalar(
+            memory_type_id,
+            H5Tget_class(memory_type_id),
+            H5Tget_size(memory_type_id)
+          )
+        if dtype_ is None:
+          warnings.warn(
+            f"Unsupported type for attribute '{attrname}' in node "
+            f"'{self.name}'. Offending HDF5 class: {class_id}",
+            DataTypeWarning
+          )
+          self._v_unimplemented.append(attrname)
+          return None
+
+      # Get the container for data
+      ndvalue = np.empty(dtype=dtype_, shape=shape)
+      # Get the pointer to the buffer data area
+      rbuf = PyArray_DATA(ndvalue)
+      # Actually read the attribute from disk
+      ret = H5ATTRget_attribute(dset_id, cattrname, memory_type_id, rbuf)
+    finally:
+      if memory_type_id != type_id:
+        H5Tclose(memory_type_id)
+      H5Tclose(type_id)
+
     if ret < 0:
       raise HDF5ExtError(
         f"Attribute {attrname} exists in node {self.name}, but can't get it."
       )
-    H5Tclose(type_id)
 
     if rank > 0:    # multidimensional case
       retvalue = ndvalue
