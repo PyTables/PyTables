@@ -236,8 +236,50 @@ class EnumAttributeTestCase(common.PyTablesTestCase):
             if issubclass(warning.category, tb.exceptions.DataTypeWarning)
         ]
         self.assertEqual(datatype_warnings, [])
+        self.assertEqual(false_value.dtype, np.dtype("int8"))
+        self.assertEqual(true_value.dtype, np.dtype("int8"))
         self.assertEqual(false_value, np.int8(0))
         self.assertEqual(true_value, np.int8(1))
+
+
+class EnumAttributeTypesTestCase(common.PyTablesTestCase):
+    """Check enum scalar widths, signs, byte order, and unsupported shapes.
+
+    ``enum_attr_types.h5`` was generated with the portable
+    ``tests/_testtools/create_enum_attr_types.py`` HDF5 C-API helper.  It
+    contains native-endian and foreign-endian signed/unsigned enum scalars,
+    an enum array attribute, and a legal 16-byte enum scalar.
+    """
+
+    h5fname = common.test_filename("enum_attr_types.h5")
+
+    def test(self):
+        expected = {
+            "signed_be16": (np.int16(0x1234), np.dtype("int16")),
+            "signed_le32": (np.int32(0x12345678), np.dtype("int32")),
+            "unsigned_be16": (np.uint16(0xFEDC), np.dtype("uint16")),
+            "unsigned_le32": (np.uint32(0xFEDCBA98), np.dtype("uint32")),
+        }
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            with tb.open_file(self.h5fname) as h5file:
+                attrs = h5file.root._v_attrs
+                actual = {name: getattr(attrs, name) for name in expected}
+                enum_array = attrs.unsigned_be16_array
+                wide_enum = attrs.signed_i128
+
+        datatype_warnings = [
+            warning
+            for warning in caught
+            if issubclass(warning.category, tb.exceptions.DataTypeWarning)
+        ]
+        self.assertEqual(len(datatype_warnings), 2)
+        self.assertIsNone(enum_array)
+        self.assertIsNone(wide_enum)
+        for name, (value, dtype) in expected.items():
+            self.assertEqual(actual[name].dtype, dtype)
+            self.assertEqual(actual[name], value)
 
 
 class NumericTestCase(common.TestFileMixin, common.PyTablesTestCase):
@@ -645,6 +687,7 @@ def suite():
         theSuite.addTest(common.make_suite(OversizeStringAttrTestCase))
         theSuite.addTest(common.make_suite(EnumTestCase))
         theSuite.addTest(common.make_suite(EnumAttributeTestCase))
+        theSuite.addTest(common.make_suite(EnumAttributeTypesTestCase))
         theSuite.addTest(common.make_suite(F64BETestCase))
         theSuite.addTest(common.make_suite(F64LETestCase))
         theSuite.addTest(common.make_suite(I64BETestCase))

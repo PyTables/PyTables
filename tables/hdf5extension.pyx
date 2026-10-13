@@ -919,14 +919,13 @@ cdef class AttributeSet:
     cdef hsize_t *dims
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef hid_t dset_id, type_id
+    cdef hid_t dset_id, type_id, read_type_id
     cdef int rank, ret
     cdef void *rbuf
     cdef char *str_value
     cdef char **str_values = NULL
     cdef ndarray ndvalue
     cdef object shape, retvalue
-    cdef object enum_
     cdef int i, nelements
     cdef char* cattrname = NULL
     cdef bytes encoded_attrname
@@ -982,9 +981,11 @@ cdef class AttributeSet:
       # storage.  PyTables already knows how to recover that representation
       # (and the enum members) for EnumAtom values, so expose foreign enum
       # attributes as the corresponding NumPy integer scalar as well.
-      try:
-        enum_, dtype_ = load_enum(type_id)
-      except (TypeError, NotImplementedError):
+      # Keep the memory type native: ``type_id`` describes the file's byte
+      # order, while ``dtype_`` is produced from the native enum type.
+      # Passing the file type to H5Aread would leave a non-native byte order
+      # in the NumPy scalar on a foreign-endian file.
+      if type_size not in (1, 2, 4, 8):
         warnings.warn(
           f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
           f"Offending HDF5 class: {class_id}",
@@ -993,6 +994,28 @@ cdef class AttributeSet:
         self._v_unimplemented.append(attrname)
         H5Tclose(type_id)
         return None
+      read_type_id = get_native_type(type_id)
+      if read_type_id < 0:
+        H5Tclose(type_id)
+        raise HDF5ExtError(
+          f"Can't get native type for attribute {attrname} in node {self.name}."
+        )
+      try:
+        dtype_ = load_enum(type_id)[1]
+      except (TypeError, NotImplementedError):
+        warnings.warn(
+          f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
+          f"Offending HDF5 class: {class_id}",
+          DataTypeWarning
+        )
+        self._v_unimplemented.append(attrname)
+        H5Tclose(read_type_id)
+        H5Tclose(type_id)
+        return None
+      except Exception:
+        H5Tclose(read_type_id)
+        H5Tclose(type_id)
+        raise
       shape = ()
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
       dtype_ = get_dtype_scalar(type_id, class_id, type_size)
@@ -1077,15 +1100,28 @@ cdef class AttributeSet:
         return None
 
     # Get the container for data
-    ndvalue = np.empty(dtype=dtype_, shape=shape)
-    # Get the pointer to the buffer data area
-    rbuf = PyArray_DATA(ndvalue)
-    # Actually read the attribute from disk
-    ret = H5ATTRget_attribute(dset_id, cattrname, type_id, rbuf)
+    try:
+      ndvalue = np.empty(dtype=dtype_, shape=shape)
+      # Get the pointer to the buffer data area
+      rbuf = PyArray_DATA(ndvalue)
+      # Actually read the attribute from disk
+      if class_id != H5T_ENUM:
+        read_type_id = type_id
+      ret = H5ATTRget_attribute(dset_id, cattrname, read_type_id, rbuf)
+    except Exception:
+      if class_id == H5T_ENUM and read_type_id != type_id:
+        H5Tclose(read_type_id)
+      H5Tclose(type_id)
+      raise
     if ret < 0:
+      if class_id == H5T_ENUM and read_type_id != type_id:
+        H5Tclose(read_type_id)
+      H5Tclose(type_id)
       raise HDF5ExtError(
         f"Attribute {attrname} exists in node {self.name}, but can't get it."
       )
+    if read_type_id != type_id:
+      H5Tclose(read_type_id)
     H5Tclose(type_id)
 
     if rank > 0:    # multidimensional case
