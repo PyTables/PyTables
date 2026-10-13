@@ -138,6 +138,40 @@ class WideBitfieldAttrTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIsNone(attrs.array_bitfield)
 
 
+class OversizeStringAttrTestCase(common.PyTablesTestCase):
+    """Test for a non-scalar string stored in a system attribute.
+
+    H5ATTRget_attribute_string() sized its receive buffer for a single
+    element (H5Tget_size), but H5Aread fills the whole attribute, so a
+    fixed-length string attribute holding more than one element wrote past
+    the buffer.  read_f_attr() reads PYTABLES_FORMAT_VERSION through this
+    function, so merely identifying a crafted file with is_pytables_file()
+    triggered the overflow (ASAN: heap write of 256 bytes into a 5-byte
+    allocation).  A real PyTables file keeps that attribute scalar, so a
+    multi-element one comes from a foreign file and must be read without
+    running past the buffer.
+
+    oversize_str_attr.h5 was created with h5py; the root group carries a
+    64-element 8-byte PYTABLES_FORMAT_VERSION attribute whose first element
+    is ``b"2.1"``.
+
+    $ h5dump -A -H oversize_str_attr.h5
+    ATTRIBUTE "PYTABLES_FORMAT_VERSION" {
+       DATATYPE  H5T_STRING { STRSIZE 8; ... }
+       DATASPACE  SIMPLE { ( 64 ) / ( 64 ) }
+    }
+
+    """
+
+    h5fname = common.test_filename("oversize_str_attr.h5")
+
+    def test(self):
+        # Reading the oversized attribute must stay within the buffer and
+        # return the leading string rather than overflowing it.
+        version = tb.is_pytables_file(self.h5fname)
+        self.assertEqual(version, "2.1")
+
+
 class EnumTestCase(common.TestFileMixin, common.PyTablesTestCase):
     """Test for enumerated datatype.
 
@@ -578,6 +612,7 @@ def suite():
         theSuite.addTest(common.make_suite(PaddedArrayTestCase))
         theSuite.addTest(common.make_suite(PaddedCompoundAttrTestCase))
         theSuite.addTest(common.make_suite(WideBitfieldAttrTestCase))
+        theSuite.addTest(common.make_suite(OversizeStringAttrTestCase))
         theSuite.addTest(common.make_suite(EnumTestCase))
         theSuite.addTest(common.make_suite(F64BETestCase))
         theSuite.addTest(common.make_suite(F64LETestCase))
