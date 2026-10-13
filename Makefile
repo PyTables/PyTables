@@ -41,7 +41,7 @@ clean:
 	$(RM) -r examples/*.h5 examples/raw
 	$(RM) -r *.egg-info
 	$(RM) $(GENERATED) tables/*.so a.out
-	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
+	find . '(' -name '*.py[co]' -o -name '*~' ')' -not -path './.pixi/*' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) $(OPT) -C $$srcdir $@ ; done
 
 distclean: clean
