@@ -1,16 +1,18 @@
 """Create the scalar/array enum compatibility fixture used by test_hdf5compat.
 
-Usage: python create_enum_attr_types.py OUTPUT.h5 [--hdf5 PATH_TO_hdf5.dll]
+Usage: python create_enum_attr_types.py OUTPUT.h5 [--hdf5 PATH_TO_HDF5_LIBRARY]
 The output path is explicit and H5Fcreate replaces only that requested file.
 """
 
 from __future__ import annotations
 
 import os
+import sys
 import ctypes as C
 import struct
 import hashlib
 import argparse
+import ctypes.util
 from pathlib import Path
 
 
@@ -25,13 +27,17 @@ def main() -> None:
     parser.add_argument("output", type=Path)
     parser.add_argument("--hdf5", type=Path)
     args = parser.parse_args()
-    dll_dir = (
-        os.add_dll_directory(str(args.hdf5.parent))
-        if args.hdf5 is not None
-        else None
-    )
+    dll_dir = None
+    if args.hdf5 is not None:
+        library = str(args.hdf5)
+        if os.name == "nt" and hasattr(os, "add_dll_directory"):
+            dll_dir = os.add_dll_directory(str(args.hdf5.parent))
+    else:
+        library = ctypes.util.find_library("hdf5")
+        if library is None:
+            library = "hdf5.dll" if os.name == "nt" else "libhdf5.so"
     try:
-        h5 = C.CDLL(str(args.hdf5) if args.hdf5 is not None else "hdf5.dll")
+        h5 = C.CDLL(library)
 
         hid = C.c_int64
         herr = C.c_int
@@ -110,7 +116,7 @@ def main() -> None:
                 native_id = checked(
                     H5Tget_native_type(enum_id, 0), f"native type {name}"
                 )
-                raw_value = struct.pack("<" + fmt[-1], value)
+                raw_value = struct.pack("=" + fmt[-1], value)
                 value_buffer = C.create_string_buffer(raw_value)
                 checked(
                     H5Awrite(attr_id, native_id, value_buffer), f"write {name}"
@@ -210,7 +216,9 @@ def main() -> None:
                 native_array_type = checked(
                     H5Tget_native_type(array_type, 0), "native array datatype"
                 )
-                values = (C.c_uint16 * 2)(0x1234, 0xFEDC)
+                values = C.create_string_buffer(
+                    struct.pack("=HH", 0x1234, 0xFEDC)
+                )
                 checked(
                     H5Awrite(array_attr, native_array_type, values),
                     "array write",
@@ -237,7 +245,7 @@ def main() -> None:
                 checked(H5Tset_precision(wide_base, 128), "wide precision")
                 checked(H5Tset_sign(wide_base, H5T_SGN_2), "wide sign")
                 wide_enum = checked(H5Tenum_create(wide_base), "wide enum")
-                wide_value = (1).to_bytes(16, "little", signed=True)
+                wide_value = (1).to_bytes(16, sys.byteorder, signed=True)
                 raw_value = C.create_string_buffer(wide_value)
                 checked(
                     H5Tenum_insert(wide_enum, b"VALUE", raw_value),
