@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -208,6 +209,35 @@ class EnumTestCase(common.TestFileMixin, common.PyTablesTestCase):
             ]
         ]
         self.assertEqual(data, expectedData)
+
+
+class EnumAttributeTestCase(common.PyTablesTestCase):
+    """Test reading scalar H5T_ENUM attributes from foreign HDF5 files.
+
+    Regression test for issue gh-1035.  ``enum_attr.h5`` was created with
+    the HDF5 C API and contains two 8-bit enum attributes on the root group.
+    The enum members are represented by their underlying integer values when
+    exposed through the PyTables attribute API.
+    """
+
+    h5fname = common.test_filename("enum_attr.h5")
+
+    def test(self):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            with tb.open_file(self.h5fname) as h5file:
+                attrs = h5file.root._v_attrs
+                false_value = attrs.false_value
+                true_value = attrs.true_value
+
+        datatype_warnings = [
+            warning
+            for warning in caught
+            if issubclass(warning.category, tb.exceptions.DataTypeWarning)
+        ]
+        self.assertEqual(datatype_warnings, [])
+        self.assertEqual(false_value, np.int8(0))
+        self.assertEqual(true_value, np.int8(1))
 
 
 class NumericTestCase(common.TestFileMixin, common.PyTablesTestCase):
@@ -614,6 +644,7 @@ def suite():
         theSuite.addTest(common.make_suite(WideBitfieldAttrTestCase))
         theSuite.addTest(common.make_suite(OversizeStringAttrTestCase))
         theSuite.addTest(common.make_suite(EnumTestCase))
+        theSuite.addTest(common.make_suite(EnumAttributeTestCase))
         theSuite.addTest(common.make_suite(F64BETestCase))
         theSuite.addTest(common.make_suite(F64LETestCase))
         theSuite.addTest(common.make_suite(I64BETestCase))

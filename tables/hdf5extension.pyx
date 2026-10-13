@@ -54,6 +54,7 @@ from .utilsextension import (
     create_nested_type,
     platform_byteorder,
     get_filters,
+    load_enum,
 )
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -145,6 +146,7 @@ from .definitions cimport (
     H5T_INTEGER,
     H5T_FLOAT,
     H5T_STRING,
+    H5T_ENUM,
     H5Tget_order,
     H5Pcreate,
     H5Pset_cache,
@@ -924,6 +926,7 @@ cdef class AttributeSet:
     cdef char **str_values = NULL
     cdef ndarray ndvalue
     cdef object shape, retvalue
+    cdef object enum_
     cdef int i, nelements
     cdef char* cattrname = NULL
     cdef bytes encoded_attrname
@@ -974,6 +977,22 @@ cdef class AttributeSet:
         free(str_value)
       H5Tclose(type_id)
       return retvalue
+    elif (rank == 0 and class_id == H5T_ENUM):
+      # HDF5 enumerations use the underlying integer representation for
+      # storage.  PyTables already knows how to recover that representation
+      # (and the enum members) for EnumAtom values, so expose foreign enum
+      # attributes as the corresponding NumPy integer scalar as well.
+      try:
+        enum_, dtype_ = load_enum(type_id)
+      except (TypeError, NotImplementedError):
+        warnings.warn(
+          f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
+          f"Offending HDF5 class: {class_id}",
+          DataTypeWarning
+        )
+        self._v_unimplemented.append(attrname)
+        return None
+      shape = ()
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
       dtype_ = get_dtype_scalar(type_id, class_id, type_size)
       if dtype_ is None:
