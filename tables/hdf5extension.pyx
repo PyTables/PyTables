@@ -991,6 +991,7 @@ cdef class AttributeSet:
           DataTypeWarning
         )
         self._v_unimplemented.append(attrname)
+        H5Tclose(type_id)
         return None
       shape = ()
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
