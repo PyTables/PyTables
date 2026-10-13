@@ -268,6 +268,12 @@ class EnumAttributeTypesTestCase(common.PyTablesTestCase):
                 actual = {name: getattr(attrs, name) for name in expected}
                 enum_array = attrs.unsigned_be16_array
                 wide_enum = attrs.signed_i128
+                with warnings.catch_warnings():
+                    warnings.simplefilter(
+                        "error", tb.exceptions.DataTypeWarning
+                    )
+                    with self.assertRaises(tb.exceptions.DataTypeWarning):
+                        attrs._g_getattr(h5file.root, "signed_i128")
 
         datatype_warnings = [
             warning

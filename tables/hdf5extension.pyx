@@ -986,13 +986,13 @@ cdef class AttributeSet:
       # Passing the file type to H5Aread would leave a non-native byte order
       # in the NumPy scalar on a foreign-endian file.
       if type_size not in (1, 2, 4, 8):
+        H5Tclose(type_id)
         warnings.warn(
           f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
           f"Offending HDF5 class: {class_id}",
           DataTypeWarning
         )
         self._v_unimplemented.append(attrname)
-        H5Tclose(type_id)
         return None
       read_type_id = get_native_type(type_id)
       if read_type_id < 0:
@@ -1003,14 +1003,14 @@ cdef class AttributeSet:
       try:
         dtype_ = load_enum(type_id)[1]
       except (TypeError, NotImplementedError):
+        H5Tclose(read_type_id)
+        H5Tclose(type_id)
         warnings.warn(
           f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
           f"Offending HDF5 class: {class_id}",
           DataTypeWarning
         )
         self._v_unimplemented.append(attrname)
-        H5Tclose(read_type_id)
-        H5Tclose(type_id)
         return None
       except Exception:
         H5Tclose(read_type_id)
