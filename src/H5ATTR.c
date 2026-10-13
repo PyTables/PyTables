@@ -284,8 +284,10 @@ hsize_t H5ATTRget_attribute_string( hid_t obj_id,
 
   H5Sclose( space_id );
 
-  /* Malloc space enough for the string, plus 1 for the trailing '\0' */
-  *data = (char *)malloc(type_size + 1);
+  /* H5Aread fills every element of the attribute, so the buffer has to
+     cover the whole attribute and not just one element: a non-scalar
+     string attribute would otherwise overflow it. */
+  *data = (char *)malloc(H5Aget_storage_size( attr_id ) + 1);
 
   if ( type_size > 0)
   {

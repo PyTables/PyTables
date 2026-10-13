@@ -135,6 +135,13 @@ Bug fixed
   ``H5Aread``/``H5Dread`` wrote past it.  Only 1-byte bitfields (booleans)
   are produced by PyTables, so wider ones from foreign files are now
   reported as an unsupported type instead.
+* Fix a heap buffer overflow when reading a string system attribute that
+  holds more than one element.  ``H5ATTRget_attribute_string`` sized its
+  buffer for a single element, but ``H5Aread`` fills the whole attribute,
+  so a non-scalar string attribute wrote past it.  ``is_pytables_file``
+  reads ``PYTABLES_FORMAT_VERSION`` through that path, so merely
+  identifying a foreign file could trigger the overflow; the buffer is now
+  sized for the whole attribute.
 * Fix typos in docstrings, comments and error messages.
 
 
