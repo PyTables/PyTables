@@ -24,6 +24,16 @@ class TestAuxiliaryFunctions(unittest.TestCase):
                 self.assertTrue((a == e).all())
                 self.assertTrue((b == f).all())
 
+    def test_keysort_short_array2(self):
+        # keysort reorders the first len(array1) elements of array2, so a
+        # shorter array2 used to be read and written out of bounds.  It must
+        # be rejected instead.
+        for dtype1 in ("i8", "f8", "S6"):
+            a = np.arange(100).astype(dtype1)
+            b = np.zeros(1, dtype="i8")
+            with self.assertRaises(ValueError):
+                tb.indexesextension.keysort(a, b)
+
 
 def suite():
     theSuite = unittest.TestSuite()

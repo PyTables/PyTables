@@ -166,6 +166,12 @@ def keysort(ndarray array1, ndarray array2):
     cdef size_t elsize2 = cnp.PyArray_ITEMSIZE(array2)
     cdef int type_num = cnp.PyArray_TYPE(array1)
 
+    # _keysort reorders the first ``size`` elements of array2 alongside
+    # array1, so array2 must hold at least that many.  A shorter array2 would
+    # be read and written out of bounds.
+    if cnp.PyArray_SIZE(array2) < cnp.PyArray_SIZE(array1):
+        raise ValueError("array2 must be at least as large as array1")
+
     # floating types
     if type_num == cnp.NPY_FLOAT16:
         _keysort[npy_float16](
