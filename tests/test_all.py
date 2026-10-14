@@ -24,7 +24,7 @@ def get_tuple_version(hexversion):
     return (h & 0xFF0000) >> 16, (h & 0xFF00) >> 8, h & 0xFF
 
 
-if __name__ == "__main__":
+def main():
     tests.common.parse_argv(sys.argv)
 
     hdf5_version = get_tuple_version(tb.which_lib_version("hdf5")[0])
@@ -57,3 +57,7 @@ if __name__ == "__main__":
     if not only_versions:
         tests.common.print_heavy(tests.common.heavy)
         tests.common.unittest.main(defaultTest="tests.suite")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
