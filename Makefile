@@ -6,13 +6,11 @@ VERSION = $(shell grep "__version__ =" tables/_version.py | cut -f 3 -d ' ' | se
 SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
-PYPLATFORM = $(shell $(PYTHON) -c "from sysconfig import get_platform; print(get_platform())")
-PYVER = $(shell $(PYTHON) -c "import sys; print(sys.implementation.cache_tag)")
-PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
+TAG = $(shell $(PYTHON) -c 'import sys, sysconfig; print(f"""{sysconfig.get_platform()}-{sys.implementation.cache_tag}{"t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""}""")')
+PYBUILDDIR = build/lib.$(TAG)
 OPT = PYTHONPATH="$(PYBUILDDIR)"
 MD5SUM = md5sum
 CYTHONIZED = tables/_comp_*.c tables/*extension.c
-TAG = $(shell $(PYTHON) -c 'import sys, sysconfig; print(f"""{sysconfig.get_platform()}-{sys.implementation.cache_tag}{"t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""}""")')
 
 .PHONY: default dist sdist build check heavycheck parallelcheck clean distclean html latex requirements lint clean-requirements
 
@@ -70,14 +68,14 @@ build:
 	$(PYTHON) setup.py build
 
 check: build
-	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
-	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
+	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
+	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
 
 heavycheck: build
-	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/test_all.py --heavy
+	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/test_all.py --heavy
 
 parallelcheck: build
-	cd build/lib.${TAG} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/run_ft.py --max-tests=400
+	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/run_ft.py --max-tests=400
 
 clean-requirements:
 	$(RM) \
