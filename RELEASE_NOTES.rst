@@ -72,6 +72,10 @@ Bug fixed
   keeps the on-disk itemsize and member offsets of nested columns (as it
   already did for the top-level type, see #765), so the NumPy container
   matches ``H5Tget_size`` and ``H5Dread`` cannot write past it.
+* ``indexesextension.keysort`` now rejects a second array shorter than the
+  first instead of reordering it out of bounds.  It reorders the first
+  ``len(array1)`` elements of ``array2`` in place, so a shorter ``array2``
+  was read and written past its end.
 * Group and node walks, including ``ptdump``, terminate when group hard links
   form cycles (:issue:`794`). Links to an ancestor are listed without
   traversing their children again; non-cyclic aliases retain their descendants.
