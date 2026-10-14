@@ -153,6 +153,8 @@ Other changes
 * Minimum numpy_ version is nor 2.0.
 * Add git submodule for hdf5-blosc2 v3.0.1.
 * Fix compatibility with c-blosc2 v3.x
+* Read scalar HDF5 enum attributes as NumPy scalars with the corresponding
+  integer dtype, including enum attributes stored with a foreign byte order.
 * Move test data to a dedicated sub-folder to ``tests``.
 * Add Windows ARM64 wheels builds.
 * Fix compatibility with numpy_ >= 2.5.

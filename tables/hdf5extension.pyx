@@ -54,6 +54,7 @@ from .utilsextension import (
     create_nested_type,
     platform_byteorder,
     get_filters,
+    load_enum,
 )
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -148,6 +149,7 @@ from .definitions cimport (
     H5T_INTEGER,
     H5T_FLOAT,
     H5T_STRING,
+    H5T_ENUM,
     H5Tget_order,
     H5Pcreate,
     H5Pset_cache,
@@ -948,6 +950,7 @@ cdef class AttributeSet:
       raise HDF5ExtError(
         f"Can't get type info on attribute {attrname} in node {self.name}."
       )
+    memory_type_id = type_id
 
     # Call a fast function for scalar values and typical class types
     if (rank == 0 and class_id == H5T_STRING):
@@ -989,6 +992,47 @@ cdef class AttributeSet:
         )
         self._v_unimplemented.append(attrname)
         return None
+      shape = ()
+    elif (rank == 0 and class_id == H5T_ENUM):
+      # HDF5 enumerations use the underlying integer representation for
+      # storage.  PyTables already knows how to recover that representation
+      # (and the enum members) for EnumAtom values, so expose foreign enum
+      # attributes as the corresponding NumPy integer scalar as well.
+      # Keep the memory type native: ``type_id`` describes the file's byte
+      # order, while ``dtype_`` is produced from the enum's underlying type.
+      # Passing the file type to H5Aread would leave a non-native byte order
+      # in the NumPy scalar on a foreign-endian file.
+      if type_size not in (1, 2, 4, 8):
+        H5Tclose(type_id)
+        warnings.warn(
+          f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
+          f"Offending HDF5 class: {class_id}",
+          DataTypeWarning
+        )
+        self._v_unimplemented.append(attrname)
+        return None
+      memory_type_id = get_native_type(type_id)
+      if memory_type_id < 0:
+        H5Tclose(type_id)
+        raise HDF5ExtError(
+          f"Can't get native type for attribute {attrname} in node {self.name}."
+        )
+      try:
+        dtype_ = load_enum(type_id)[1]
+      except (TypeError, NotImplementedError):
+        H5Tclose(memory_type_id)
+        H5Tclose(type_id)
+        warnings.warn(
+          f"Unsupported type for attribute '{attrname}' in node '{self.name}'. "
+          f"Offending HDF5 class: {class_id}",
+          DataTypeWarning
+        )
+        self._v_unimplemented.append(attrname)
+        return None
+      except Exception:
+        H5Tclose(memory_type_id)
+        H5Tclose(type_id)
+        raise
       shape = ()
     else:
       # General case
@@ -1065,7 +1109,12 @@ cdef class AttributeSet:
     # H5Aread.  The NumPy dtypes above are native, so use native HDF5 memory
     # types for numeric attributes as well.  Passing the file type directly
     # leaves foreign-endian bytes in a native buffer without conversion.
-    use_native_type = class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)
+    if class_id == H5T_ENUM:
+      # The enum branch above already selected the native memory type and
+      # corresponding NumPy dtype.  Keep that pair for the common read path.
+      use_native_type = False
+    else:
+      use_native_type = class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)
     if class_id == H5T_ARRAY:
       super_type_id = H5Tget_super(type_id)
       if super_type_id < 0:
@@ -1078,14 +1127,14 @@ cdef class AttributeSet:
       )
       H5Tclose(super_type_id)
 
-    if use_native_type:
+    if class_id != H5T_ENUM and use_native_type:
       memory_type_id = get_native_type(type_id)
       if memory_type_id < 0:
         H5Tclose(type_id)
         raise HDF5ExtError(
           f"Can't get native type for attribute {attrname} in node {self.name}."
         )
-    else:
+    elif class_id != H5T_ENUM:
       memory_type_id = type_id
 
     try:
