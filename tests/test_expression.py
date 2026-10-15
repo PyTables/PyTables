@@ -170,6 +170,35 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "Evaluate is returning a wrong value.",
         )
 
+    def test03_repeated_input_range(self):
+        """An input range can be evaluated and iterated more than once."""
+        expr = tb.Expr(self.expr, self.vars)
+        expr.set_inputs_range(2, 8, 2)
+        expected = eval(self.expr, self.npvars)[2:8:2]
+        for _ in range(2):
+            npt.assert_array_equal(expr.eval(), expected)
+            npt.assert_array_equal(list(expr), expected)
+
+    def test04_reset_input_range(self):
+        """Resetting a range restores access to all input rows."""
+        expr = tb.Expr(self.expr, self.vars)
+        expected = eval(self.expr, self.npvars)
+        for start, stop, step in [(2, 8, 2), (20, 30, 1)]:
+            expr.set_inputs_range(start, stop, step)
+            npt.assert_array_equal(expr.eval(), expected[start:stop:step])
+            expr.set_inputs_range()
+            npt.assert_array_equal(expr.eval(), expected)
+
+    def test05_replace_short_output(self):
+        """A short output does not truncate subsequent evaluations."""
+        expr = tb.Expr(self.expr, self.vars)
+        expected = eval(self.expr, self.npvars)
+        for nrows in [2, self.shape[0]]:
+            out = np.empty_like(expected[:nrows])
+            expr.set_output(out)
+            expr.eval()
+            npt.assert_array_equal(out, expected[:nrows])
+
 
 class ExprNumPy(ExprTestCase):
     kind = "NumPy"
@@ -1207,6 +1236,22 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ValueError, expr.eval)
 
 
+class RepeatedMaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def test_repeated_input_range(self):
+        """Range evaluation preserves a non-leading main dimension."""
+        data = np.arange(20, dtype="i4").reshape(2, 10)
+        array = self.h5file.create_earray(
+            "/", "input", atom=tb.Int32Atom(), shape=(2, 0)
+        )
+        array.append(data)
+        expr = tb.Expr("a * 2", {"a": array})
+        expr.set_inputs_range(2, 8, 2)
+        for _ in range(2):
+            npt.assert_array_equal(expr.eval(), data[:, 2:8:2] * 2)
+        expr.set_inputs_range()
+        npt.assert_array_equal(expr.eval(), data * 2)
+
+
 class Maindim0(MaindimTestCase):
     maindim = 1
     shape = (1, 2)
@@ -1698,6 +1743,7 @@ def suite():
         theSuite.addTest(common.make_suite(Maindim1))
         theSuite.addTest(common.make_suite(Maindim2))
         theSuite.addTest(common.make_suite(Maindim3))
+        theSuite.addTest(common.make_suite(RepeatedMaindimTestCase))
         theSuite.addTest(common.make_suite(AppendModeTrue))
         theSuite.addTest(common.make_suite(AppendModeFalse))
         theSuite.addTest(common.make_suite(Iter0))
