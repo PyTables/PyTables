@@ -47,6 +47,13 @@ extensions = [
     "IPython.sphinxext.ipython_console_highlighting",
 ]
 
+try:
+    import sphinxcontrib.spelling  # noqa: F401
+except (ImportError, AssertionError):  # broken in conda environments on osx
+    pass
+else:
+    extensions.append("sphinxcontrib.spelling")
+
 templates_path = ["_templates"]
 exclude_patterns = []
 
