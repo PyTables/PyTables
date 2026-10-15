@@ -516,6 +516,8 @@ value of dimensions that are orthogonal (and preferably close) to the
         ]
     ):
         """Return various info needed for evaluating the computation loop."""
+        # Range and output limits apply only to this evaluation.
+        shape = list(shape)
         # Compute the shape of the resulting container having
         # in account new possible values of start, stop and step in
         # the inputs range

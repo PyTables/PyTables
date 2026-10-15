@@ -64,6 +64,9 @@ Security fixes
 Bug fixed
 ---------
 
+* Reusing an :class:`Expr` after selecting an input range or a smaller output
+  no longer truncates later results.  Evaluation and iteration preserve the
+  expression's input shape, so ranges can also be reset between calls.
 * Columns named like a Numexpr function (e.g. ``where`` or ``abs``) can be
   used in :meth:`Table.where` and the other query methods.  They were taken
   for the function, so the query failed (:issue:`638`).
