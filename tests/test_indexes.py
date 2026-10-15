@@ -7,6 +7,7 @@ import numpy as np
 import tables as tb
 from tests import common
 from tables.utils import print_versions
+from tables.indexes import CacheArray
 
 # Sensible parameters for indexing with small blocksizes
 MIN_ROW_INDEX = 10
@@ -2811,6 +2812,48 @@ class Issue699TestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(result.tolist(), list(range(5)))
 
 
+class MismatchedIndexCacheTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    """Index caches whose dtype does not match the sorted values."""
+
+    def setUp(self):
+        super().setUp()
+        table = self.h5file.create_table("/", "table", {"x": tb.Int8Col()})
+        table.append([(i % 200 - 100,) for i in range(2000)])
+        table.cols.x.create_index(_blocksizes=SMALL_BLOCKSIZES)
+        self._reopen("a")
+
+    def _replace_cache(self, name):
+        index = self.h5file.root.table.cols.x.index
+        old = getattr(index, name)
+        data = old[:].astype("i8")
+        title, chunkshape = old.title, old.chunkshape
+        old._f_remove()
+        new = CacheArray(
+            index,
+            name,
+            tb.Int64Atom(),
+            (0, data.shape[1]),
+            title,
+            None,
+            len(data),
+            chunkshape,
+        )
+        new.append(data)
+        self._reopen()
+
+    def test_wide_bounds(self):
+        self._replace_cache("bounds")
+        with self.assertRaises(ValueError):
+            self.h5file.root.table.read_where("(x > -5) & (x < 5)")
+
+    def test_wide_ranges(self):
+        self._replace_cache("ranges")
+        with self.assertRaises(ValueError):
+            self.h5file.root.table.read_where("(x > -5) & (x < 5)")
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
 
@@ -2848,6 +2891,7 @@ def suite():
         theSuite.addTest(common.make_suite(Issue119Time64ColTestCase))
         theSuite.addTest(common.make_suite(TestIndexingNans))
         theSuite.addTest(common.make_suite(Issue699TestCase))
+        theSuite.addTest(common.make_suite(MismatchedIndexCacheTestCase))
     if common.heavy:
         # These are too heavy for normal testing
         theSuite.addTest(common.make_suite(AI4bTestCase))
