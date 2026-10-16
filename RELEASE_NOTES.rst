@@ -79,6 +79,10 @@ Bug fixed
   first instead of reordering it out of bounds.  It reorders the first
   ``len(array1)`` elements of ``array2`` in place, so a shorter ``array2``
   was read and written past its end.
+* Indexed queries now reject an index whose ``bounds`` or ``ranges``
+  arrays do not match the dtype (and, for ``ranges``, the shape) of its
+  ``sorted`` values.  The search buffers are sized after ``sorted``, so a
+  wider ``bounds`` array in a crafted file made ``H5Dread`` write past them.
 * Group and node walks, including ``ptdump``, terminate when group hard links
   form cycles (:issue:`794`). Links to an ancestor are listed without
   traversing their children again; non-cyclic aliases retain their descendants.

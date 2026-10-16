@@ -737,13 +737,30 @@ cdef class IndexArray(Array):
       self.l_chunksize = self.chunksize
       self.l_slicesize = self.slicesize
 
+    # The search loops read ``ranges`` and fill ``bounds`` rows through
+    # buffers typed and sized after ``sorted``, so a file whose index
+    # arrays disagree with it would be read or written out of bounds.
+    if index.bounds.atom.dtype != dtype:
+      raise ValueError(
+        f"index bounds dtype {index.bounds.atom.dtype} does not match "
+        f"sorted dtype {dtype}"
+      )
+    rvcache = index.ranges[:]
+    if (
+      rvcache.dtype != dtype or rvcache.ndim != 2
+      or rvcache.shape[0] < self.nrows or rvcache.shape[1] != 2
+    ):
+      raise ValueError(
+        f"index ranges do not match sorted array with dtype {dtype} "
+        f"and {self.nrows} rows"
+      )
+
     # Get the addresses of buffer data
     starts = index.starts
     lengths = index.lengths
     self.rbufst = PyArray_DATA(starts)
     self.rbufln = PyArray_DATA(lengths)
     # The 1st cache is loaded completely in memory and needs to be reloaded
-    rvcache = index.ranges[:]
     self.rbufrv = PyArray_DATA(rvcache)
     index.rvcache = <object>rvcache
     # Init the bounds array for reading
