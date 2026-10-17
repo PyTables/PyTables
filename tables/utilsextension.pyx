@@ -585,8 +585,19 @@ cdef hid_t get_native_type(hid_t type_id) noexcept nogil:
 
   if class_id == H5T_FLOAT:
     native_type_id = get_native_float_type(type_id)
-  elif class_id in (H5T_INTEGER, H5T_ENUM):
+  elif class_id == H5T_INTEGER:
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+  elif class_id == H5T_ENUM:
+    # H5Tget_native_type overflows a heap buffer for an enum whose base
+    # integer is wider than any native integer (more than 8 bytes), so copy
+    # the type instead; such a base has no NumPy counterpart and the atom
+    # mapping rejects it later anyway.
+    super_type_id = H5Tget_super(type_id)
+    if H5Tget_size(super_type_id) > sizeof(long long):
+      native_type_id = H5Tcopy(type_id)
+    else:
+      native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+    H5Tclose(super_type_id)
   else:
     # Fixing the byteorder for other types shouldn't be needed.
     # More in particular, H5T_TIME is not managed yet by HDF5 and so this
@@ -1073,6 +1084,15 @@ def get_type_enum(hid_t h5type):
     raise HDF5ExtError("unable to get class of HDF5 type")
 
   if typeClass == H5T_ENUM:
+    # H5Tget_native_type overflows a heap buffer for an enum whose base
+    # integer is wider than any native integer (more than 8 bytes); such a
+    # base has no NumPy counterpart, so reject it before the native call.
+    enumId2 = H5Tget_super(h5type)
+    if H5Tget_size(enumId2) > sizeof(long long):
+      H5Tclose(enumId2)
+      raise TypeError(
+        "enumerated values can not be stored using the given type")
+    H5Tclose(enumId2)
     # Get the native type (in order to do byteorder conversions automatically)
     enumId = H5Tget_native_type(h5type, H5T_DIR_DEFAULT)
   elif typeClass in (H5T_ARRAY, H5T_VLEN):

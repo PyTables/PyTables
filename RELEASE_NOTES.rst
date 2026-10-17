@@ -83,6 +83,11 @@ Bug fixed
   arrays do not match the dtype (and, for ``ranges``, the shape) of its
   ``sorted`` values.  The search buffers are sized after ``sorted``, so a
   wider ``bounds`` array in a crafted file made ``H5Dread`` write past them.
+* Opening a leaf or attribute whose datatype is an enum with a base integer
+  wider than 8 bytes no longer overflows a heap buffer.  ``get_native_type``
+  and ``get_type_enum`` asked HDF5 for the native type with
+  ``H5Tget_native_type``, which overruns its buffer for such a base; the
+  width is now checked first and the type is treated as unsupported.
 * Group and node walks, including ``ptdump``, terminate when group hard links
   form cycles (:issue:`794`). Links to an ancestor are listed without
   traversing their children again; non-cyclic aliases retain their descendants.
