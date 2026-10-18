@@ -758,6 +758,11 @@ class Blosc2ForgedTypesizeTestCase(
     file keeps the two in sync, so a mismatch comes from a foreign file and
     must drop to the plain HDF5 read.
 
+    Whether that plain read succeeds depends on the HDF5 version: the Blosc2
+    filter returns a chunk sized from the forged typesize, which HDF5 1.14
+    truncates to the real chunk size but HDF5 2.x rejects.  Either a correct
+    read or a clean HDF5ExtError is fine; what matters is no overflow.
+
     blosc2_forged_typesize.h5 was created with h5py; the 64x64 int8 dataset
     `/data` stores a single Blosc2 chunk (no shuffle) whose filter
     cd_values[2] is forged to 8 while the datatype stays 1 byte.
@@ -770,12 +775,14 @@ class Blosc2ForgedTypesizeTestCase(
         arr = self.h5file.get_node("/data")
         self.assertEqual(arr.shape, (64, 64))
         # Both a partial slice and a full read must stay within the receive
-        # buffer; the mismatched typesize forces the plain HDF5 read, which
-        # recovers the data correctly.
-        self.assertTrue(
-            common.are_arrays_equal(arr[8:56, 4:60], expected[8:56, 4:60])
-        )
-        self.assertTrue(common.are_arrays_equal(arr[:], expected))
+        # buffer; the mismatched typesize forces the plain HDF5 read.
+        for key in ((slice(8, 56), slice(4, 60)), slice(None)):
+            with self.subTest(key=key):
+                try:
+                    data = arr[key]
+                except tb.HDF5ExtError:
+                    continue
+                self.assertTrue(common.are_arrays_equal(data, expected[key]))
 
 
 # this demonstrates github #203
