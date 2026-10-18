@@ -33,6 +33,12 @@ Security fixes
   (see HDFGroup/cve_hdf5), including CVE-2025-44905 and CVE-2025-44904
   (both rated 8.8 HIGH by NVD) and the CVE-2026-17572/17573/17574 batch
   fixed in 2.2.0.
+* Fix heap buffer overflow reading Blosc2 datasets whose filter typesize
+  disagrees with the datatype.  ``get_blosc2_slice`` took the element size
+  from the Blosc2 filter metadata (``cd_values[2]``) instead of the
+  dataset's datatype, so a crafted file could make the optimized slice read
+  copy past the receive buffer.  The optimized path now falls back to the
+  plain HDF5 read when the two sizes disagree.
 * Do not use plain eval in PyTables utilities (fixes security issues
   GHSA-54cf-28h8-9p23_ and GHSA-6mmx-p77c-4hmr_).
 * Fix NULL-pointer dereference when opening a malformed HDF5 root attribute

@@ -743,6 +743,48 @@ class ManyFilterClientValuesTestCase(
         )
 
 
+class Blosc2ForgedTypesizeTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
+    """Test for a Blosc2 filter whose typesize disagrees with the datatype.
+
+    The optimized Blosc2 slice read took the item size from the filter's
+    client data values (cd_values[2]) rather than from the dataset's
+    datatype.  That value drives both the temporary chunk buffer and the
+    copy into the receive buffer, which PyTables sizes from the datatype,
+    so a file whose filter typesize is larger than its element size made
+    b2nd_copy_buffer2 write past the receive buffer (ASAN: heap write past
+    the per-element NumPy buffer in get_blosc2_slice).  A real PyTables
+    file keeps the two in sync, so a mismatch comes from a foreign file and
+    must drop to the plain HDF5 read.
+
+    Whether that plain read succeeds depends on the HDF5 version: the Blosc2
+    filter returns a chunk sized from the forged typesize, which HDF5 1.14
+    truncates to the real chunk size but HDF5 2.x rejects.  Either a correct
+    read or a clean HDF5ExtError is fine; what matters is no overflow.
+
+    blosc2_forged_typesize.h5 was created with h5py; the 64x64 int8 dataset
+    `/data` stores a single Blosc2 chunk (no shuffle) whose filter
+    cd_values[2] is forged to 8 while the datatype stays 1 byte.
+    """
+
+    h5fname = common.test_filename("blosc2_forged_typesize.h5")
+
+    def test(self):
+        expected = (np.arange(64 * 64) & 0x7F).astype("i1").reshape(64, 64)
+        arr = self.h5file.get_node("/data")
+        self.assertEqual(arr.shape, (64, 64))
+        # Both a partial slice and a full read must stay within the receive
+        # buffer; the mismatched typesize forces the plain HDF5 read.
+        for key in ((slice(8, 56), slice(4, 60)), slice(None)):
+            with self.subTest(key=key):
+                try:
+                    data = arr[key]
+                except tb.HDF5ExtError:
+                    continue
+                self.assertTrue(common.are_arrays_equal(data, expected[key]))
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -837,6 +879,7 @@ def suite():
         theSuite.addTest(common.make_suite(ExtendibleTestCase))
         theSuite.addTest(common.make_suite(SzipTestCase))
         theSuite.addTest(common.make_suite(ManyFilterClientValuesTestCase))
+        theSuite.addTest(common.make_suite(Blosc2ForgedTypesizeTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))

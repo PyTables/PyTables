@@ -107,6 +107,12 @@ herr_t get_blosc2_slice(char *filename,
                                       &cd_nelmts, cd_values, 7, name, NULL), -3);
   IF_TRUE_OUT_RET(cd_nelmts < 3, -3);
   int typesize = cd_values[2];
+  /* typesize comes from the file's Blosc2 filter metadata and drives both the
+     temporary chunk buffer and the copy into slice_data, which the caller
+     sized from the dataset's datatype.  A file whose filter typesize disagrees
+     with the datatype would make b2nd_copy_buffer2 write past slice_data, so
+     fall back to the plain HDF5 read (which revalidates the pipeline) here. */
+  IF_TRUE_OUT_RET(typesize != (int)H5Tget_size(type_id), -3);
   chunk_shape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Pget_chunk(dcpl, rank, chunk_shape);
 
