@@ -743,6 +743,40 @@ class ManyFilterClientValuesTestCase(
         )
 
 
+class WideEnumLeafTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for an enum whose base integer is wider than any native one.
+
+    get_native_type() and get_type_enum() ask HDF5 for the native type of
+    the enum with H5Tget_native_type(), which overflows a heap buffer when
+    the base integer is wider than the widest native integer (more than 8
+    bytes), so merely opening such a leaf used to corrupt memory.
+
+    wide_enum_leaf.h5 was created with h5py; the chunked dataset `/array`
+    has an enum datatype whose base is a 16-byte integer.
+
+        base = h5t.STD_I64LE.copy()
+        base.set_size(16)
+        base.set_precision(128)
+        et = h5t.enum_create(base)
+        et.enum_insert(b"A", 0)
+        et.enum_insert(b"B", 1)
+        dcpl = h5p.create(h5p.DATASET_CREATE)
+        dcpl.set_chunk((2,))
+        h5d.create(f.id, b"array", et, h5s.create_simple((4,)), dcpl=dcpl)
+
+    """
+
+    h5fname = common.test_filename("wide_enum_leaf.h5")
+
+    def test(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            node = self.h5file.get_node("/array")
+        # The base has no NumPy counterpart, so the leaf is unsupported
+        # instead of overflowing while reading its native type.
+        self.assertIsInstance(node, tb.UnImplemented)
+
+
 class Blosc2ForgedTypesizeTestCase(
     common.TestFileMixin, common.PyTablesTestCase
 ):
@@ -879,6 +913,7 @@ def suite():
         theSuite.addTest(common.make_suite(ExtendibleTestCase))
         theSuite.addTest(common.make_suite(SzipTestCase))
         theSuite.addTest(common.make_suite(ManyFilterClientValuesTestCase))
+        theSuite.addTest(common.make_suite(WideEnumLeafTestCase))
         theSuite.addTest(common.make_suite(Blosc2ForgedTypesizeTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
