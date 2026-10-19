@@ -64,6 +64,7 @@ from .definitions cimport (
     H5P_DEFAULT,
     H5D_CHUNKED,
     H5T_COMPOUND,
+    H5T_VLEN,
     H5Tget_order,
     H5Dget_create_plist,
     H5T_ORDER_LE,
@@ -480,6 +481,19 @@ cdef class Table(Leaf):
         # on-disk size, not the packed one.
         if member_packed < itemsize:
           desc[colname]["_v_itemsize"] = itemsize
+      elif class_id == H5T_VLEN:
+        # Variable length data lives in VLArray leaves, not in table
+        # columns.  atom_from_hdf5_type() would map the member to its base
+        # atom and drop the on-disk ``hvl_t`` size, so the NumPy record ends
+        # up smaller than H5Tget_size(disk_type) while H5Dread fills the
+        # whole ``hvl_t``, writing past the read buffer.  Reject it like the
+        # other unsupported column types so the leaf opens as UnImplemented.
+        H5free_memory(c_colname)
+        H5Tclose(member_type_id)
+        raise TypeError(
+          f"table ``{self.name}``, column ``{colname}``: "
+          "variable length columns are not supported yet"
+        )
       else:
         # Get the member format and the corresponding Col object
         try:

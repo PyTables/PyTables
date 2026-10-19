@@ -39,6 +39,12 @@ Security fixes
   dataset's datatype, so a crafted file could make the optimized slice read
   copy past the receive buffer.  The optimized path now falls back to the
   plain HDF5 read when the two sizes disagree.
+* Fix heap buffer overflow reading tables with a variable-length column.
+  ``get_nested_type`` mapped a variable-length compound member to its base
+  atom and dropped the on-disk ``hvl_t`` size, so the NumPy record was
+  smaller than the on-disk row while ``H5Dread`` filled the whole ``hvl_t``,
+  writing past the read buffer.  Such a column is now rejected and the leaf
+  opens as ``UnImplemented``.
 * Do not use plain eval in PyTables utilities (fixes security issues
   GHSA-54cf-28h8-9p23_ and GHSA-6mmx-p77c-4hmr_).
 * Fix NULL-pointer dereference when opening a malformed HDF5 root attribute

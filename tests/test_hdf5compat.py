@@ -819,6 +819,32 @@ class Blosc2ForgedTypesizeTestCase(
                 self.assertTrue(common.are_arrays_equal(data, expected[key]))
 
 
+class VlenTableColumnTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a table whose compound type has a variable-length column.
+
+    get_nested_type() mapped a variable-length member to its base atom and
+    dropped the on-disk ``hvl_t`` size, so the NumPy record was smaller than
+    H5Tget_size(disk_type) while H5Dread filled the whole ``hvl_t``, writing
+    past the read buffer (ASAN: heap-buffer-overflow in H5TBOread_records
+    reached from Table._read_records).  Variable-length data belongs in a
+    VLArray, not a table column, so such a leaf must open as UnImplemented
+    instead of overflowing on read.
+
+    vlen_table_column.h5 was created with h5py; the dataset `/table` is a
+    compound {a: int32, b: vlen int32} with the usual PyTables TABLE
+    attributes.
+    """
+
+    h5fname = common.test_filename("vlen_table_column.h5")
+
+    def test(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            node = self.h5file.get_node("/table")
+        # Rejected on open, so the overflowing table read is never reached.
+        self.assertIsInstance(node, tb.UnImplemented)
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -915,6 +941,7 @@ def suite():
         theSuite.addTest(common.make_suite(ManyFilterClientValuesTestCase))
         theSuite.addTest(common.make_suite(WideEnumLeafTestCase))
         theSuite.addTest(common.make_suite(Blosc2ForgedTypesizeTestCase))
+        theSuite.addTest(common.make_suite(VlenTableColumnTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))
