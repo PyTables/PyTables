@@ -45,6 +45,13 @@ Security fixes
   smaller than the on-disk row while ``H5Dread`` filled the whole ``hvl_t``,
   writing past the read buffer.  Such a column is now rejected and the leaf
   opens as ``UnImplemented``.
+* Fix out-of-bounds write opening a ``Table`` or ``VLArray`` leaf whose
+  dataset has more than one dimension.  ``Table._get_info`` and
+  ``H5VLARRAYget_info`` read the dataset extent into a single ``hsize_t``
+  (both are 1-D entities), so a chunked compound or vlen dataset of higher
+  rank made ``H5Sget_simple_extent_dims`` write past that buffer, reachable
+  from a forged ``CLASS`` attribute.  Both readers now reject a rank other
+  than one and the leaf opens as ``UnImplemented``.
 * Do not use plain eval in PyTables utilities (fixes security issues
   GHSA-54cf-28h8-9p23_ and GHSA-6mmx-p77c-4hmr_).
 * Fix NULL-pointer dereference when opening a malformed HDF5 root attribute

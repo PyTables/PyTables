@@ -75,6 +75,7 @@ from .definitions cimport (
     H5Pget_layout,
     H5Pget_chunk,
     H5Pclose,
+    H5Sget_simple_extent_ndims,
     H5Sget_simple_extent_dims,
     H5Sclose,
     H5T_class_t,
@@ -579,6 +580,13 @@ cdef class Table(Leaf):
         )
     # Get the number of rows
     space_id = H5Dget_space(self.dataset_id)
+    # ``dims`` only holds one dimension; a dataset of any other rank would
+    # make H5Sget_simple_extent_dims write past it (tables are 1-D).
+    if H5Sget_simple_extent_ndims(space_id) != 1:
+      H5Sclose(space_id)
+      raise HDF5ExtError(
+        f"Table ``{self.name}`` is not a one-dimensional dataset"
+      )
     H5Sget_simple_extent_dims(space_id, dims, NULL)
     self.nrows = SizeType(dims[0])
     # Free resources

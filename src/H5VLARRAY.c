@@ -361,6 +361,12 @@ herr_t H5VLARRAYget_info( hid_t   dataset_id,
   if ( (space_id = H5Dget_space( dataset_id )) < 0 )
     goto out;
 
+  /* ``nrecords`` holds a single dimension; VLArrays are rank-1 entities, so a
+     dataset of any other rank would make H5Sget_simple_extent_dims write past
+     it. */
+  if ( H5Sget_simple_extent_ndims( space_id ) != 1 )
+    goto out;
+
   /* Get number of records (it should be rank-1) */
   if ( H5Sget_simple_extent_dims( space_id, nrecords, NULL) < 0 )
     goto out;

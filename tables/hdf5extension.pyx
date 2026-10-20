@@ -2434,8 +2434,11 @@ cdef class VLArray(Leaf):
     atom = atom_from_hdf5_type(self.type_id)
 
     # Get info on dimensions & types (of base class)
-    H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
-                      cbyteorder)
+    if H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
+                         cbyteorder) < 0:
+      raise HDF5ExtError(
+        f"VLArray ``{self.name}`` is not a one-dimensional dataset"
+      )
 
     byteorder = cstr_to_pystr(cbyteorder)
 
