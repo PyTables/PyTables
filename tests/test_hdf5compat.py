@@ -845,6 +845,34 @@ class VlenTableColumnTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIsInstance(node, tb.UnImplemented)
 
 
+class MultidimTableLeafTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a Table/VLArray leaf whose dataset has more than one dimension.
+
+    Table._get_info() and H5VLARRAYget_info() read the dataset extent into
+    a single ``hsize_t`` (tables and VLArrays are 1-D), so a chunked compound
+    or vlen dataset of rank greater than one made H5Sget_simple_extent_dims()
+    write past that buffer merely on opening the leaf.  A forged ``CLASS``
+    attribute reaches those readers directly, bypassing the rank-aware
+    which_class() guess.  Such a leaf comes from a foreign file and must open
+    as UnImplemented instead of overflowing.
+
+    multidim_table_leaf.h5 was created with h5py; `/table` is a chunked
+    compound {a: int32, b: float64} and `/vlarray` a chunked vlen int32, both
+    2-D and both carrying the usual PyTables TABLE/VLARRAY attributes.
+    """
+
+    h5fname = common.test_filename("multidim_table_leaf.h5")
+
+    def test(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            table = self.h5file.get_node("/table")
+            vlarray = self.h5file.get_node("/vlarray")
+        # Rejected on open, so the out-of-bounds extent read never happens.
+        self.assertIsInstance(table, tb.UnImplemented)
+        self.assertIsInstance(vlarray, tb.UnImplemented)
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -942,6 +970,7 @@ def suite():
         theSuite.addTest(common.make_suite(WideEnumLeafTestCase))
         theSuite.addTest(common.make_suite(Blosc2ForgedTypesizeTestCase))
         theSuite.addTest(common.make_suite(VlenTableColumnTestCase))
+        theSuite.addTest(common.make_suite(MultidimTableLeafTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))
