@@ -404,7 +404,7 @@ class Array(hdf5extension.Array, Leaf):
                 key = operator.index(key)
 
                 # Protection for index out of range
-                if key >= self.shape[dim]:
+                if key < -self.shape[dim] or key >= self.shape[dim]:
                     raise IndexError("Index out of range")
                 if key < 0:
                     # To support negative values (Fixes bug #968149)
@@ -462,10 +462,10 @@ class Array(hdf5extension.Array, Leaf):
         def validate_number(num: int, length: int) -> None:
             """Validate a list member for the given axis length."""
             try:
-                num = int(num)
+                num = operator.index(num)
             except TypeError as exc:
                 raise TypeError(f"Illegal index: {num!r}") from exc
-            if num > length - 1:
+            if num < -length or num >= length:
                 raise IndexError(f"Index out of bounds: {num}")
 
         def expand_ellipsis(
@@ -577,12 +577,8 @@ class Array(hdf5extension.Array, Leaf):
                     if list_seen:
                         raise IndexError("Only one selection list is allowed")
                     list_seen = True
-                else:
-                    if not isinstance(exp[0], (int, np.integer)) or (
-                        isinstance(exp[0], np.ndarray)
-                        and not np.issubdtype(exp[0].dtype, np.integer)
-                    ):
-                        raise TypeError("Only integer coordinates allowed.")
+                for num in exp:
+                    validate_number(num, length)
 
                 nexp = np.asarray(exp, dtype="i8")
                 # Convert negative values
@@ -614,8 +610,6 @@ class Array(hdf5extension.Array, Leaf):
                     # portion of *this axis* which falls *outside* the list
                     # selection.  For this to work, the input array MUST be
                     # monotonically increasing.
-                    if select_idx < len(nexp):
-                        validate_number(nexp[select_idx], length)
                     if select_idx == 0:
                         start = 0
                         count = nexp[0]
