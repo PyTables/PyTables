@@ -84,6 +84,7 @@ Bug fixed
 ---------
 
 * Point selections preserve coordinate views and accept read-only index arrays.
+* Atom shapes reject non-integer dimensions instead of silently truncating them.
 * Array indexing rejects out-of-range and non-integer indices before converting
   coordinates or accessing data.
 * Reusing an :class:`Expr` after selecting an input range or a smaller output

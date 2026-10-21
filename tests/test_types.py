@@ -229,6 +229,36 @@ class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
 
 
 class AtomTestCase(common.PyTablesTestCase):
+    def test_shape_rejects_noninteger_dimensions(self):
+        for atom_class, kwargs in (
+            (tb.Int16Atom, {}),
+            (tb.StringAtom, {"itemsize": 4}),
+        ):
+            for shape in ((2.7,), [2.7], (np.float64(2.0),), ("2",)):
+                with self.subTest(atom=atom_class, shape=shape):
+                    with self.assertRaises(TypeError):
+                        atom_class(shape=shape, **kwargs)
+
+    def test_shape_preserves_integer_dimensions(self):
+        for atom_class, kwargs in (
+            (tb.Int16Atom, {}),
+            (tb.StringAtom, {"itemsize": 4}),
+        ):
+            for shape, expected in (
+                ((), ()),
+                (2, (2,)),
+                (np.int64(2), (2,)),
+                ((2, 3), (2, 3)),
+                ([np.int8(2), np.uint64(3)], (2, 3)),
+                ((True,), (1,)),
+                ((np.bool_(True),), (1,)),
+                ((0,), (0,)),
+            ):
+                with self.subTest(atom=atom_class, shape=shape):
+                    atom = atom_class(shape=shape, **kwargs)
+                    self.assertEqual(atom.shape, expected)
+                    self.assertEqual(atom.dtype.shape, expected)
+
     def test_init_parameters_01(self):
         atom1 = tb.StringAtom(itemsize=12)
         atom2 = atom1.copy()
