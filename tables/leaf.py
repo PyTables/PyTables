@@ -732,13 +732,11 @@ class Leaf(Node):
                 coords = np.asarray(key, dtype="i8")
 
             # handle negative indices
-            base = coords if coords.base is None else coords.base
-            if base is input_key:
+            idx = coords < 0
+            if np.any(idx):
                 # never modify the original "key" data
                 coords = coords.copy()
-
-            idx = coords < 0
-            coords[idx] = (coords + self.shape)[idx]
+                coords[idx] = (coords + self.shape)[idx]
 
             # bounds check
             if np.any(coords < 0) or np.any(coords >= self.shape):

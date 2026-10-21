@@ -2211,6 +2211,39 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.nparr = nparr
         self.tbarr = self.h5file.create_array(self.h5file.root, "array", nparr)
 
+    def _coordinate_views(self):
+        for negative in (False, True):
+            for step in (1, 2):
+                for readonly in (False, True):
+                    base = np.zeros((len(self.shape), 2 * step), dtype="i8")
+                    base[:, 0] = -1 if negative else np.asarray(self.shape) - 1
+                    key = base[:, ::step]
+                    if len(self.shape) == 1:
+                        key = key[0]
+                    if readonly:
+                        key.flags.writeable = False
+                    yield base, key
+
+    def test_coordinate_views_read(self):
+        for base, key in self._coordinate_views():
+            with self.subTest(key=key, readonly=not key.flags.writeable):
+                before = base.copy()
+                npkey = key if len(self.shape) == 1 else tuple(key)
+                expected = self.nparr[npkey]
+                np.testing.assert_array_equal(self.tbarr[key], expected)
+                np.testing.assert_array_equal(base, before)
+
+    def test_coordinate_views_write(self):
+        for base, key in self._coordinate_views():
+            with self.subTest(key=key, readonly=not key.flags.writeable):
+                before = base.copy()
+                npkey = key if len(self.shape) == 1 else tuple(key)
+                expected = self.nparr.copy()
+                expected[npkey] = -1
+                self.tbarr[key] = -1
+                np.testing.assert_array_equal(self.tbarr[:], expected)
+                np.testing.assert_array_equal(base, before)
+
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
 
