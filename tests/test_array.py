@@ -2108,6 +2108,92 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
+class IndexValidationTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def _arrays(self):
+        for shape in ((5,), (5, 3)):
+            values = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+            for kind in ("array", "carray", "earray"):
+                name = f"{kind}_{len(shape)}d"
+                create = getattr(self.h5file, f"create_{kind}")
+                yield create("/", name, obj=values), values
+
+    def test_invalid_indices(self):
+        for array, values in self._arrays():
+            cases = [
+                (-6, IndexError),
+                (-10, IndexError),
+                (5, IndexError),
+                ([1.2, 2.2], TypeError),
+                (np.array([1.2, 2.2]), TypeError),
+            ]
+            if values.ndim == 2:
+                cases.extend(
+                    [
+                        (([0, 1], -4), IndexError),
+                        (([-6, -5], slice(None)), IndexError),
+                        ((slice(None), [1.2, 2.2]), TypeError),
+                    ]
+                )
+            for key, error in cases:
+                for write in (False, True):
+                    with self.subTest(
+                        array=array._v_name, key=key, write=write
+                    ):
+                        array[:] = values
+                        with self.assertRaises(error):
+                            if write:
+                                array[key] = -1
+                            else:
+                                array[key]
+                        np.testing.assert_array_equal(array[:], values)
+
+    def test_unsigned_coordinate_overflow(self):
+        for array, values in self._arrays():
+            for dtype in ("u8", ">u8"):
+                key = np.zeros((values.ndim, 2), dtype=dtype)
+                key[0, 0] = np.iinfo(np.uint64).max
+                if values.ndim == 1:
+                    key = key[0]
+                before = key.copy()
+                for write in (False, True):
+                    with self.subTest(
+                        array=array._v_name, dtype=dtype, write=write
+                    ):
+                        array[:] = values
+                        with self.assertRaises(IndexError):
+                            if write:
+                                array[key] = -1
+                            else:
+                                array[key]
+                        np.testing.assert_array_equal(array[:], values)
+                        np.testing.assert_array_equal(key, before)
+
+    def test_valid_indices(self):
+        for array, values in self._arrays():
+            keys = [
+                -5,
+                -1,
+                0,
+                4,
+                slice(-10, 10, 2),
+                [-5, -1],
+                np.array([-5, -1], dtype=">i8"),
+                np.array([0, 4], dtype="u8"),
+                np.array([0, 4], dtype=">u8"),
+                values % 2 == 0,
+            ]
+            if values.ndim == 1:
+                keys.append([])
+            for key in keys:
+                with self.subTest(array=array._v_name, key=key):
+                    array[:] = values
+                    expected = values.copy()
+                    np.testing.assert_array_equal(array[key], expected[key])
+                    expected[key] = -1
+                    array[key] = -1
+                    np.testing.assert_array_equal(array[:], expected)
+
+
 class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
@@ -2887,6 +2973,7 @@ def suite():
         theSuite.addTest(common.make_suite(FancySelection2))
         theSuite.addTest(common.make_suite(FancySelection3))
         theSuite.addTest(common.make_suite(FancySelection4))
+        theSuite.addTest(common.make_suite(IndexValidationTestCase))
         theSuite.addTest(common.make_suite(PointSelection0))
         theSuite.addTest(common.make_suite(PointSelection1))
         theSuite.addTest(common.make_suite(PointSelection2))

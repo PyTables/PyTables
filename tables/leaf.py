@@ -709,6 +709,8 @@ class Leaf(Node):
             coords = np.asarray(key.nonzero(), dtype="i8")
             coords = np.transpose(coords)
         elif key.dtype.kind == "i" or key.dtype.kind == "u":
+            if key.dtype.kind == "u" and np.any(key > np.iinfo(np.int64).max):
+                raise IndexError("Index out of bounds")
             if len(key.shape) > 2:
                 raise IndexError(
                     "Coordinate indexing array has incompatible shape"
