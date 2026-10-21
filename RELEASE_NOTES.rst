@@ -83,6 +83,7 @@ Security fixes
 Bug fixed
 ---------
 
+* Atom shapes reject non-integer dimensions instead of silently truncating them.
 * Reusing an :class:`Expr` after selecting an input range or a smaller output
   no longer truncates later results.  Evaluation and iteration preserve the
   expression's input shape, so ranges can also be reset between calls.

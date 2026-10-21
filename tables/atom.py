@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import inspect
+import operator
 import warnings
 from typing import Any, NoReturn, dataclass_transform
 from contextlib import contextmanager
@@ -134,7 +135,11 @@ def _normalize_shape(shape: Shape | np.integer | int) -> Shape:
     if len(shape) > 32:
         raise ValueError(f"shapes with rank > 32 are not supported: {shape!r}")
 
-    return tuple(SizeType(s) for s in shape)
+    # Preserve the existing acceptance of NumPy boolean dimensions.
+    return tuple(
+        SizeType(s if isinstance(s, np.bool_) else operator.index(s))
+        for s in shape
+    )
 
 
 def _normalize_default(value: Any, dtype: DTypeLike) -> np.ndarray:
