@@ -133,7 +133,7 @@ def main():
             # case where filename == "filename:" instead of "filename:/"
             nodename = "/"
 
-    with tb.open_file(filename, "r") as f:
+    with tb.open_file(filename, "r", allow_pickle=False) as f:
         tree_str = get_tree_str(f, nodename, **args.__dict__)
         print(tree_str)
 

@@ -4,6 +4,7 @@ import os
 import sys
 import shlex
 import pickle
+from io import StringIO
 from pathlib import Path
 from unittest import mock
 
@@ -13,6 +14,7 @@ import tables as tb
 from tests import common
 from tables import ptpickle
 from tables.utils import print_versions
+from tables.scripts import pttree, ptrepack
 
 
 class _TouchFile:
@@ -302,6 +304,44 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
             raw = tb.ObjectAtom().toarray(expected)
         with self.assertRaises(tb.PickleNotAllowedError):
             tb.ObjectAtom().fromarray(raw)
+
+    def _store_title_payload(self, payload):
+        group = self.h5file.create_group("/", "group")
+        group._v_attrs.TITLE = np.bytes_(payload)
+        group._v_attrs.payload = np.bytes_(payload)
+        self.h5file.create_array(group, "array", np.arange(4))
+
+    def test_ptrepack_does_not_load_payload(self):
+        payload = self._malicious_payload()
+        self._store_title_payload(payload)
+        self._reopen_disabled()
+
+        dstfname = Path(f"{self.h5fname}.repack.h5")
+        argv = ["ptrepack", self.h5fname, os.fspath(dstfname)]
+        try:
+            with mock.patch.object(sys, "argv", argv):
+                ptrepack.main()
+            self.assertFalse(self.sentinel.exists())
+
+            with tb.open_file(dstfname, "r", allow_pickle=False) as dstfile:
+                group = dstfile.root.group
+                self.assertEqual(bytes(group._v_attrs.payload), payload)
+                self.assertEqual(bytes(group._v_title), payload)
+                self.assertEqual(group.array.read().tolist(), [0, 1, 2, 3])
+        finally:
+            dstfname.unlink(missing_ok=True)
+
+    def test_pttree_does_not_load_payload(self):
+        self._store_title_payload(self._malicious_payload())
+        self._reopen_disabled()
+
+        argv = ["pttree", self.h5fname]
+        with (
+            mock.patch.object(sys, "argv", argv),
+            mock.patch("sys.stdout", new_callable=StringIO),
+        ):
+            pttree.main()
+        self.assertFalse(self.sentinel.exists())
 
     def test_allow_pickle_must_be_bool(self):
         self.h5file.close()

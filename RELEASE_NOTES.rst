@@ -70,8 +70,9 @@ Security fixes
 
   Writing remains enabled and emits :exc:`PickleSecurityWarning`, since the
   resulting data requires unpickling to be read.
-  The :program:`ptdump` utility keeps unpickling disabled unless
-  ``--allow-pickle`` is given.
+  The :program:`ptdump` and :program:`ptrepack` utilities keep unpickling
+  disabled unless ``--allow-pickle`` is given, and :program:`pttree` never
+  unpickles.
 
   Automatic unpickling remains enabled by default for compatibility.
 
