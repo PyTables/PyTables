@@ -420,6 +420,13 @@ class ExternalLink(linkextension.ExternalLink, Link):
             # file's directory.  See #306.
             filename = str(Path(self._v_file.filename).parent / filename)
 
+        # The link target comes from this file, so do not open it with
+        # unpickling enabled when this file has it disabled.
+        if not self._v_file.params["ALLOW_PICKLE"] and not any(
+            k.upper() == "ALLOW_PICKLE" for k in kwargs
+        ):
+            kwargs["allow_pickle"] = False
+
         if self.extfile is None or not self.extfile.isopen:
             self.extfile = tb.open_file(filename, **kwargs)
         else:

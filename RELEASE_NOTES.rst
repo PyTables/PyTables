@@ -52,6 +52,11 @@ Security fixes
   rank made ``H5Sget_simple_extent_dims`` write past that buffer, reachable
   from a forged ``CLASS`` attribute.  Both readers now reject a rank other
   than one and the leaf opens as ``UnImplemented``.
+* Keep ``allow_pickle=False`` when dereferencing an :class:`ExternalLink`.
+  The linked file was opened with the default policy, so a file opened with
+  unpickling disabled could still have pickles loaded from a second file it
+  links to.  The linked file now inherits the disabled policy unless
+  ``allow_pickle`` is passed explicitly to the link call.
 * Do not use plain eval in PyTables utilities (fixes security issues
   GHSA-54cf-28h8-9p23_ and GHSA-6mmx-p77c-4hmr_).
 * Fix NULL-pointer dereference when opening a malformed HDF5 root attribute
