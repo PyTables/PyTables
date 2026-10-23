@@ -3440,6 +3440,31 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row = vlarray[np.int32(1000)]
             print("row-->", row)
 
+    def test06_negative_scalar_bounds(self):
+        vlarray = self.h5file.root.vlarray
+        nrows = int(vlarray.nrows)
+        for index_type in (int, np.int64):
+            for key in (-nrows, -1):
+                with self.subTest(index_type=index_type, key=key):
+                    self.assertTrue(
+                        common.allequal(
+                            vlarray[index_type(key)], vlarray[nrows + key]
+                        )
+                    )
+            for key in (-nrows - 1, -2 * nrows, -3 * nrows, -1000000):
+                with self.subTest(index_type=index_type, key=key):
+                    with self.assertRaises(IndexError):
+                        vlarray[index_type(key)]
+
+    def test07_empty_scalar_indices(self):
+        self._reopen(mode="a")
+        vlarray = self.h5file.create_vlarray("/", "empty", atom=tb.Int32Atom())
+        for index_type in (int, np.int64):
+            for key in (-1, 0, 1):
+                with self.subTest(index_type=index_type, key=key):
+                    with self.assertRaises(IndexError):
+                        vlarray[index_type(key)]
+
 
 class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     nrows = 100
@@ -3726,6 +3751,36 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         with self.assertRaises(ValueError):
             vlarray[10] = [1] * 100
+
+    def test06_negative_scalar_bounds(self):
+        vlarray = self.h5file.root.vlarray
+        nrows = int(vlarray.nrows)
+        expected = [row.tolist() for row in vlarray[:]]
+        for index_type in (int, np.int64):
+            for key in (-nrows - 1, -2 * nrows, -3 * nrows, -1000000):
+                with self.subTest(index_type=index_type, key=key):
+                    with self.assertRaises(IndexError):
+                        vlarray[index_type(key)] = [99]
+                    self.assertEqual(
+                        [row.tolist() for row in vlarray[:]], expected
+                    )
+            for key in (-nrows, -1):
+                with self.subTest(index_type=index_type, key=key):
+                    value = [7] * len(expected[nrows + key])
+                    vlarray[index_type(key)] = value
+                    expected[nrows + key] = value
+                    self.assertEqual(
+                        [row.tolist() for row in vlarray[:]], expected
+                    )
+
+    def test07_empty_scalar_indices(self):
+        vlarray = self.h5file.create_vlarray("/", "empty", atom=tb.Int32Atom())
+        for index_type in (int, np.int64):
+            for key in (-1, 0, 1):
+                with self.subTest(index_type=index_type, key=key):
+                    with self.assertRaises(IndexError):
+                        vlarray[index_type(key)] = [99]
+                    self.assertEqual(vlarray.nrows, 0)
 
 
 class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):

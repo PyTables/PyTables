@@ -680,7 +680,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             key = operator.index(key)
 
             # Index out of range protection
-            if key >= self.nrows:
+            if key >= self.nrows or key < -self.nrows:
                 raise IndexError("Index out of range")
             if key < 0:
                 # To support negative values
@@ -701,7 +701,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def _assign_values(self, coords: Sequence[int], values: Sequence) -> None:
         """Assign the `values` to the positions stated in `coords`."""
         for nrow, value in zip(coords, values, strict=False):
-            if nrow >= self.nrows:
+            if nrow >= self.nrows or nrow < -self.nrows:
                 raise IndexError("First index out of range")
             if nrow < 0:
                 # To support negative values
