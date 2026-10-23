@@ -213,6 +213,27 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.assertEqual(bytes(self.h5file.root._v_attrs.payload), payload)
 
+    def test_external_link_inherits_disabled_policy(self):
+        payload = self._malicious_payload()
+        extfname = f"{self.h5fname}.ext.h5"
+        try:
+            with tb.open_file(extfname, "w") as extfile:
+                extfile.root._v_attrs.payload = np.bytes_(payload)
+            self.h5file.create_external_link("/", "elink", f"{extfname}:/")
+
+            self._reopen_disabled()
+
+            target = self.h5file.root.elink()
+            try:
+                self.assertFalse(target._v_file.params["ALLOW_PICKLE"])
+                actual = target._v_attrs.payload
+                self.assertFalse(self.sentinel.exists())
+                self.assertEqual(bytes(actual), payload)
+            finally:
+                self.h5file.root.elink.umount()
+        finally:
+            Path(extfname).unlink(missing_ok=True)
+
     def test_global_false_applies_to_new_file_handles(self):
         expected = {"answer": 42}
         payload = pickle.dumps(expected, protocol=0)
