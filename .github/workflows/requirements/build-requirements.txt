@@ -7,7 +7,7 @@
 build==1.6.1 \
     --hash=sha256:51cc11666391ab6f092070437ac747002ff46f3e4113a3622177ee6b488bfc53 \
     --hash=sha256:ecd351a4be9d35a9eaaba244a7687143c9c7d4aea6ac964e7e7ddab20cbcf4e7
-    # via -r .github/workflows/requirements/build-requirements.in
+    # via -r build-requirements.in
 cython==3.3.0 \
     --hash=sha256:03056533fe4fdbc4f1d34a39178f9a4937ff35196f8bcdde2a67b5b5809c61fe \
     --hash=sha256:03bc5333932f5dda3ba9315298ecdd21daa1b58410bb1f8ce04c78ec8337130a \
@@ -48,27 +48,19 @@ cython==3.3.0 \
     --hash=sha256:ec09dbf73ff4f7be2b339b995fadae9c4bb517bbbed7ec11d6fe99c2092b48fd \
     --hash=sha256:eda47eb7731c3b41180b58bb83de423f43aa58a677677e3390e8d332b003859e \
     --hash=sha256:eed0d93fbca7087f143b42c34b05a825849bdf17f101572c2105acfa49aa88b8
-    # via -r .github/workflows/requirements/build-requirements.in
+    # via -r build-requirements.in
 importlib-metadata==9.0.1 \
     --hash=sha256:ab830580bc0ef3db61ce8fae716389e5462b67e033018bab6d8f80ef17172f99 \
     --hash=sha256:bba5600596a7e21f3eef53281cf28d6a5195634d2f2b78ff9501a3272c6eaab0
-    # via -r .github/workflows/requirements/build-requirements.in
+    # via -r build-requirements.in
 packaging==26.3 \
     --hash=sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79 \
     --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
     # via build
-pip==26.2.1 \
-    --hash=sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e \
-    --hash=sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f
-    # via -r .github/workflows/requirements/build-requirements.in
 pyproject-hooks==1.3.3 \
     --hash=sha256:5fc53fdac9f7bd63fbcdc868fb5f90b4784d78a53a3d3388cd738b807441a20b \
     --hash=sha256:defda19b854fa0d3bd4f76ea4ddcba8abd7dcfcdd585a6690ade050744fc5f43
     # via build
-setuptools==84.0.0 \
-    --hash=sha256:51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670 \
-    --hash=sha256:f4695c21257f0d9b537ec2692c941d02ee143b7cc1276941349a546573b2ef73
-    # via -r .github/workflows/requirements/build-requirements.in
 tomli==2.5.0 \
     --hash=sha256:069435bd5480429b98c5e5afb02ab21c219b6f0064680671c6dc0d46817346ea \
     --hash=sha256:0dc598040da8d42cf20f0be588ed7004f46db12a0ac6c32e03a59dccedaaadcd \
@@ -135,7 +127,7 @@ tomli==2.5.0 \
     --hash=sha256:f4b653094e18f9031102d3a1da5c729c8f222d85225b18037dac621695e46e1a \
     --hash=sha256:f79203b3965b4000e91808aaa7c040206093f2b8bf86f455982f2274c9ccf442 \
     --hash=sha256:fd4dc129784e0c5335bd4e61dfcc4487499a013419e655cf2da1d091b7e0efdc
-    # via -r .github/workflows/requirements/build-requirements.in
+    # via -r build-requirements.in
 zipp==4.1.1 \
     --hash=sha256:7ebb7a44c021b29fd8dbd7cce6812d0d7b5b454521f93cc71af6ccd155aaa70b \
     --hash=sha256:8979f52d874162f485ff2981e3891f3a3317b7a3dd43ff1e1775b9304f307a9c
