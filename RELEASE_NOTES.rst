@@ -26,6 +26,16 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer overflow and wild pointer dereference reading a leaf whose
+  ``CLASS`` attribute disagrees with its datatype.  A ``CLASS`` attribute
+  selects the reader without re-checking the datatype, so a foreign file could
+  point the VLArray reader at a fixed ``H5T_ARRAY`` dataset (read as an array
+  of ``hvl_t`` handles, overflowing the row buffer and dereferencing
+  file-controlled bytes as pointers) or the Array/CArray/EArray readers at a
+  variable-length dataset (``hvl_t`` handles written into a buffer sized for
+  the base atom).  ``H5VLARRAYget_info`` now requires an ``H5T_VLEN`` datatype
+  and ``Array._open_array`` rejects ``H5T_VLEN``, so the leaf opens as
+  ``UnImplemented`` instead.
 * Build wheels against HDF5 2.2.0; fix blosc2 filter buffer size.
 
   The HDF5 1.14.6 bundled in PyTables v3.11.1 wheels was affected by ~30
