@@ -873,6 +873,44 @@ class MultidimTableLeafTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIsInstance(vlarray, tb.UnImplemented)
 
 
+class ForgedLeafClassTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a leaf whose ``CLASS`` attribute disagrees with its datatype.
+
+    A ``CLASS`` attribute makes PyTables load a node with the matching reader
+    without re-checking the datatype, so a foreign file can point the VLArray
+    or Array readers at a datatype they cannot handle.  H5VLARRAYget_info()
+    did not require an ``H5T_VLEN`` datatype, so a fixed ``H5T_ARRAY`` dataset
+    labelled ``VLARRAY`` was read as an array of ``hvl_t`` handles: the row
+    buffer overflowed and the reader dereferenced file-controlled bytes as
+    data pointers.  Symmetrically, Array/CArray/EArray built the atom from a
+    variable-length datatype's base and then read with the vlen memory type,
+    overflowing the base-sized buffer with ``hvl_t`` handles.  Both reads
+    segfault on the unpatched tree.  Such leaves come from a foreign file and
+    must open as UnImplemented instead.
+
+    forged_leaf_class.h5 was created with h5py.  `/vlarray_arraytype` is a 1-D
+    chunked ``H5T_ARRAY`` (10 x int64) labelled ``VLARRAY``; `/array_vlentype`,
+    `/carray_vlentype` and `/earray_vlentype` are 1-D chunked vlen int64
+    datasets labelled ``ARRAY``, ``CARRAY`` and ``EARRAY``.  All carry the
+    usual PyTables leaf attributes.
+    """
+
+    h5fname = common.test_filename("forged_leaf_class.h5")
+
+    def test(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            nodes = [
+                self.h5file.get_node("/vlarray_arraytype"),
+                self.h5file.get_node("/array_vlentype"),
+                self.h5file.get_node("/carray_vlentype"),
+                self.h5file.get_node("/earray_vlentype"),
+            ]
+        # Rejected on open, so the out-of-bounds read never happens.
+        for node in nodes:
+            self.assertIsInstance(node, tb.UnImplemented)
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -971,6 +1009,7 @@ def suite():
         theSuite.addTest(common.make_suite(Blosc2ForgedTypesizeTestCase))
         theSuite.addTest(common.make_suite(VlenTableColumnTestCase))
         theSuite.addTest(common.make_suite(MultidimTableLeafTestCase))
+        theSuite.addTest(common.make_suite(ForgedLeafClassTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))

@@ -150,6 +150,7 @@ from .definitions cimport (
     H5T_FLOAT,
     H5T_STRING,
     H5T_ENUM,
+    H5T_VLEN,
     H5Tget_order,
     H5Pcreate,
     H5Pset_cache,
@@ -1832,6 +1833,15 @@ cdef class Array(Leaf):
       )
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
+    # Variable-length datatypes belong to VLArray leaves.  Reading one through
+    # the Array path (reachable via a forged CLASS attribute) builds the atom
+    # from the vlen base and then calls H5Dread with the vlen memory type,
+    # filling hvl_t handles into a buffer sized for the base atom: the buffer
+    # overflows and file-controlled bytes are later dereferenced as pointers.
+    if H5Tget_class(self.disk_type_id) == H5T_VLEN:
+      raise HDF5ExtError(
+        f"Array ``{self.name}`` has an unsupported variable-length datatype"
+      )
     # Get the atom for this type
     atom = atom_from_hdf5_type(self.type_id)
 

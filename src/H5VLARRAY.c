@@ -357,6 +357,15 @@ herr_t H5VLARRAYget_info( hid_t   dataset_id,
   hid_t       base_type_id;
 
 
+  /* VLArrays store variable-length data, so the datatype must be H5T_VLEN.
+     A fixed-size datatype reaching this reader (e.g. through a forged CLASS
+     attribute pointing an Array/Table leaf here) would be read as an array of
+     hvl_t handles: H5Dread fills more bytes per element than the hvl_t row
+     buffer holds and the reader then dereferences file-controlled bytes as
+     data pointers.  Reject it so the leaf opens as UnImplemented instead. */
+  if ( H5Tget_class( type_id ) != H5T_VLEN )
+    goto out;
+
   /* Get the dataspace handle */
   if ( (space_id = H5Dget_space( dataset_id )) < 0 )
     goto out;
