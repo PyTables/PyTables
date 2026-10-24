@@ -268,22 +268,21 @@ class EArray(CArray):
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
-        # This is a hack to prevent doing unnecessary conversions
-        # when copying buffers
+        # Avoid unnecessary flavor conversions when copying buffers.
+        convert = self._v_convert
         self._v_convert = False
+        try:
+            # Start the copy itself
+            for start2 in range(start, stop, step * nrowsinbuf):
+                # Save the records on disk
+                stop2 = start2 + step * nrowsinbuf
+                stop2 = min(stop2, stop)
 
-        # Start the copy itself
-        for start2 in range(start, stop, step * nrowsinbuf):
-            # Save the records on disk
-            stop2 = start2 + step * nrowsinbuf
-            stop2 = min(stop2, stop)
-
-            # Set the proper slice in the extensible dimension
-            slices[maindim] = slice(start2, stop2, step)
-            obj._append(self.__getitem__(tuple(slices)))
-
-        # Active the conversion again (default)
-        self._v_convert = True
+                # Set the proper slice in the extensible dimension
+                slices[maindim] = slice(start2, stop2, step)
+                obj._append(self.__getitem__(tuple(slices)))
+        finally:
+            self._v_convert = convert
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (obj, nbytes)

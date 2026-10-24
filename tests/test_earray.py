@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 
@@ -1832,6 +1833,48 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def _create_python_flavor_source(self):
+        array = self.h5file.create_earray(
+            "/", "source", obj=np.array([10, 20, 30])
+        )
+        array.flavor = "python"
+        if self.close:
+            self._reopen(mode="a")
+            array = self.h5file.root.source
+        array.nrowsinbuf = 1
+        return array
+
+    def test06_copy_preserves_conversion(self):
+        array = self._create_python_flavor_source()
+        for convert in (True, False):
+            with self.subTest(convert=convert):
+                array._v_convert = convert
+                copied = array.copy("/", f"copy_{convert}")
+                self.assertIs(array._v_convert, convert)
+                self.assertIsInstance(
+                    array[:], list if convert else np.ndarray
+                )
+                np.testing.assert_array_equal(array[:], [10, 20, 30])
+                self.assertEqual(copied.flavor, "python")
+                self.assertEqual(copied.read(), [10, 20, 30])
+
+    def test07_copy_failure_preserves_conversion(self):
+        array = self._create_python_flavor_source()
+        for convert in (True, False):
+            for method in ("__getitem__", "_append"):
+                with self.subTest(convert=convert, method=method):
+                    array._v_convert = convert
+                    with mock.patch.object(
+                        tb.EArray, method, side_effect=OSError("copy failed")
+                    ):
+                        with self.assertRaisesRegex(OSError, "copy failed"):
+                            array.copy("/", f"copy_{convert}_{method}")
+                    self.assertIs(array._v_convert, convert)
+                    self.assertIsInstance(
+                        array[:], list if convert else np.ndarray
+                    )
+                    np.testing.assert_array_equal(array[:], [10, 20, 30])
+
     def test01_copy(self):
         """Checking EArray.copy() method."""
 

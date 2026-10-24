@@ -280,9 +280,6 @@ class CArray(Array):
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
-        # This is a hack to prevent doing unnecessary conversions
-        # when copying buffers
-        self._v_convert = False
         # Build the new CArray object
         obj = CArray(
             group,
@@ -294,24 +291,28 @@ class CArray(Array):
             chunkshape=chunkshape,
             _log=_log,
         )
-        # Start the copy itself
-        for start2 in range(start, stop, step * nrowsinbuf):
-            # Save the records on disk
-            stop2 = start2 + step * nrowsinbuf
-            stop2 = min(stop2, stop)
+        # Avoid unnecessary flavor conversions when copying buffers.
+        convert = self._v_convert
+        self._v_convert = False
+        try:
+            # Start the copy itself
+            for start2 in range(start, stop, step * nrowsinbuf):
+                # Save the records on disk
+                stop2 = start2 + step * nrowsinbuf
+                stop2 = min(stop2, stop)
 
-            # Set the proper slice in the main dimension
-            slices[maindim] = slice(start2, stop2, step)
-            start3 = (start2 - start) // step
-            stop3 = start3 + nrowsinbuf
-            stop3 = min(stop3, shape[maindim])
+                # Set the proper slice in the main dimension
+                slices[maindim] = slice(start2, stop2, step)
+                start3 = (start2 - start) // step
+                stop3 = start3 + nrowsinbuf
+                stop3 = min(stop3, shape[maindim])
 
-            # The next line should be generalised if, in the future,
-            # maindim is designed to be different from 0 in CArrays.
-            # See ticket #199.
-            obj[start3:stop3] = self.__getitem__(tuple(slices))
-        # Activate the conversion again (default)
-        self._v_convert = True
+                # The next line should be generalised if, in the future,
+                # maindim is designed to be different from 0 in CArrays.
+                # See ticket #199.
+                obj[start3:stop3] = self.__getitem__(tuple(slices))
+        finally:
+            self._v_convert = convert
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (obj, nbytes)
