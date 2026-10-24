@@ -513,6 +513,13 @@ This section is intended for installing precompiled binaries.
 Binaries are distribution in wheel format, which can be downloaded and
 installed using pip as described above.
 
+PyTables wheels and source distributions from version-tag, release, scheduled, and
+manual runs of the project’s GitHub Actions workflow include build provenance
+attestations. After downloading a distribution, you can verify its provenance
+with the GitHub CLI::
+
+    gh attestation verify "$distribution_file" -R PyTables/PyTables
+
 
 PyTables package installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
