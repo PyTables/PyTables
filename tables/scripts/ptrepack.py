@@ -92,10 +92,13 @@ def copy_leaf(
     propindexes,
     upgradeflavors,
     allow_padding,
+    allow_pickle=False,
 ):
     """Copy a leaf node."""
     # Open the source file
-    srcfileh = tb.open_file(srcfile, "r", allow_padding=allow_padding)
+    srcfileh = tb.open_file(
+        srcfile, "r", allow_padding=allow_padding, allow_pickle=allow_pickle
+    )
     # Get the source node (that should exist)
     srcnode = srcfileh.get_node(srcnode)
 
@@ -232,11 +235,16 @@ def copy_children(
     upgradeflavors,
     allow_padding,
     use_hardlinks=True,
+    allow_pickle=False,
 ):
     """Copy the children from source group to destination group."""
     # Open the source file with srcgroup as root_uep
     srcfileh = tb.open_file(
-        srcfile, "r", root_uep=srcgroup, allow_padding=allow_padding
+        srcfile,
+        "r",
+        root_uep=srcgroup,
+        allow_padding=allow_padding,
+        allow_pickle=allow_pickle,
     )
     #  Assign the root to srcgroup
     srcgroup = srcfileh.root
@@ -561,6 +569,14 @@ def _get_parser():
         ),
     )
     parser.add_argument(
+        "--allow-pickle",
+        action="store_true",
+        help=(
+            "allow automatic unpickling while reading the source file; "
+            "use only for files from trusted sources"
+        ),
+    )
+    parser.add_argument(
         "src",
         metavar="sourcefile:sourcegroup",
         help="source file/group",
@@ -689,7 +705,12 @@ def main():
 
     allow_padding = not args.dont_allow_padding
     # Check whether the specified source node is a group or a leaf
-    h5srcfile = tb.open_file(srcfile, "r", allow_padding=allow_padding)
+    h5srcfile = tb.open_file(
+        srcfile,
+        "r",
+        allow_padding=allow_padding,
+        allow_pickle=args.allow_pickle,
+    )
     srcnodeobject = h5srcfile.get_node(srcnode)
 
     # Close the file again
@@ -719,6 +740,7 @@ def main():
             upgradeflavors=args.upgradeflavors,
             allow_padding=allow_padding,
             use_hardlinks=True,
+            allow_pickle=args.allow_pickle,
         )
     else:
         # If not a Group, it should be a Leaf
@@ -742,6 +764,7 @@ def main():
             propindexes=args.propindexes,
             upgradeflavors=args.upgradeflavors,
             allow_padding=allow_padding,
+            allow_pickle=args.allow_pickle,
         )
 
     # Gather some statistics

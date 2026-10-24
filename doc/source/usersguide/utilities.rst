@@ -227,6 +227,7 @@ to see the message usage:
                     [--keep-source-filters] [--chunkshape CHUNKSHAPE]
                     [--upgrade-flavors] [--dont-regenerate-old-indexes]
                     [--sortby COLUMN] [--checkCSI] [--propindexes]
+                    [--allow-pickle]
                     sourcefile:sourcegroup destfile:destgroup
 
     This utility is very powerful and lets you copy any leaf, group or complete
@@ -302,6 +303,12 @@ to see the message usage:
       --dont-allow-padding  remove the possible padding in compound types in
                             source files. The default is to propagate it. Only
                             applies to table objects
+      --allow-pickle        allow automatic unpickling while reading the source
+                            file; use only for files from trusted sources
+
+Like ``ptdump``, ``ptrepack`` keeps automatic unpickling disabled for the
+source file unless you pass ``--allow-pickle``.  Pickled attributes are
+copied as their raw bytes, so the destination keeps them unchanged.
 
 
 Read on for a brief introduction to this utility.
