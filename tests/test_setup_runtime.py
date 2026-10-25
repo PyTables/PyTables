@@ -1,12 +1,11 @@
 """Regression tests for runtime-library discovery in setup.py."""
 
-import ctypes
-import ctypes.util
 import runpy
+import ctypes
 import unittest
+import ctypes.util
 from pathlib import Path
 from unittest.mock import patch
-
 
 PosixPackage = runpy.run_path(
     str(Path(__file__).resolve().parents[1] / "setup.py"),
@@ -16,9 +15,7 @@ PosixPackage = runpy.run_path(
 
 class PosixRuntimeDiscoveryTest(unittest.TestCase):
     def setUp(self):
-        self.package = PosixPackage(
-            "bzip2", "BZ2", "bzlib", "bz2", "bz2"
-        )
+        self.package = PosixPackage("bzip2", "BZ2", "bzlib", "bz2", "bz2")
 
     def test_uses_soname_when_unversioned_so_is_linker_script(self):
         def load_library(name):
@@ -42,9 +39,7 @@ class PosixRuntimeDiscoveryTest(unittest.TestCase):
             patch("ctypes.util.find_library", return_value=None),
             patch.object(ctypes, "CDLL", side_effect=load_library),
         ):
-            self.assertTrue(
-                self.package.find_runtime_path(["/opt/local/lib"])
-            )
+            self.assertTrue(self.package.find_runtime_path(["/opt/local/lib"]))
 
     def test_unloadable_soname_keeps_explicit_directory_fallback(self):
         def load_library(name):
@@ -56,9 +51,7 @@ class PosixRuntimeDiscoveryTest(unittest.TestCase):
             patch("ctypes.util.find_library", return_value="libbz2.so.1"),
             patch.object(ctypes, "CDLL", side_effect=load_library),
         ):
-            self.assertTrue(
-                self.package.find_runtime_path(["/opt/local/lib"])
-            )
+            self.assertTrue(self.package.find_runtime_path(["/opt/local/lib"]))
 
     def test_soname_lookup_error_keeps_explicit_directory_fallback(self):
         def load_library(name):
@@ -70,9 +63,7 @@ class PosixRuntimeDiscoveryTest(unittest.TestCase):
             patch("ctypes.util.find_library", side_effect=OSError("no tmp")),
             patch.object(ctypes, "CDLL", side_effect=load_library),
         ):
-            self.assertTrue(
-                self.package.find_runtime_path(["/opt/local/lib"])
-            )
+            self.assertTrue(self.package.find_runtime_path(["/opt/local/lib"]))
 
 
 if __name__ == "__main__":
