@@ -1,8 +1,8 @@
 # Runtime dependencies for ``pip install``.
 # Keep list in sync with ``project.dependencies`` in ``pyproject.toml``.
 
-blosc2>=2.3.0
-numexpr>=2.6.2
-numpy>=2
+blosc2 >=2.3.0
+numexpr >=2.6.2
+numpy >=2
 packaging
 py-cpuinfo
