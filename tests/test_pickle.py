@@ -317,7 +317,9 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen_disabled()
 
         dstfname = Path(f"{self.h5fname}.repack.h5")
-        argv = ["ptrepack", self.h5fname, os.fspath(dstfname)]
+        # Explicit ":/" node paths keep Windows drive letters from being
+        # parsed as the node separator.
+        argv = ["ptrepack", f"{self.h5fname}:/", f"{dstfname}:/"]
         try:
             with mock.patch.object(sys, "argv", argv):
                 ptrepack.main()
@@ -335,7 +337,7 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._store_title_payload(self._malicious_payload())
         self._reopen_disabled()
 
-        argv = ["pttree", self.h5fname]
+        argv = ["pttree", f"{self.h5fname}:/"]
         with (
             mock.patch.object(sys, "argv", argv),
             mock.patch("sys.stdout", new_callable=StringIO),
