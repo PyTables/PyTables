@@ -6,6 +6,7 @@ import os
 import sys
 import glob
 import ctypes
+import ctypes.util
 import shutil
 import fnmatch
 import platform
@@ -375,6 +376,18 @@ class BasePackage:
         # An explicit path can not be provided for runtime libraries.
         # (The argument is accepted for compatibility with previous
         # methods.)
+
+        try:
+            soname = ctypes.util.find_library(self.runtime_name)
+        except OSError:
+            soname = None
+        if soname:
+            try:
+                ctypes.CDLL(soname)
+            except OSError:
+                pass
+            else:
+                return True
 
         # Try just library name, relying on the OS search path.
         # This fails on macOS.
