@@ -35,9 +35,9 @@ blosc2==4.14.1 \
     --hash=sha256:d5e65efe80740651c3b39a9fd98478f073c57bed51f7eebe1fdfe248dc259e37 \
     --hash=sha256:fb2960ff411e2c1cffa6209932b5ee344fb46208906c3de79e8f23531df82e8a
     # via -r requirements.in
-certifi==2026.7.22 \
-    --hash=sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775 \
-    --hash=sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55
+certifi==2026.10.23 \
+    --hash=sha256:a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd \
+    --hash=sha256:e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1
     # via
     #   httpcore
     #   httpx
