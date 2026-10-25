@@ -32,6 +32,23 @@ class PTRepackTestCase(common.PyTablesTestCase):
         args, _ = mock_copy_leaf.call_args_list[0]
         self.assertEqual(args, (src_fn, dst_fn, src_path, dst_path))
 
+    @patch.object(ptrepack, "copy_leaf")
+    @patch.object(ptrepack.tb, "open_file")
+    def test_allow_pickle(self, mock_open_file, mock_copy_leaf):
+        """Checking the trusted-file command-line opt-in."""
+
+        for extra, expected in (([], False), (["--allow-pickle"], True)):
+            mock_open_file.reset_mock()
+            mock_copy_leaf.reset_mock()
+            argv = ["ptrepack", *extra, "trusted.h5", "out.h5"]
+            with patch.object(sys, "argv", argv):
+                ptrepack.main()
+
+            _, kwargs = mock_open_file.call_args
+            self.assertIs(kwargs["allow_pickle"], expected)
+            _, kwargs = mock_copy_leaf.call_args
+            self.assertIs(kwargs["allow_pickle"], expected)
+
 
 class PTDumpTestCase(common.PyTablesTestCase):
     """Test ptdump"""
