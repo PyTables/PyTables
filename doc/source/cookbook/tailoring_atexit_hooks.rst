@@ -8,16 +8,18 @@ Tailoring `atexit` hooks
 In some situations you may want to tailor the typical messages that PyTables
 outputs::
 
-    Closing remaining open files: /tmp/prova.h5... done
+    UnclosedFileWarning: Closing remaining open file: /tmp/prova.h5
 
-The responsible of this behaviour is the :func:`tables.file.close_open_files`
-function that is being registered via :func:`atexit.register` Python function.
+The responsible of this behaviour is the ``close_all()`` method of
+``tables.file._open_files``, which is registered via :func:`atexit.register`
+Python function. It issues an ``UnclosedFileWarning`` for each file that is
+still open and then closes it.
 Although you can't de-register already registered cleanup functions, you can
 register new ones to tailor the existing behaviour.
 For example, if you  register this function::
 
     def my_close_open_files(verbose):
-        from packaging import Version
+        from packaging.version import Version
 
         open_files = tables.file._open_files
 

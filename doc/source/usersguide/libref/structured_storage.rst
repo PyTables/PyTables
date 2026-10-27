@@ -125,7 +125,7 @@ The Description class
 ..  These are defined in the class docstring
     Description instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    .. autoattribute:: Description._v_col_objects
+    .. autoattribute:: Description._v_colobjects
     .. autoattribute:: Description._v_dflts
     .. autoattribute:: Description._v_dtype
     .. autoattribute:: Description._v_dtypes
