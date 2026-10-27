@@ -26,6 +26,15 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix crash reading a table whose compound type has an integer column with no
+  matching native size (3, 5, 6 or 7 bytes).  ``get_nested_type`` builds the
+  native in-memory compound sized from the on-disk type and inserts each
+  member at its on-disk offset, which only holds while every member keeps its
+  on-disk size.  An odd-precision integer has no NumPy counterpart, so
+  ``get_native_type`` widens it and the inserted member overruns the compound;
+  ``H5Dread`` then walks past the malformed datatype on read (crash in
+  ``H5T__sort_value``).  Such a column is now rejected and the leaf opens as
+  ``UnImplemented``.
 * Fix heap buffer overflow and wild pointer dereference reading a leaf whose
   ``CLASS`` attribute disagrees with its datatype.  A ``CLASS`` attribute
   selects the reader without re-checking the datatype, so a foreign file could

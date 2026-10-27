@@ -845,6 +845,37 @@ class VlenTableColumnTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIsInstance(node, tb.UnImplemented)
 
 
+class OddSizeIntTableColumnTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
+    """Test for a table column whose integer has no matching native size.
+
+    get_nested_type() builds the native in-memory compound with
+    H5Tcreate(H5T_COMPOUND, on_disk_size) and inserts each member at its
+    on-disk offset, which only stays valid while every member keeps its
+    on-disk size.  An odd-precision integer column (3, 5, 6 or 7 bytes) has
+    no NumPy counterpart, so get_native_type() widens it (e.g. 5 -> 8 bytes)
+    and the inserted member overruns the compound.  H5Dread then walks past
+    the malformed datatype on read (crash in H5T__sort_value, reached from
+    Table._read_records).  A real PyTables table only stores standard integer
+    widths, so such a column comes from a foreign file and must open as
+    UnImplemented instead.
+
+    oddsize_int_table.h5 was created with h5py; the dataset `/table` is a
+    compound {c: 5-byte little-endian integer} with the usual PyTables TABLE
+    attributes.
+    """
+
+    h5fname = common.test_filename("oddsize_int_table.h5")
+
+    def test(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            node = self.h5file.get_node("/table")
+        # Rejected on open, so the crashing table read is never reached.
+        self.assertIsInstance(node, tb.UnImplemented)
+
+
 class MultidimTableLeafTestCase(common.TestFileMixin, common.PyTablesTestCase):
     """Test for a Table/VLArray leaf whose dataset has more than one dimension.
 
