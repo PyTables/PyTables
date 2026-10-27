@@ -502,6 +502,16 @@ cdef class Table(Leaf):
           atom = atom_from_hdf5_type(native_member_type_id)
           colobj = Col.from_atom(atom, pos=pos, _offset=member_offset)
           itemsize = H5Tget_size(native_member_type_id)
+          # ``native_type_id`` is sized from the on-disk compound and the
+          # members below are inserted at their on-disk offsets, which only
+          # stays valid while each member keeps its on-disk size.  An
+          # odd-precision integer (e.g. a 5-byte column) has no NumPy
+          # counterpart, so get_native_type() widens it and the inserted
+          # member overruns the compound; HDF5 then walks past it during the
+          # read (crash in H5T__sort_value).  Reject the column so the leaf
+          # opens as UnImplemented like the other unsupported column types.
+          if itemsize != H5Tget_size(member_type_id):
+            raise TypeError("on-disk size has no matching native type")
         except TypeError as terr:
           # Re-raise TypeError again with more info
           raise TypeError(
