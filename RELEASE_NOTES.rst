@@ -26,6 +26,14 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer overflow reading a nested ``H5T_ARRAY`` datatype (an array
+  whose base type is itself an array).  ``hdf5_to_np_ext_type`` kept the
+  dimensions of the outer array but discarded those of the base, so the NumPy
+  container was built smaller than ``H5Tget_size`` while ``H5Dread`` and
+  ``H5Aread`` wrote the full element, overrunning the buffer for an Array
+  leaf, a nested-array table column and an attribute alike.  The base
+  dimensions are now carried through, so the value reads back with its full
+  shape.
 * Fix crash reading a table whose compound type has an integer column with no
   matching native size (3, 5, 6 or 7 bytes).  ``get_nested_type`` builds the
   native in-memory compound sized from the on-disk type and inserts each
