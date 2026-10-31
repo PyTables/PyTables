@@ -1464,8 +1464,11 @@ def hdf5_to_np_ext_type(
   elif class_id == H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
-    # Find the super member format
-    stype, _ = hdf5_to_np_ext_type(super_type_id, pure_numpy_types)
+    # Find the super member format and its shape.  When the base is itself an
+    # H5T_ARRAY (a foreign nested array datatype), its dimensions must be kept
+    # too; dropping them would size the NumPy container below H5Tget_size and
+    # let H5Dread/H5Aread write past it.
+    stype, super_shape = hdf5_to_np_ext_type(super_type_id, pure_numpy_types)
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
@@ -1473,7 +1476,7 @@ def hdf5_to_np_ext_type(
     H5Tget_array_dims(type_id, dims)
     for i in range(ndims):
       shape.append(<int>dims[i])  # cast to avoid long representation (i.e. 2L)
-    shape = tuple(shape)
+    shape = tuple(shape) + tuple(super_shape)
     # Release resources
     free(dims)
     H5Tclose(super_type_id)

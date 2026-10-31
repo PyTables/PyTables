@@ -942,6 +942,54 @@ class ForgedLeafClassTestCase(common.TestFileMixin, common.PyTablesTestCase):
             self.assertIsInstance(node, tb.UnImplemented)
 
 
+class NestedArrayTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a nested H5T_ARRAY datatype (an array of arrays).
+
+    hdf5_to_np_ext_type() mapped an H5T_ARRAY to the NumPy shape of its own
+    dimensions but discarded the shape of its base type.  When the base is
+    itself an H5T_ARRAY (a foreign nested array datatype), only the outer
+    dimension survived, so the NumPy container was built smaller than
+    H5Tget_size and H5Dread/H5Aread wrote the full element past it: a leaf,
+    a table column and an attribute each overflowed their read buffer.  The
+    full shape has a NumPy counterpart, so the value must read back intact.
+
+    nested_array_leaf.h5 was created with h5py; the datatype
+    ``[2] H5T_ARRAY { [3] H5T_STD_I32LE }`` appears as the group attribute
+    ``nested``, the Array leaf ``/array`` and the ``b`` column of the compound
+    ``/table`` ({a: int32, b: nested}).
+    """
+
+    h5fname = common.test_filename("nested_array_leaf.h5")
+
+    def test(self):
+        attr = self.h5file.root._v_attrs.nested
+        self.assertTrue(
+            common.are_arrays_equal(
+                attr, np.arange(6, dtype="int32").reshape(2, 3)
+            )
+        )
+
+        array = self.h5file.get_node("/array")
+        self.assertEqual(array.atom.shape, (2, 3))
+        self.assertTrue(
+            common.are_arrays_equal(
+                array.read(), np.arange(24, dtype="int32").reshape(4, 2, 3)
+            )
+        )
+
+        table = self.h5file.get_node("/table")
+        self.assertEqual(table.coldtypes["b"].shape, (2, 3))
+        data = table.read()
+        self.assertTrue(
+            common.are_arrays_equal(data["a"], np.arange(5, dtype="int32"))
+        )
+        self.assertTrue(
+            common.are_arrays_equal(
+                data["b"], np.arange(30, dtype="int32").reshape(5, 2, 3)
+            )
+        )
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -1041,6 +1089,7 @@ def suite():
         theSuite.addTest(common.make_suite(VlenTableColumnTestCase))
         theSuite.addTest(common.make_suite(MultidimTableLeafTestCase))
         theSuite.addTest(common.make_suite(ForgedLeafClassTestCase))
+        theSuite.addTest(common.make_suite(NestedArrayTypeTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))
