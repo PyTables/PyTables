@@ -6,7 +6,6 @@ import os
 import sys
 import glob
 import ctypes
-import ctypes.util
 import shutil
 import fnmatch
 import platform
@@ -14,6 +13,7 @@ import tempfile
 import textwrap
 import sysconfig
 import subprocess
+import ctypes.util
 from typing import NamedTuple
 from pathlib import Path
 
@@ -828,8 +828,6 @@ if __name__ == "__main__":
     # This is much more convenient than having to manually set an environment
     # variable to rebuild pytables
     if not HDF5_DIR and os.name == "nt":
-        import ctypes.util
-
         if not debug:
             libdir = ctypes.util.find_library(
                 "hdf5.dll"
@@ -1063,8 +1061,6 @@ if __name__ == "__main__":
 
         if os.name == "nt" and package.tag in ["HDF5"]:
             # hdf5.dll usually depends on zlib.dll
-            import ctypes.util
-
             z_lib_path = ctypes.util.find_library("zlib.dll")
             if z_lib_path:
                 print(f"* Adding zlib.dll (hdf5 dependency): ``{z_lib_path}``")
