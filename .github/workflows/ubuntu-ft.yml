@@ -30,7 +30,7 @@ jobs:
           libhdf5-dev libblosc-dev libblosc2-dev libbz2-dev liblz4-dev \
           liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
     - name: Setup python ${{ matrix.python-version }}
-      uses: actions/setup-python@v7
+      uses: actions/setup-python@v7.1.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install python packages
