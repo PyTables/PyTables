@@ -113,8 +113,8 @@ Security fixes
   See also GHSA-3r7g-mq96-7hhc_.
 
 
-Bug fixed
----------
+Bugs fixed
+----------
 
 * Point selections preserve coordinate views and accept read-only index arrays.
 * Atom shapes reject non-integer dimensions instead of silently truncating them.
@@ -230,7 +230,7 @@ Other changes
 * Move test data to a dedicated sub-folder to ``tests``.
 * Add Windows ARM64 wheels builds.
 * Fix compatibility with numpy_ >= 2.5.
-
+* Update the vendored c-blosc to v1.21.7.
 
 
 Thanks to:
@@ -245,6 +245,9 @@ Thanks to:
 * CAOShurong
 * Eric Larson
 * Nikhil Dabas
+* Lim Jooyoung
+* Jeff
+* Jay (jay23606)
 
 
 .. _Python: https://www.python.org
