@@ -657,12 +657,12 @@ class Description:
         # most of the unhandled situations.
         allow_padding = ptparams is None or ptparams["ALLOW_PADDING"]
         # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
-        have_col_offsets = len(keys) > 1 and all(
+        have_col_offsets = len(keys) >= 1 and all(
             o is not None for o in col_offsets
         )
         if (
             allow_padding
-            and len(cols_offsets) > 1
+            and len(cols_offsets) >= 1
             and len(keys) == len(cols_with_pos)
             and len(keys) == len(cols_offsets)
             and have_col_offsets
@@ -672,7 +672,9 @@ class Description:
             # between members and the on-disk itemsize, even when a column is
             # itself a nested compound; the plain nested_dtype path repacks
             # the record and would leave the NumPy container smaller than
-            # H5Tget_size, letting H5Dread write past it (see #765).
+            # H5Tget_size, letting H5Dread write past it (see #765).  A
+            # single-column compound with trailing padding needs the same
+            # treatment, so the offsets are honored from one column on.
             valid_offsets = True
         else:
             newdict["_v_offsets"] = []

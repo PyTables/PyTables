@@ -26,6 +26,14 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer overflow reading a single-column compound datatype with
+  trailing padding.  ``Description.__init__`` only rebuilt the offset-aware
+  NumPy dtype (keeping the on-disk itemsize that carries the padding) when the
+  compound had more than one column, so a compound with a single member
+  smaller than its ``H5Tget_size`` was repacked and the NumPy container ended
+  up smaller than the on-disk element: ``H5Dread``/``H5Aread`` then wrote past
+  it for a flat table column, a single-member nested column and an attribute
+  alike.  The on-disk itemsize is now kept from one column on.
 * Fix heap buffer overflow reading a nested ``H5T_ARRAY`` datatype (an array
   whose base type is itself an array).  ``hdf5_to_np_ext_type`` kept the
   dimensions of the outer array but discarded those of the base, so the NumPy
