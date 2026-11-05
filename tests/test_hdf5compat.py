@@ -990,6 +990,63 @@ class NestedArrayTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
         )
 
 
+class SingleColPaddedCompoundTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
+    """Test for a single-column compound datatype with trailing padding.
+
+    Description.__init__ only rebuilt the on-disk, offset-aware NumPy dtype
+    (honoring the stored itemsize that carries trailing/alignment padding)
+    when the compound had more than one column.  A compound with a single
+    member smaller than its on-disk size therefore fell through to the plain
+    repacked dtype, which dropped the padding, so the NumPy container was
+    smaller than H5Tget_size and H5Dread/H5Aread wrote the full element past
+    it: a flat table column, a single-member nested column and an attribute
+    each overflowed their read buffer.  The itemsize must be kept, so the
+    container matches the on-disk type and the value reads back intact.
+
+    single_col_padded_compound.h5 was created with h5py.  The table ``/table``
+    has one int32 column ``x`` in an 8-byte compound (4 bytes trailing
+    padding); ``/nested`` is {a: int32, n: {x: int32}} whose inner compound is
+    padded to 8 bytes (outer 12 bytes); the group attribute ``attr`` is the
+    same single-member 8-byte compound.
+    """
+
+    h5fname = common.test_filename("single_col_padded_compound.h5")
+
+    def test_table(self):
+        table = self.h5file.get_node("/table")
+        # The container must match the 8-byte on-disk compound, not the
+        # 4-byte packed member (which would make H5Dread overflow it).
+        self.assertEqual(table.description._v_dtype.itemsize, 8)
+        self.assertTrue(
+            common.are_arrays_equal(
+                table.read()["x"], np.arange(10, 14, dtype="int32")
+            )
+        )
+
+    def test_nested(self):
+        table = self.h5file.get_node("/nested")
+        self.assertEqual(table.description._v_dtype.itemsize, 12)
+        self.assertEqual(table.description._v_dtype.fields["n"][0].itemsize, 8)
+        data = table.read()
+        self.assertTrue(
+            common.are_arrays_equal(
+                data["a"], np.arange(20, 23, dtype="int32")
+            )
+        )
+        self.assertTrue(
+            common.are_arrays_equal(
+                data["n"]["x"], np.arange(30, 33, dtype="int32")
+            )
+        )
+
+    def test_attr(self):
+        attr = self.h5file.root._v_attrs.attr
+        self.assertEqual(attr.dtype.itemsize, 8)
+        self.assertEqual(int(attr["x"]), 7)
+
+
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename("matlab_file.mat")
@@ -1090,6 +1147,7 @@ def suite():
         theSuite.addTest(common.make_suite(MultidimTableLeafTestCase))
         theSuite.addTest(common.make_suite(ForgedLeafClassTestCase))
         theSuite.addTest(common.make_suite(NestedArrayTypeTestCase))
+        theSuite.addTest(common.make_suite(SingleColPaddedCompoundTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceRecursiveTestCase))
