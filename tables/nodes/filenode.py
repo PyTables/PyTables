@@ -766,7 +766,8 @@ def read_from_filenode(
       written to.  If *filename* points to a directory or ends with
       ``/`` (``\`` on Windows), the filename will be set to the
       *_filename* (if present; otherwise the *name*) attribute of the
-      read filenode.
+      read filenode.  A ``ValueError`` is raised if that name is not a
+      plain file name (e.g. it contains a directory component).
 
     where, name
       Location of the filenode where the data shall be read from.  If
@@ -804,9 +805,19 @@ def read_from_filenode(
     # NOTE: pathlib.Path strips trailing slash automatically :-(
     if path.is_dir() or filename.endswith(os.path.sep):
         if hasattr(fnode.node.attrs, "_filename"):
-            path = path / fnode.node.attrs._filename
+            outname = fnode.node.attrs._filename
         else:
-            path = path / fnode.node.name
+            outname = fnode.node.name
+        # The name comes from the HDF5 file being read, so only accept a
+        # plain file name to keep the output inside the target directory.
+        if outname in ("", ".", "..") or Path(outname).name != outname:
+            fnode.close()
+            if new_h5file:
+                f.close()
+            raise ValueError(
+                f"The stored file name '{outname}' is not a plain file name"
+            )
+        path = path / outname
 
     if os.access(path, os.R_OK) and not overwrite:
         if new_h5file:
