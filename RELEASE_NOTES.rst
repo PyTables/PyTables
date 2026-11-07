@@ -26,6 +26,12 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix path traversal in ``filenode.read_from_filenode``.  When the target is
+  a directory, the output file name is taken from the filenode's
+  ``_filename`` attribute, which is stored in the HDF5 file being read, so a
+  crafted file could use a name such as ``../x`` or an absolute path to write
+  outside that directory.  A stored name that is not a plain file name is
+  now rejected with a ``ValueError``.
 * Fix heap buffer overflow reading a single-column compound datatype with
   trailing padding.  ``Description.__init__`` only rebuilt the offset-aware
   NumPy dtype (keeping the on-disk itemsize that carries the padding) when the

@@ -1112,6 +1112,33 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
             name="THISNODEDOESNOTEXIST",
         )
 
+    def test06_StoredFilenameOutsideTargetRaises(self):
+        # the *_filename* attribute comes from the HDF5 file, so it must
+        # not be able to place the output outside the target directory
+        target = Path(self.testdir) / "target"
+        target.mkdir()
+        outside = Path(self.testdir) / "absolute.dat"
+        stored = {"relative": "../escaped.dat", "absolute": str(outside)}
+        with open_file(self.testh5fname, "w") as h5file:
+            for nodename, storedname in stored.items():
+                fnode = filenode.new_node(h5file, where="/", name=nodename)
+                fnode.write(self.data)
+                fnode.attrs._filename = storedname
+                fnode.close()
+        for nodename in stored:
+            with self.subTest(nodename=nodename):
+                self.assertRaises(
+                    ValueError,
+                    filenode.read_from_filenode,
+                    self.testh5fname,
+                    str(target),
+                    "/",
+                    name=nodename,
+                )
+        self.assertFalse((Path(self.testdir) / "escaped.dat").exists())
+        self.assertFalse(outside.exists())
+        self.assertEqual(list(target.iterdir()), [])
+
 
 def suite():
     """suite() -> test suite
