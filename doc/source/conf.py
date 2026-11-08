@@ -135,3 +135,18 @@ extlinks = {
 autodoc_member_order = "groupwise"
 autoclass_content = "class"
 autosummary_generate = []
+
+# usersguide/usersguide.rst is only the root document of the LaTeX/PDF manual,
+# but its toctrees list the same chapters as usersguide/index.rst.  If both are
+# read, Sphinx may pick the orphan LaTeX root as the parent of the chapters and
+# the HTML sidebar then collapses the User's Guide on every chapter page.
+exclude_patterns.append("usersguide/usersguide.rst")
+
+
+def _include_latex_root(app):
+    if app.builder.format == "latex":
+        app.config.exclude_patterns.remove("usersguide/usersguide.rst")
+
+
+def setup(app):
+    app.connect("builder-inited", _include_latex_root)
