@@ -199,8 +199,13 @@ def copy_file(
     arguments.
 
     """
-    # Open the source file.
-    srcfileh = open_file(srcfilename, mode="r")
+    # Open the source file.  The copy reads every attribute of the source,
+    # so an explicit allow_pickle must apply to it and not only to the
+    # destination.
+    srckwargs = {
+        k: v for k, v in kwargs.items() if k.upper() == "ALLOW_PICKLE"
+    }
+    srcfileh = open_file(srcfilename, mode="r", **srckwargs)
 
     try:
         # Copy it to the destination file.

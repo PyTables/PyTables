@@ -354,6 +354,24 @@ class PickleSecurityTestCase(common.TempFileMixin, common.PyTablesTestCase):
         finally:
             dstfname.unlink(missing_ok=True)
 
+    def test_copy_file_does_not_load_payload_when_disabled(self):
+        payload = self._malicious_payload()
+        self._store_title_payload(payload)
+        self.h5file.close()
+
+        dstfname = Path(f"{self.h5fname}.copy.h5")
+        try:
+            tb.copy_file(self.h5fname, str(dstfname), allow_pickle=False)
+            self.assertFalse(self.sentinel.exists())
+
+            with tb.open_file(dstfname, "r", allow_pickle=False) as dstfile:
+                group = dstfile.root.group
+                self.assertEqual(bytes(group._v_attrs.payload), payload)
+                self.assertEqual(bytes(group._v_title), payload)
+                self.assertEqual(group.array.read().tolist(), [0, 1, 2, 3])
+        finally:
+            dstfname.unlink(missing_ok=True)
+
     def test_pttree_does_not_load_payload(self):
         self._store_title_payload(self._malicious_payload())
         self._reopen_disabled()

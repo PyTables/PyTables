@@ -26,6 +26,12 @@ Breaking changes
 Security fixes
 --------------
 
+* Honor ``allow_pickle`` for the source file in :func:`copy_file`.  The
+  keyword arguments were only used to open the destination, so
+  ``copy_file(src, dst, allow_pickle=False)`` still read the source with
+  unpickling enabled and a pickled attribute or ``TITLE`` in it was loaded
+  (executing arbitrary code) during the copy.  An explicit ``allow_pickle``
+  now applies to the source file as well.
 * Fix path traversal in ``filenode.read_from_filenode``.  When the target is
   a directory, the output file name is taken from the filenode's
   ``_filename`` attribute, which is stored in the HDF5 file being read, so a
