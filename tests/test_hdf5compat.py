@@ -13,6 +13,85 @@ from tables import utilsextension
 from tables.utils import print_versions
 
 
+class NonChunkedVLArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Read numeric VLEN data created with the HDF5 C API (gh-1111)."""
+
+    h5fname = common.test_filename("vlen_layouts.h5")
+    expected = [
+        [3, 2, 1],
+        [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144],
+        [],
+        [-257, 513],
+    ]
+
+    def test_read(self):
+        for endian in ("le", "be"):
+            for layout in (
+                "contiguous",
+                "compact",
+                "fixed_chunked",
+                "extendable",
+            ):
+                for empty in (False, True):
+                    if empty and layout == "fixed_chunked":
+                        continue
+                    name = f"{layout}_{endian}" + ("_empty" if empty else "")
+                    with self.subTest(name=name), warnings.catch_warnings():
+                        warnings.simplefilter("error", UserWarning)
+                        array = self.h5file.get_node("/" + name)
+                        expected = [] if empty else self.expected
+                        self.assertIsInstance(array, tb.VLArray)
+                        self.assertEqual(array.shape, (len(expected),))
+                        self.assertEqual(array.atom, tb.Int32Atom())
+                        chunkshape = (
+                            (2,)
+                            if layout in ("fixed_chunked", "extendable")
+                            else None
+                        )
+                        self.assertEqual(array.chunkshape, chunkshape)
+                        self.assertEqual(
+                            [row.tolist() for row in array[:]], expected
+                        )
+                        self.assertEqual(
+                            [row.tolist() for row in array[::2]], expected[::2]
+                        )
+                        self.assertEqual(
+                            [row.tolist() for row in array.iterrows()],
+                            expected,
+                        )
+
+    def test_copy_and_modify(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "writable.h5"
+            shutil.copyfile(self.h5fname, path)
+            with tb.open_file(path, "a") as file:
+                for endian in ("le", "be"):
+                    for layout in ("contiguous", "compact", "fixed_chunked"):
+                        with self.subTest(endian=endian, layout=layout):
+                            array = file.get_node(f"/{layout}_{endian}")
+                            copied = array.copy("/", array.name + "_copy")
+                            self.assertEqual(
+                                [row.tolist() for row in copied[:]],
+                                self.expected,
+                            )
+                            copied.append([9])
+                            self.assertEqual(copied[-1].tolist(), [9])
+                            array[-1] = [1025, -2049]
+                            with self.assertRaises(tb.HDF5ExtError):
+                                array.append([9])
+                            with self.assertRaises(tb.HDF5ExtError):
+                                array.truncate(5)
+                            self.assertEqual(array.nrows, 4)
+            with tb.open_file(path) as file:
+                for endian in ("le", "be"):
+                    for layout in ("contiguous", "compact", "fixed_chunked"):
+                        array = file.get_node(f"/{layout}_{endian}")
+                        self.assertEqual(
+                            [row.tolist() for row in array[:]],
+                            self.expected[:-1] + [[1025, -2049]],
+                        )
+
+
 class PaddedArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
     """Test for H5T_COMPOUND (Table) datatype with padding.
 
@@ -1120,6 +1199,7 @@ def suite():
     niter = 1
 
     for i in range(niter):
+        theSuite.addTest(common.make_suite(NonChunkedVLArrayTestCase))
         theSuite.addTest(common.make_suite(PaddedArrayTestCase))
         theSuite.addTest(common.make_suite(PaddedCompoundAttrTestCase))
         theSuite.addTest(common.make_suite(WideBitfieldAttrTestCase))

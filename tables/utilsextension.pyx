@@ -965,8 +965,7 @@ def which_class(hid_t loc_id, object name):
         classId = "TABLE"  # A test for supporting non-growable tables
 
   elif class_id == H5T_VLEN:
-    if layout == H5D_CHUNKED:
-      classId = "VLARRAY"
+    classId = "VLARRAY"
 
   # Release the datatype.
   H5Tclose(type_id)

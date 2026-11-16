@@ -136,6 +136,9 @@ Security fixes
 Bugs fixed
 ----------
 
+* Read fixed-size, non-chunked variable-length numeric datasets as
+  :class:`VLArray` objects (:issue:`1111`). Preserve the row count when HDF5
+  rejects a resize beyond the dataset's storage limits.
 * Point selections preserve coordinate views and accept read-only index arrays.
 * Atom shapes reject non-integer dimensions instead of silently truncating them.
 * Array indexing rejects out-of-range and non-integer indices before converting
