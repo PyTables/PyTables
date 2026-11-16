@@ -1597,9 +1597,21 @@ cdef class LastRowArray(Array):
   Container for keeping sorted and indices values of last rows of an index.
   """
 
+  cdef _check_slice_fits(self, hsize_t start, hsize_t stop, ndarray buf):
+    # H5ARRAYOreadSliceLR() writes stop - start elements of this array's
+    # own type, and both come from the file, so check them against the
+    # destination buffer before reading.
+    if (buf is None or stop < start or
+        (stop - start) * self.atom.itemsize > buf.nbytes):
+      raise ValueError(
+        f"last row slice [{start}:{stop}] of {self._v_pathname} does not "
+        f"fit in the read buffer"
+      )
+
   def _read_index_slice(self, hsize_t start, hsize_t stop, ndarray idx):
     """Read the reverse index part of an LR index."""
 
+    self._check_slice_fits(start, stop, idx)
     cdef void *buf = PyArray_DATA(idx)
     with nogil:
         ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
@@ -1613,6 +1625,9 @@ cdef class LastRowArray(Array):
 
     cdef void  *rbuflb
 
+    # ``bufferlb`` holds one chunk of ``sorted``, while ``stop - start`` is
+    # derived from the index chunksize and reduction attributes.
+    self._check_slice_fits(start, stop, sorted.bufferlb)
     rbuflb = sorted.rbuflb  # direct access to rbuflb: very fast.
     with nogil:
         ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,

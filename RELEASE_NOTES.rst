@@ -159,6 +159,12 @@ Bugs fixed
   arrays do not match the dtype (and, for ``ranges``, the shape) of its
   ``sorted`` values.  The search buffers are sized after ``sorted``, so a
   wider ``bounds`` array in a crafted file made ``H5Dread`` write past them.
+* Indexed queries now reject last row reads that do not fit their
+  destination buffer.  ``sortedLR`` was read in chunks of ``chunksize //
+  reduction`` elements (both index attributes) into a buffer holding one
+  ``sorted`` chunk, and ``indicesLR`` with its own type into a buffer sized
+  for the ``indices`` itemsize, so a crafted file could make ``H5Dread``
+  write past either buffer.
 * Opening a leaf or attribute whose datatype is an enum with a base integer
   wider than 8 bytes no longer overflows a heap buffer.  ``get_native_type``
   and ``get_type_enum`` asked HDF5 for the native type with

@@ -7,7 +7,7 @@ import numpy as np
 import tables as tb
 from tests import common
 from tables.utils import print_versions
-from tables.indexes import CacheArray
+from tables.indexes import CacheArray, LastRowArray
 
 # Sensible parameters for indexing with small blocksizes
 MIN_ROW_INDEX = 10
@@ -2854,6 +2854,46 @@ class MismatchedIndexCacheTestCase(
             self.h5file.root.table.read_where("(x > -5) & (x < 5)")
 
 
+class MismatchedLastRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    """Last row index arrays that do not fit the buffers they are read into."""
+
+    def setUp(self):
+        super().setUp()
+        table = self.h5file.create_table("/", "table", {"x": tb.Int32Col()})
+        table.append([(i % 200 - 100,) for i in range(1000)])
+        table.cols.x.create_index(
+            optlevel=0, kind="ultralight", _blocksizes=(4096, 1024, 256, 16)
+        )
+        index = table.cols.x.index
+        self.assertGreater(index.reduction, 1)
+        self.assertGreater(index.nelementsSLR, 0)
+        self._reopen("a")
+
+    def test_reduction_larger_than_sorted_chunk(self):
+        # The last row is read in chunks of chunksize // reduction elements
+        # into a buffer holding one chunk of the ``sorted`` array.
+        self.h5file.root.table.cols.x.index._v_attrs.reduction = 1
+        self._reopen()
+        with self.assertRaises(ValueError):
+            self.h5file.root.table.read_where("(x > -90) & (x < -80)")
+
+    def test_wide_indices_lr(self):
+        index = self.h5file.root.table.cols.x.index
+        old = index.indicesLR
+        data = old[:].astype("u8")
+        nelements = old.attrs.nelements
+        shape, chunkshape, title = old.shape, old.chunkshape, old.title
+        old._f_remove()
+        new = LastRowArray(
+            index, "indicesLR", tb.UInt64Atom(), shape, title, None, chunkshape
+        )
+        new[:] = data
+        new.attrs.nelements = nelements
+        self._reopen()
+        with self.assertRaises(ValueError):
+            self.h5file.root.table.read_where("(x > -5) & (x < 5)")
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
 
@@ -2892,6 +2932,7 @@ def suite():
         theSuite.addTest(common.make_suite(TestIndexingNans))
         theSuite.addTest(common.make_suite(Issue699TestCase))
         theSuite.addTest(common.make_suite(MismatchedIndexCacheTestCase))
+        theSuite.addTest(common.make_suite(MismatchedLastRowTestCase))
     if common.heavy:
         # These are too heavy for normal testing
         theSuite.addTest(common.make_suite(AI4bTestCase))
