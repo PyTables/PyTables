@@ -1587,7 +1587,7 @@ cdef class Leaf(Node):
   def _g_truncate(self, hsize_t size):
     """Truncate a Leaf to `size` nrows."""
 
-    cdef hsize_t ret
+    cdef herr_t ret
 
     ret = truncate_dset(self.dataset_id, self.maindim, size)
     if ret < 0:
@@ -2462,10 +2462,13 @@ cdef class VLArray(Leaf):
     self.byteorder = correct_byteorder(atom.type, byteorder)
 
     # Get the chunkshape (VLArrays are unidimensional entities)
-    H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize)
+    if H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize) < 0:
+      chunkshape = None
+    else:
+      chunkshape = (SizeType(chunksize),)
 
     self.nrecords = nrecords  # Initialize the number of records saved
-    return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
+    return self.dataset_id, SizeType(nrecords), chunkshape, atom
 
   def _g_truncate(self, hsize_t size):
     """Truncate a VLArray to `size` nrows.
