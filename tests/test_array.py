@@ -2917,6 +2917,108 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         )
 
 
+class ArrayDefaultTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def check_defaults(self, cases):
+        expected = {}
+        for i, (atom, shape, byteorder) in enumerate(cases):
+            name = f"array{i}"
+            self.h5file.create_array(
+                "/", name, atom=atom, shape=shape, byteorder=byteorder
+            )
+            expected[name] = np.broadcast_to(
+                np.asarray(atom.dflt, dtype=atom.dtype.base),
+                shape + atom.shape,
+            )
+        for reopen in (False, True):
+            if reopen:
+                self.h5file.close()
+                self.h5file = tb.open_file(self.h5fname)
+            for i, (atom, shape, byteorder) in enumerate(cases):
+                with self.subTest(atom=atom, shape=shape, reopen=reopen):
+                    array = self.h5file.get_node(f"/array{i}")
+                    self.assertEqual(array.shape, shape + atom.shape)
+                    self.assertEqual(array.dtype, atom.dtype.base)
+                    np.testing.assert_array_equal(
+                        array.read(), expected[f"array{i}"]
+                    )
+                    if byteorder is not None:
+                        self.assertEqual(array.byteorder, byteorder)
+
+    def test_scalar_defaults(self):
+        atoms = [
+            tb.BoolAtom(dflt=True),
+            tb.Int32Atom(dflt=-7),
+            tb.UInt64Atom(dflt=2**63 + 1),
+            tb.Float32Atom(dflt=np.nan),
+            tb.Float64Atom(dflt=-1.25),
+            tb.ComplexAtom(itemsize=16, dflt=2 + 3j),
+            tb.StringAtom(4, dflt=b"a\x00b"),
+        ]
+        self.check_defaults([(atom, (2, 3), None) for atom in atoms])
+
+    def test_shaped_defaults(self):
+        values = np.arange(1, 7, dtype="i4").reshape(2, 3)
+        atoms = [
+            tb.Int32Atom(shape=(2, 3), dflt=values),
+            tb.Float64Atom(shape=(2, 3), dflt=-1.5),
+            tb.StringAtom(3, shape=(2,), dflt=[b"ab", b"c"]),
+        ]
+        self.check_defaults([(atom, (2,), None) for atom in atoms])
+        np.testing.assert_array_equal(values, [[1, 2, 3], [4, 5, 6]])
+
+    def test_scalar_and_empty_arrays(self):
+        self.check_defaults(
+            [
+                (tb.Int16Atom(dflt=7), shape, None)
+                for shape in ((), (0,), (2, 0, 3))
+            ]
+        )
+
+    def test_disk_byteorder(self):
+        self.check_defaults(
+            [
+                (tb.Float64Atom(dflt=1.25), (2, 3), byteorder)
+                for byteorder in ("little", "big")
+            ]
+        )
+
+    def test_explicit_object_takes_precedence(self):
+        values = np.arange(6, dtype="i4").reshape(2, 3)
+        atom = tb.Int32Atom(dflt=-7)
+        self.h5file.create_array("/", "array", obj=values, atom=atom)
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname)
+        np.testing.assert_array_equal(self.h5file.root.array.read(), values)
+        self.assertEqual(atom.dflt, -7)
+
+    def test_constant_broadcast_object(self):
+        values = np.broadcast_to(np.array(-3, dtype="i4"), (3, 4))
+        self.h5file.create_array("/", "array", obj=values)
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname)
+        np.testing.assert_array_equal(self.h5file.root.array.read(), values)
+
+    def test_fill_does_not_allocate_dataset(self):
+        array = self.h5file.create_array(
+            "/", "array", atom=tb.Float64Atom(dflt=1.25), shape=(1000000,)
+        )
+        self.assertEqual(array.size_on_disk, 0)
+        np.testing.assert_array_equal(array[:3], [1.25] * 3)
+        self.assertEqual(array.size_on_disk, 0)
+
+    def test_constant_object_with_array_datatype(self):
+        # Keep a sentinel in the backing allocation so a fill buffer that
+        # reads beyond the broadcast value fails deterministically.
+        owner = np.array([7, 999], dtype="i4")
+        values = np.broadcast_to(owner[:1], (3, 2))
+        atom = tb.Int32Atom(shape=(2,))
+        tb.Array(self.h5file.root, "array", obj=values, _atom=atom)
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname)
+        np.testing.assert_array_equal(self.h5file.root.array.read(), values)
+        self.assertEqual(atom.dflt, 0)
+
+
 class IndependentIteratorTestCase(
     common.TempFileMixin, common.PyTablesTestCase
 ):
@@ -3085,6 +3187,8 @@ def suite():
         theSuite.addTest(common.make_suite(AccessClosedTestCase))
         theSuite.addTest(common.make_suite(TestCreateArrayArgs))
         theSuite.addTest(common.make_suite(BroadcastTest))
+        theSuite.addTest(common.make_suite(ArrayDefaultTestCase))
+
         theSuite.addTest(common.make_suite(IndependentIteratorTestCase))
 
     return theSuite

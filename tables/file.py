@@ -1199,6 +1199,8 @@ class File(hdf5extension.File):
         atom : Atom
             An Atom (see :ref:`AtomClassDescr`) instance representing
             the *type* and *shape* of the atomic objects to be saved.
+            If *obj* is not provided, the array is initialized with the
+            atom's default value.
 
             .. versionadded:: 3.0
 
@@ -1233,10 +1235,14 @@ class File(hdf5extension.File):
 
             # Making strides=(0,...) below is a trick to create the
             # array fast and without memory consumption
-            dflt = np.zeros((), dtype=atom.dtype)
+            dtype = atom.dtype
+            if byteorder in ("little", "big"):
+                dtype = dtype.newbyteorder(byteorder)
+            dflt = np.zeros((), dtype=dtype)
+            dflt[...] = atom.dflt
             obj = np.ndarray(
                 shape,
-                dtype=atom.dtype,
+                dtype=dtype,
                 buffer=dflt,
                 strides=(0,) * len(shape),
             )

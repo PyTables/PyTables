@@ -89,17 +89,18 @@ hid_t H5ARRAYmake(  hid_t loc_id,
  if ( H5Pset_obj_track_times( plist_id, track_times ) < 0 )
    return -1;
 
+ /* Fill values apply to contiguous as well as chunked datasets. */
+ if (fill_data) {
+   if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
+     return -1;
+ }
+
  if (chunked) {
    /* Modify dataset creation properties, i.e. enable chunking  */
    if ( H5Pset_chunk ( plist_id, rank, dims_chunk ) < 0 )
      return -1;
 
-   /* Set the fill value using a struct as the data type. */
-   if (fill_data) {
-     if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
-       return -1;
-   }
-   else {
+   if (!fill_data) {
      if ( H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC) < 0 )
        return -1;
    }
