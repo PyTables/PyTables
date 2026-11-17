@@ -2688,6 +2688,137 @@ class AtomDefaultReprReopen(AtomDefaultReprTestCase):
     reopen = True
 
 
+class ChunkedDefaultTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def check_defaults(self, atoms, byteorder=None):
+        expected = {}
+        for kind in ("carray", "earray"):
+            for i, original in enumerate(atoms):
+                atom = original.copy()
+                default = np.broadcast_to(atom.dflt, atom.shape).copy()
+                name = f"{kind}{i}"
+                array = getattr(self.h5file, f"create_{kind}")(
+                    "/",
+                    name,
+                    atom=atom,
+                    shape=(3,) if kind == "carray" else (0,),
+                    byteorder=byteorder,
+                )
+                if kind == "earray":
+                    array.truncate(3)
+                expected[name] = np.broadcast_to(default, (3,) + atom.shape)
+                with self.subTest(kind=kind, atom=original, reopen=False):
+                    np.testing.assert_array_equal(array.read(), expected[name])
+                    np.testing.assert_array_equal(array.atom.dflt, default)
+                    self.assertEqual(np.shape(array.atom.dflt), atom.shape)
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname)
+        for name, values in expected.items():
+            with self.subTest(name=name, reopen=True):
+                array = self.h5file.get_node("/" + name)
+                np.testing.assert_array_equal(array.read(), values)
+                np.testing.assert_array_equal(array.atom.dflt, values[0])
+
+    def test_nonuniform_defaults(self):
+        self.check_defaults(
+            [
+                tb.Int32Atom(shape=(2, 3), dflt=[[1, 2, 3], [4, 5, 6]]),
+                tb.Float64Atom(shape=(2,), dflt=[np.nan, 1.25]),
+                tb.StringAtom(3, shape=(2,), dflt=[b"ab", b"cd"]),
+                tb.ComplexAtom(16, shape=(2,), dflt=[1 + 2j, 3 - 4j]),
+                tb.BoolAtom(shape=(2,), dflt=[True, False]),
+            ]
+        )
+
+    def test_broadcast_defaults(self):
+        self.check_defaults(
+            [
+                tb.Int16Atom(shape=(2, 3), dflt=[1, 2, 3]),
+                tb.Float32Atom(shape=(2, 3), dflt=-1.5),
+            ]
+        )
+
+    def test_foreign_byteorder(self):
+        order = "big" if sys.byteorder == "little" else "little"
+        self.check_defaults(
+            [
+                tb.Int32Atom(dflt=-7),
+                tb.Float64Atom(shape=(2,), dflt=[1.25, -3.5]),
+                tb.ComplexAtom(16, shape=(2,), dflt=[1 + 2j, 3 - 4j]),
+                tb.EnumAtom(
+                    {"red": 1, "blue": 2}, "blue", base="uint32", shape=(2,)
+                ),
+            ],
+            byteorder=order,
+        )
+
+    def test_partial_writes(self):
+        expected = {}
+        for kind in ("carray", "earray"):
+            for level in (0, 1):
+                atom = tb.Int32Atom(shape=(2,), dflt=[3, -7])
+                name = f"{kind}{level}"
+                array = getattr(self.h5file, f"create_{kind}")(
+                    "/",
+                    name,
+                    atom=atom,
+                    shape=(5,) if kind == "carray" else (0,),
+                    chunkshape=(2,),
+                    filters=tb.Filters(level, "zlib"),
+                )
+                if kind == "earray":
+                    array.truncate(5)
+                array[1] = [10, 20]
+                expected[name] = np.array([[3, -7]] * 5, dtype="i4")
+                expected[name][1] = [10, 20]
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname)
+        for name, values in expected.items():
+            with self.subTest(name=name):
+                np.testing.assert_array_equal(
+                    self.h5file.get_node("/" + name).read(), values
+                )
+
+    def test_atom_reuse(self):
+        atom = tb.Int32Atom(shape=(2, 3), dflt=[1, 2, 3])
+        expected = np.array([[1, 2, 3], [1, 2, 3]], dtype="i4")
+        for i in range(2):
+            array = self.h5file.create_carray(
+                "/", f"array{i}", atom=atom, shape=(1,)
+            )
+            with self.subTest(i=i):
+                np.testing.assert_array_equal(array[0], expected)
+                np.testing.assert_array_equal(atom.dflt, expected)
+
+    def test_zero_defaults(self):
+        self.check_defaults(
+            [
+                tb.Int32Atom(),
+                tb.Int32Atom(shape=(2,)),
+                tb.StringAtom(3, shape=(2,)),
+            ]
+        )
+
+    def test_negative_zero(self):
+        for kind in ("carray", "earray"):
+            array = getattr(self.h5file, f"create_{kind}")(
+                "/",
+                kind,
+                atom=tb.Float64Atom(dflt=-0.0),
+                shape=(3,) if kind == "carray" else (0,),
+            )
+            if kind == "earray":
+                array.truncate(3)
+        for reopen in (False, True):
+            if reopen:
+                self.h5file.close()
+                self.h5file = tb.open_file(self.h5fname)
+            for kind in ("carray", "earray"):
+                with self.subTest(kind=kind, reopen=reopen):
+                    values = self.h5file.get_node("/" + kind).read()
+                    np.testing.assert_array_equal(values, [0.0] * 3)
+                    self.assertTrue(np.signbit(values).all())
+
+
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for inability to truncate Array objects."""
@@ -3267,6 +3398,7 @@ def suite():
         theSuite.addTest(common.make_suite(DfltAtomReopen))
         theSuite.addTest(common.make_suite(AtomDefaultReprNoReopen))
         theSuite.addTest(common.make_suite(AtomDefaultReprReopen))
+        theSuite.addTest(common.make_suite(ChunkedDefaultTestCase))
         theSuite.addTest(common.make_suite(TruncateTestCase))
         theSuite.addTest(common.make_suite(MDAtomNoReopen))
         theSuite.addTest(common.make_suite(MDAtomReopen))

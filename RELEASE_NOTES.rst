@@ -13,6 +13,9 @@ Changes from 3.11.1 to 3.12.0
 * Honor the Atom default value in :meth:`File.create_array` when creating
   an array with ``atom`` and ``shape`` instead of an explicit object.
   Nonzero defaults and NaN were previously replaced with zeros (issue #423).
+* Preserve shaped Atom defaults and non-native byte order when initializing
+  CArray and EArray fill values. Nonuniform defaults could previously repeat
+  their first element, and foreign-endian defaults could contain incorrect data.
 
 Breaking changes
 ----------------

@@ -1768,18 +1768,25 @@ cdef class Array(Leaf):
     version = self._v_version.encode("utf-8")
     class_ = self._c_classid.encode("utf-8")
 
-    # Get the fill values
-    if isinstance(atom.dflt, np.ndarray) or atom.dflt:
-      dflts = np.array(atom.dflt, dtype=atom.dtype)
-      fill_data = PyArray_DATA(dflts)
-    else:
-      dflts = np.zeros((), dtype=atom.dtype)
-      fill_data = NULL
+    # Allocate one atom, then assign its default without repeating its shape.
+    dflts = np.zeros((), dtype=atom.dtype)
+    dflts[...] = atom.dflt
     if atom.shape == ():
       # The default is preferred as a scalar value instead of 0-dim array
       atom.dflt = dflts[()]
     else:
       atom.dflt = dflts
+
+    # HDF5 interprets this buffer using disk_type_id. Keep the Atom's default
+    # native, and swap a separate buffer when the disk byte order differs.
+    if self.byteorder in ("little", "big") and self.byteorder != sys.byteorder:
+      dflts = dflts.byteswap()
+    # Keep HDF5's implicit zero fill for large atoms. Explicit fill values
+    # must fit in the dataset header; signed zero still needs its own bytes.
+    if np.any(dflts.reshape(-1).view(np.uint8)):
+      fill_data = PyArray_DATA(dflts)
+    else:
+      fill_data = NULL
 
     cdef hsize_t blocksize = int(os.environ.get("PT_DEFAULT_B2_BLOCKSIZE", "0"))
     # Create the CArray/EArray
