@@ -157,25 +157,8 @@ class Array(hdf5extension.Array, Leaf):
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
 
-        # Miscellaneous iteration rubbish.
-        self._start: int | None = None
-        """Starting row for the current iteration."""
-        self._stop: int | None = None
-        """Stopping row for the current iteration."""
-        self._step: int | None = None
-        """Step size for the current iteration."""
-        self._nrowsread: int | None = None
-        """Number of rows read up to the current state of iteration."""
-        self._startb: int | None = None
-        """Starting row for current buffer."""
-        self._stopb: int | None = None
-        """Stopping row for current buffer. """
-        self._row: int | None = None
-        """Current row in iterators (sentinel)."""
-        self._init = False
-        """Whether we are in the middle of an iteration or not (sentinel)."""
-        self.listarr: npt.ArrayLike | None = None
-        """Current buffer in iterators."""
+        self._row_iterator: _ArrayIterator | None = None
+        """Most recent iterator, for compatibility with next(array)."""
 
         # Documented (*public*) attributes.
         self.atom = _atom
@@ -185,7 +168,7 @@ class Array(hdf5extension.Array, Leaf):
         self.shape: list[int] | None = None
         """The shape of the stored array."""
         self.nrow: int | None = None
-        """On iterators, this is the index of the current row."""
+        """The index of the most recently yielded row."""
         self.extdim = -1  # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
 
@@ -267,12 +250,14 @@ class Array(hdf5extension.Array, Leaf):
         start: int | None = None,
         stop: int | None = None,
         step: int | None = None,
-    ) -> tuple | Array:
+    ) -> tuple | _ArrayIterator:
         """Iterate over the rows of the array.
 
         This method returns an iterator yielding an object of the current
         flavor for each selected row in the array.  The returned rows are taken
-        from the *main dimension*.
+        from the *main dimension*. Each call returns an independent iterator,
+        allowing nested or interleaved iteration over the same array.
+        The array's ``nrow`` attribute refers to the most recently yielded row.
 
         If a range is not supplied, *all the rows* in the array are iterated
         upon - you can also use the :meth:`Array.__iter__` special method for
@@ -291,17 +276,16 @@ class Array(hdf5extension.Array, Leaf):
            In PyTables < 3.0 only one element was returned.
 
         """
+        self._g_check_open()
         try:
-            self._start, self._stop, self._step = self._process_range(
-                start, stop, step
-            )
+            start, stop, step = self._process_range(start, stop, step)
         except IndexError:
             # If problems with indexes, silently return the null tuple
             return ()
-        self._init_loop()
-        return self
+        self._row_iterator = _ArrayIterator(self, start, stop, step)
+        return self._row_iterator
 
-    def __iter__(self) -> Array:
+    def __iter__(self) -> _ArrayIterator:
         """Iterate over the rows of the array.
 
         This is equivalent to calling :meth:`Array.iterrows` with default
@@ -318,57 +302,19 @@ class Array(hdf5extension.Array, Leaf):
             result = [row[2] for row in array.iterrows()]
 
         """
-        if not self._init:
-            # If the iterator is called directly, assign default variables
-            self._start = 0
-            self._stop = self.nrows
-            self._step = 1
-            # and initialize the loop
-            self._init_loop()
-        return self
-
-    def _init_loop(self) -> None:
-        """Initialize the __iter__ iterator."""
-        self._nrowsread = self._start
-        self._startb = self._start
-        self._row = -1  # Sentinel
-        self._init = True  # Sentinel
-        self.nrow = SizeType(self._start - self._step)  # row number
+        return self.iterrows()
 
     def __next__(self) -> Any:
         """Get the next element of the array during an iteration.
 
-        The element is returned as an object of the current flavor.
+        The element is returned as an object of the current flavor, using the
+        iterator most recently created by :meth:`iterrows` or :meth:`__iter__`.
 
         """
-        # this could probably be sped up for long iterations by reusing the
-        # listarr buffer
-        if self._nrowsread >= self._stop:
-            self._init = False
-            self.listarr = None  # fixes issue #308
-            raise StopIteration  # end of iteration
-
-        # Read a chunk of rows
-        if self._row + 1 >= self.nrowsinbuf or self._row < 0:
-            self._stopb = self._startb + self._step * self.nrowsinbuf
-            # Protection for reading more elements than needed
-            self._stopb = min(self._stopb, self._stop)
-            listarr = self._read(self._startb, self._stopb, self._step)
-
-            # Swap the axes to easy the return of elements
-            if self.extdim > 0:
-                listarr = listarr.swapaxes(self.extdim, 0)
-            self.listarr = internal_to_flavor(listarr, self.flavor)
-            self._row = -1
-            self._startb = self._stopb
-        self._row += 1
-        self.nrow += self._step
-        self._nrowsread += self._step
-        # Fixes bug #968132
-        # if self.listarr.shape:
-        if self.shape:
-            return self.listarr[self._row]
-        return self.listarr  # Scalar case
+        self._g_check_open()
+        if self._row_iterator is None:
+            self.iterrows()
+        return next(self._row_iterator)
 
     def _interpret_indexing(
         self,
@@ -971,6 +917,51 @@ class Array(hdf5extension.Array, Leaf):
   flavor := {self.flavor!r}
   byteorder := {self.byteorder!r}
   chunkshape := {self.chunkshape!r}"""
+
+
+class _ArrayIterator:
+    """An independent range and read buffer for an Array."""
+
+    def __init__(self, array: Array, start: int, stop: int, step: int) -> None:
+        self._array = array
+        self._next = start
+        self._stop = stop
+        self._step = step
+        self._startb = start
+        self._row = -1
+        self._buffer = None
+        self.nrow = SizeType(start - step)
+        array.nrow = self.nrow
+
+    def __iter__(self) -> _ArrayIterator:
+        return self
+
+    def __next__(self) -> Any:
+        if self._next >= self._stop:
+            self._buffer = None
+            self._array = None
+            raise StopIteration
+
+        array = self._array
+        array._g_check_open()
+        if self._row + 1 >= array.nrowsinbuf or self._row < 0:
+            stopb = min(
+                self._startb + self._step * array.nrowsinbuf, self._stop
+            )
+            buffer = array._read(self._startb, stopb, self._step)
+            if array.extdim > 0:
+                buffer = buffer.swapaxes(array.extdim, 0)
+            self._buffer = internal_to_flavor(buffer, array.flavor)
+            self._row = -1
+            self._startb = stopb
+
+        self._row += 1
+        self.nrow = SizeType(self._next)
+        array.nrow = self.nrow
+        self._next += self._step
+        if array.shape:
+            return self._buffer[self._row]
+        return self._buffer
 
 
 class ImageArray(Array):

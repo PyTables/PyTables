@@ -136,6 +136,10 @@ Security fixes
 Bugs fixed
 ----------
 
+* Give :class:`Array`, :class:`CArray` and :class:`EArray` independent row
+  iterators, so nested and interleaved iteration does not share a cursor
+  or read buffer (:issue:`293`).
+
 * Read fixed-size, non-chunked variable-length numeric datasets as
   :class:`VLArray` objects (:issue:`1111`). Preserve the row count when HDF5
   rejects a resize beyond the dataset's storage limits.
