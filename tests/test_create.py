@@ -30,6 +30,52 @@ class Record(tb.IsDescription):
     var5 = tb.Float32Col()  # float  (single-precision)
 
 
+class TableExpectedRowsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def _check_expectedrows(self, use_default):
+        data = np.ones(3, dtype=[("values", "f8", (7,))])
+        cases = [
+            np.int32(40_000_000),
+            np.uint32(80_000_000),
+            np.int64(2**62),
+            np.uint64(2**63),
+        ]
+        written = []
+        for expectedrows in cases:
+            name = type(expectedrows).__name__
+            with self.subTest(dtype=name):
+                reference = self.h5file.create_table(
+                    "/",
+                    name + "_reference",
+                    data.dtype,
+                    expectedrows=int(expectedrows),
+                )
+                if use_default:
+                    self.h5file.params["EXPECTED_ROWS_TABLE"] = expectedrows
+                    kwargs = {"expectedrows": None}
+                else:
+                    kwargs = {"expectedrows": expectedrows}
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", RuntimeWarning)
+                    table = self.h5file.create_table(
+                        "/", name, data.dtype, **kwargs
+                    )
+                self.assertEqual(table.chunkshape, reference.chunkshape)
+                table.append(data)
+                table.flush()
+                self.assertTrue(common.allequal(table.read(), data))
+                written.append(name)
+        self._reopen()
+        for name in written:
+            table = self.h5file.get_node("/" + name)
+            self.assertTrue(common.allequal(table.read(), data))
+
+    def test_numpy_expectedrows(self):
+        self._check_expectedrows(use_default=False)
+
+    def test_numpy_default_expectedrows(self):
+        self._check_expectedrows(use_default=True)
+
+
 class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     title = "This is the table title"
     expectedrows = 100
@@ -2689,6 +2735,7 @@ def suite():
     # common.heavy = 1 # Uncomment this only for testing purposes!
 
     for i in range(niter):
+        theSuite.addTest(common.make_suite(TableExpectedRowsTestCase))
         theSuite.addTest(common.make_suite(FiltersCase1))
         theSuite.addTest(common.make_suite(FiltersCase2))
         theSuite.addTest(common.make_suite(FiltersCase10))
