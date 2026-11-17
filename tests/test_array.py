@@ -3019,6 +3019,108 @@ class ArrayDefaultTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(atom.dflt, 0)
 
 
+class IndependentIteratorTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    def make_array(self, kind, flavor="numpy", nrowsinbuf=2):
+        data = np.arange(18).reshape(9, 2)
+        name = f"array_{len(self.h5file.root._v_children)}"
+        array = getattr(self.h5file, f"create_{kind}")("/", name, obj=data)
+        array.flavor = flavor
+        array.nrowsinbuf = nrowsinbuf
+        return array, data
+
+    def test_self_comparison(self):
+        for kind in ("array", "carray", "earray"):
+            for flavor in ("numpy", "python"):
+                for buffer in (1, 4):
+                    with self.subTest(kind=kind, flavor=flavor, buffer=buffer):
+                        array, data = self.make_array(kind, flavor, buffer)
+                        pairs = list(zip(array.iterrows(), array.iterrows()))
+                        self.assertEqual(len(pairs), len(data))
+                        for index, (left, right) in enumerate(pairs):
+                            np.testing.assert_array_equal(left, data[index])
+                            np.testing.assert_array_equal(right, data[index])
+
+    def test_interleaved_ranges(self):
+        for kind in ("array", "carray", "earray"):
+            with self.subTest(kind=kind):
+                array, data = self.make_array(kind)
+                odd = array.iterrows(1, 9, 2)
+                thirds = array.iterrows(0, 9, 3)
+                for left, right in zip((1, 3, 5), (0, 3, 6)):
+                    np.testing.assert_array_equal(next(odd), data[left])
+                    self.assertEqual(array.nrow, left)
+                    np.testing.assert_array_equal(next(thirds), data[right])
+                    self.assertEqual(array.nrow, right)
+                np.testing.assert_array_equal(list(odd), data[7:9:2])
+                self.assertEqual(list(thirds), [])
+                for iterator in (odd, thirds):
+                    for _ in range(2):
+                        with self.assertRaises(StopIteration):
+                            next(iterator)
+
+    def test_nested_iteration(self):
+        for kind in ("array", "carray", "earray"):
+            with self.subTest(kind=kind):
+                array, data = self.make_array(kind)
+                observed = [
+                    (int(left[0]), int(right[0]))
+                    for left in array
+                    for right in array
+                ]
+                expected = [
+                    (int(left[0]), int(right[0]))
+                    for left in data
+                    for right in data
+                ]
+                self.assertEqual(observed, expected)
+
+    def test_restart_after_partial_iteration(self):
+        array, data = self.make_array("array")
+        previous = iter(array)
+        np.testing.assert_array_equal(next(previous), data[0])
+        np.testing.assert_array_equal(list(array), data)
+        np.testing.assert_array_equal(list(previous), data[1:])
+
+    def test_direct_next_compatibility(self):
+        array, data = self.make_array("array")
+        iterator = array.iterrows(1, 9, 2)
+        np.testing.assert_array_equal(next(iterator), data[1])
+        np.testing.assert_array_equal(next(array), data[3])
+        np.testing.assert_array_equal(next(iterator), data[5])
+
+    def test_nonleading_extdim(self):
+        data = np.arange(42).reshape(2, 7, 3)
+        array = self.h5file.create_earray(
+            "/", "nonleading", atom=tb.Int64Atom(), shape=(2, 0, 3)
+        )
+        array.append(data)
+        array.nrowsinbuf = 2
+        first, second = iter(array), array.iterrows(2, 7, 2)
+        np.testing.assert_array_equal(next(first), data[:, 0, :])
+        np.testing.assert_array_equal(
+            list(second), data[:, 2:7:2, :].swapaxes(0, 1)
+        )
+        np.testing.assert_array_equal(
+            list(first), data[:, 1:, :].swapaxes(0, 1)
+        )
+
+    def test_scalar_and_empty(self):
+        scalar = self.h5file.create_array("/", "scalar", obj=np.array(4))
+        self.assertEqual(list(zip(scalar, scalar)), [(4, 4)])
+        empty = self.h5file.create_array("/", "empty", obj=np.empty((0, 2)))
+        self.assertEqual(list(zip(empty, empty)), [])
+
+    def test_closed_node(self):
+        array, _ = self.make_array("array")
+        iterator = iter(array)
+        next(iterator)
+        array._f_close()
+        with self.assertRaises(tb.ClosedNodeError):
+            next(iterator)
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -3086,6 +3188,8 @@ def suite():
         theSuite.addTest(common.make_suite(TestCreateArrayArgs))
         theSuite.addTest(common.make_suite(BroadcastTest))
         theSuite.addTest(common.make_suite(ArrayDefaultTestCase))
+
+        theSuite.addTest(common.make_suite(IndependentIteratorTestCase))
 
     return theSuite
 
