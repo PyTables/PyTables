@@ -136,6 +136,10 @@ Security fixes
 Bugs fixed
 ----------
 
+* Normalize ``Table``'s ``expectedrows`` to a Python integer, as for
+  ``EArray`` and ``VLArray``, so large NumPy integer estimates do not
+  overflow when calculating the chunk size (gh-961).
+
 * Read fixed-size, non-chunked variable-length numeric datasets as
   :class:`VLArray` objects (:issue:`1111`). Preserve the row count when HDF5
   rejects a resize beyond the dataset's storage limits.
