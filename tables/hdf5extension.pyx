@@ -1658,6 +1658,8 @@ cdef class Array(Leaf):
 
   def _create_array(self, ndarray nparr, object title, object atom):
     cdef void *rbuf
+    cdef void *fill_data = NULL
+    cdef ndarray dflts
     cdef bytes complib, version, class_
     cdef object dtype_, atom_, shape
     cdef ndarray dims
@@ -1687,6 +1689,17 @@ cdef class Array(Leaf):
     self.rank = len(shape)
     self.dims = npy_malloc_dims(self.rank, <npy_intp *>PyArray_DATA(dims))
     rbuf = _array_data(nparr)
+    if rbuf == NULL and nparr.size:
+      # A zero-stride array represents one repeated value. Keep it compact
+      # by letting HDF5 fill the dataset instead of expanding the buffer.
+      if atom_.shape:
+        # The HDF5 array datatype needs a complete atom, not one scalar.
+        dflts = np.empty(atom_.shape, dtype=nparr.dtype)
+        dflts[...] = nparr.flat[0]
+        fill_data = PyArray_DATA(dflts)
+      else:
+        fill_data = PyArray_DATA(nparr)
+        atom_.dflt = nparr.flat[0]
 
     # Blosc2 optimized operations cannot be used (no chunking nor filters).
     self.blosc2_support_read = False
@@ -1698,7 +1711,8 @@ cdef class Array(Leaf):
     class_ = self._c_classid.encode("utf-8")
     self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims,
-                                  self.extdim, self.disk_type_id, NULL, NULL,
+                                  self.extdim, self.disk_type_id, NULL,
+                                  fill_data,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
