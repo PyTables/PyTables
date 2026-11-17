@@ -606,6 +606,28 @@ value of dimensions that are orthogonal (and preferably close) to the
         # For itermode, we don't need the out info
         return (i_nrows, slice_pos, start, stop, step, nrowsinbuf)
 
+    def _eval_buffer(
+        self, slice_pos: list[int], slices: tuple[slice, ...]
+    ) -> np.ndarray:
+        """Evaluate one buffer without changing the inputs' flavor conversion."""
+        # Snapshot all flags before changing any: operands may share an array.
+        conversions = [
+            (val, val._v_convert)
+            for val in self.values
+            if hasattr(val, "_v_convert")
+        ]
+        try:
+            for val, _ in conversions:
+                val._v_convert = False
+            vals = [
+                val[slices] if i in slice_pos else val
+                for i, val in enumerate(self.values)
+            ]
+            return self._compiled_expr(*vals)
+        finally:
+            for val, convert in conversions:
+                val._v_convert = convert
+
     def eval(self) -> ContainerType:  # noqa: A003
         """Evaluate the expression and return the outcome.
 
@@ -637,7 +659,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             on-disk container may consume all your available memory.
 
         """
-        values, shape, maindim = self.values, self.shape, self.maindim
+        shape, maindim = self.shape, self.maindim
 
         # Get different info we need for the main computation loop
         (
@@ -665,12 +687,6 @@ value of dimensions that are orthogonal (and preferably close) to the
         i_slices = [slice(None)] * (maindim + 1)
         o_slices = [slice(None)] * (o_maindim + 1)
 
-        # This is a hack to prevent doing unnecessary flavor conversions
-        # while reading buffers
-        for val in values:
-            if hasattr(val, "maindim"):
-                val._v_convert = False
-
         # Start the computation itself
         for start2 in range(start, stop, step * nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
@@ -679,18 +695,8 @@ value of dimensions that are orthogonal (and preferably close) to the
             # Set the proper slice for inputs
             i_slices[maindim] = slice(start2, stop2, step)
 
-            # Get the input values
-            vals = []
-            for i, val in enumerate(values):
-                if i in slice_pos:
-                    vals.append(val.__getitem__(tuple(i_slices)))
-                else:
-                    # A read of values is not apparently needed, as PyTables
-                    # leaves seems to work just fine inside Numexpr
-                    vals.append(val)
-
             # Do the actual computation for this slice
-            rout = self._compiled_expr(*vals)
+            rout = self._eval_buffer(slice_pos, tuple(i_slices))
 
             # Set the values into the out buffer
             if self.append_mode:
@@ -705,11 +711,6 @@ value of dimensions that are orthogonal (and preferably close) to the
                 # Set the slice
                 out[tuple(o_slices)] = rout
 
-        # Activate the conversion again (default)
-        for val in values:
-            if hasattr(val, "maindim"):
-                val._v_convert = True
-
         return out
 
     def __iter__(self) -> Iterator[Row]:
@@ -719,7 +720,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         container specified in :meth:`Expr.set_output` method is ignored here.
 
         """
-        values, shape, maindim = self.values, self.shape, self.maindim
+        shape, maindim = self.shape, self.maindim
 
         # Get different info we need for the main computation loop
         i_nrows, slice_pos, start, stop, step, nrowsinbuf = self._get_info(
@@ -734,12 +735,6 @@ value of dimensions that are orthogonal (and preferably close) to the
         # (including the main dimension)
         i_slices = [slice(None)] * (maindim + 1)
 
-        # This is a hack to prevent doing unnecessary flavor conversions
-        # while reading buffers
-        for val in values:
-            if hasattr(val, "maindim"):
-                val._v_convert = False
-
         # Start the computation itself
         for start2 in range(start, stop, step * nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
@@ -748,23 +743,8 @@ value of dimensions that are orthogonal (and preferably close) to the
             # Set the proper slice in the main dimension
             i_slices[maindim] = slice(start2, stop2, step)
 
-            # Get the values for computing the buffer
-            vals = []
-            for i, val in enumerate(values):
-                if i in slice_pos:
-                    vals.append(val.__getitem__(tuple(i_slices)))
-                else:
-                    # A read of values is not apparently needed, as PyTables
-                    # leaves seems to work just fine inside Numexpr
-                    vals.append(val)
-
             # Do the actual computation
-            rout = self._compiled_expr(*vals)
+            rout = self._eval_buffer(slice_pos, tuple(i_slices))
 
             # Return one row per call
             yield from rout
-
-        # Activate the conversion again (default)
-        for val in values:
-            if hasattr(val, "maindim"):
-                val._v_convert = True

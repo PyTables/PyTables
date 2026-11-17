@@ -1,5 +1,7 @@
 """Test module for evaluating expressions under PyTables."""
 
+from unittest import mock
+
 import numpy as np
 from numpy import testing as npt
 
@@ -1324,6 +1326,106 @@ class AppendModeFalse(AppendModeTestCase):
     append = False
 
 
+class InputFlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    kind = "array"
+
+    def setUp(self):
+        super().setUp()
+        self.data = np.arange(12, dtype="i4").reshape(4, 3)
+        create = getattr(self.h5file, f"create_{self.kind}")
+        self.array = create("/", "input", obj=self.data)
+        self.array.flavor = "python"
+        # Both names refer to the same input, so restoration must not save
+        # an already modified flag for the second operand.
+        self.expr = tb.Expr("a + b", {"a": self.array, "b": self.array})
+
+    def assert_input_flavor(self, convert=True):
+        self.assertEqual(self.array.flavor, "python")
+        self.assertIsInstance(self.array[:], list if convert else np.ndarray)
+        npt.assert_array_equal(self.array[:], self.data)
+        self.assertIs(self.array._v_convert, convert)
+
+    def test_eval_preserves_conversion(self):
+        for convert in (True, False):
+            with self.subTest(convert=convert):
+                self.array._v_convert = convert
+                npt.assert_array_equal(self.expr.eval(), self.data * 2)
+                self.assert_input_flavor(convert)
+
+    def test_failed_output_preserves_conversion(self):
+        output = np.empty_like(self.data)
+        output.flags.writeable = False
+        self.expr.set_output(output)
+        for convert in (True, False):
+            with self.subTest(convert=convert):
+                self.array._v_convert = convert
+                with self.assertRaisesRegex(ValueError, "read-only"):
+                    self.expr.eval()
+                self.assert_input_flavor(convert)
+
+    def test_suspended_iterator_preserves_flavor(self):
+        iterator = iter(self.expr)
+        try:
+            npt.assert_array_equal(next(iterator), self.data[0] * 2)
+            self.assert_input_flavor()
+        finally:
+            iterator.close()
+
+    def test_failed_input_preserves_conversion(self):
+        for convert in (True, False):
+            with self.subTest(convert=convert):
+                self.array._v_convert = convert
+                with mock.patch.object(
+                    type(self.array),
+                    "__getitem__",
+                    side_effect=OSError("read failed"),
+                ):
+                    with self.assertRaisesRegex(OSError, "read failed"):
+                        self.expr.eval()
+                self.assert_input_flavor(convert)
+
+    def test_closed_iterator_preserves_flavor(self):
+        iterator = iter(self.expr)
+        next(iterator)
+        iterator.close()
+        self.assert_input_flavor()
+
+    def test_thrown_iterator_preserves_flavor(self):
+        iterator = iter(self.expr)
+        next(iterator)
+        with self.assertRaisesRegex(RuntimeError, "stop iteration"):
+            iterator.throw(RuntimeError("stop iteration"))
+        self.assert_input_flavor()
+
+    def test_exhausted_iterator_preserves_conversion(self):
+        for convert in (True, False):
+            with self.subTest(convert=convert):
+                self.array._v_convert = convert
+                npt.assert_array_equal(list(self.expr), self.data * 2)
+                self.assert_input_flavor(convert)
+
+    def test_interleaved_iterators_preserve_flavor(self):
+        first, second = iter(self.expr), iter(self.expr)
+        try:
+            next(first)
+            next(second)
+            first.close()
+            npt.assert_array_equal(next(second), self.data[1] * 2)
+            second.close()
+            self.assert_input_flavor()
+        finally:
+            first.close()
+            second.close()
+
+
+class CArrayInputFlavor(InputFlavorTestCase):
+    kind = "carray"
+
+
+class EArrayInputFlavor(InputFlavorTestCase):
+    kind = "earray"
+
+
 # Test for `__iter__()` iterator
 class IterTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
@@ -1746,6 +1848,9 @@ def suite():
         theSuite.addTest(common.make_suite(RepeatedMaindimTestCase))
         theSuite.addTest(common.make_suite(AppendModeTrue))
         theSuite.addTest(common.make_suite(AppendModeFalse))
+        theSuite.addTest(common.make_suite(InputFlavorTestCase))
+        theSuite.addTest(common.make_suite(CArrayInputFlavor))
+        theSuite.addTest(common.make_suite(EArrayInputFlavor))
         theSuite.addTest(common.make_suite(Iter0))
         theSuite.addTest(common.make_suite(Iter1))
         theSuite.addTest(common.make_suite(Iter2))
