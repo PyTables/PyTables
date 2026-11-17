@@ -33,6 +33,14 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer overflow reading a variable-length datatype nested in an
+  ``H5T_ARRAY`` (or in another vlen).  ``hdf5_to_np_ext_type`` mapped any
+  ``H5T_VLEN`` to the atom of its base type, which is only right for the
+  top-level vlen of a VLArray, so an array of vlens passed the existing
+  top-level checks of the Array and Table readers and was sized from the base
+  atom while ``H5Dread`` wrote one ``hvl_t`` per element, overrunning the read
+  buffer.  Nested variable-length types are now rejected and such leaves open
+  as ``UnImplemented``.
 * Honor ``allow_pickle`` for the source file in :func:`copy_file`.  The
   keyword arguments were only used to open the destination, so
   ``copy_file(src, dst, allow_pickle=False)`` still read the source with

@@ -1069,6 +1069,39 @@ class NestedArrayTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
         )
 
 
+class NestedVlenTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    """Test for a variable-length datatype nested in an array or a vlen.
+
+    hdf5_to_np_ext_type() mapped an H5T_VLEN to the atom of its base type,
+    which is only right for a VLArray's own top-level vlen.  A vlen nested in
+    an H5T_ARRAY (or in another vlen) passed the top-level class checks of
+    the Array, Table and VLArray readers and was mapped to its base atom too,
+    while H5Dread still filled one ``hvl_t`` per element.  Reading an EArray
+    or a Table column of ``[4] vlen int8`` wrote 16 times the buffer size
+    (access violation / heap corruption on the unpatched tree).  These types
+    have no NumPy counterpart, so such leaves must open as UnImplemented.
+
+    nested_vlen_leaf.h5 was created with h5py; `/earray` is a chunked
+    ``[4] H5T_ARRAY { H5T_VLEN { H5T_STD_I8LE } }`` dataset labelled EARRAY,
+    `/table` a compound {a: int32, b: that array type} labelled TABLE and
+    `/vlarray` a ``vlen { vlen int8 }`` dataset labelled VLARRAY.
+    """
+
+    h5fname = common.test_filename("nested_vlen_leaf.h5")
+
+    def test(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            nodes = [
+                self.h5file.get_node("/earray"),
+                self.h5file.get_node("/table"),
+                self.h5file.get_node("/vlarray"),
+            ]
+        # Rejected on open, so the overflowing read is never reached.
+        for node in nodes:
+            self.assertIsInstance(node, tb.UnImplemented)
+
+
 class SingleColPaddedCompoundTestCase(
     common.TestFileMixin, common.PyTablesTestCase
 ):
@@ -1227,6 +1260,7 @@ def suite():
         theSuite.addTest(common.make_suite(MultidimTableLeafTestCase))
         theSuite.addTest(common.make_suite(ForgedLeafClassTestCase))
         theSuite.addTest(common.make_suite(NestedArrayTypeTestCase))
+        theSuite.addTest(common.make_suite(NestedVlenTypeTestCase))
         theSuite.addTest(common.make_suite(SingleColPaddedCompoundTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
