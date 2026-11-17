@@ -136,6 +136,10 @@ Security fixes
 Bugs fixed
 ----------
 
+* Preserve boolean grouping in compound indexed table queries. Nested
+  conjunctions and disjunctions could omit matching rows, including when
+  only some conditions were indexable (:issue:`564`).
+
 * Read fixed-size, non-chunked variable-length numeric datasets as
   :class:`VLArray` objects (:issue:`1111`). Preserve the row count when HDF5
   rejects a resize beyond the dataset's storage limits.
