@@ -585,7 +585,7 @@ cdef hid_t get_native_type(hid_t type_id) noexcept nogil:
 
   if class_id == H5T_FLOAT:
     native_type_id = get_native_float_type(type_id)
-  elif class_id == H5T_INTEGER:
+  elif class_id in (H5T_INTEGER, H5T_COMPOUND):
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
   elif class_id == H5T_ENUM:
     # H5Tget_native_type overflows a heap buffer for an enum whose base
@@ -1195,6 +1195,8 @@ def enum_to_hdf5(object enum_atom, str byteorder):
     # Set the name and value of each of the members.
     names = enum_atom._names
     values = enum_atom._values
+    if byteorder in ("little", "big") and byteorder != sys.byteorder:
+      values = values.byteswap()
 
     # This saves the default enum value first so that we can restore it
     default_name = enum_atom._defname
