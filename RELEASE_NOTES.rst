@@ -136,6 +136,9 @@ Security fixes
 Bugs fixed
 ----------
 
+* Give :class:`Array`, :class:`CArray` and :class:`EArray` independent row
+  iterators, so nested and interleaved iteration does not share a cursor
+  or read buffer (:issue:`293`).
 * Normalize ``Table``'s ``expectedrows`` to a Python integer, as for
   ``EArray`` and ``VLArray``, so large NumPy integer estimates do not
   overflow when calculating the chunk size (gh-961).
