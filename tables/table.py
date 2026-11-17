@@ -749,7 +749,7 @@ class Table(tableextension.Table, Leaf):
         """The computed byteorder of the self._v_recarray."""
         if expectedrows is None:
             expectedrows = parentnode._v_file.params["EXPECTED_ROWS_TABLE"]
-        self._v_expectedrows: int = expectedrows
+        self._v_expectedrows: int = int(expectedrows)
         """The expected number of rows to be stored in the table."""
         self.nrows = SizeType(0)
         """The current number of rows in the table."""
