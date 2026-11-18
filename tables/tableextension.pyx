@@ -458,6 +458,17 @@ cdef class Table(Leaf):
       # Get the member name
       c_colname = H5Tget_member_name(type_id, i)
       colname = cstr_to_pystr(c_colname)
+      # Description takes ``_v_`` keys as its own settings, not as columns,
+      # so such a member would be left out of the NumPy record while it is
+      # still inserted in the HDF5 memory type below, and H5Dread would write
+      # past the read buffer.  PyTables never creates these column names, so
+      # reject the member and let the leaf open as UnImplemented.
+      if colname.startswith("_v_"):
+        H5free_memory(c_colname)
+        raise TypeError(
+          f"table ``{self.name}``, column ``{colname}``: "
+          "column names starting with ``_v_`` are reserved"
+        )
 
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
