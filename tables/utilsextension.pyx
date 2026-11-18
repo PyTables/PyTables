@@ -1450,6 +1450,14 @@ def hdf5_to_np_ext_type(
       )
     # Get the variable length base component
     super_type_id = H5Tget_super(type_id)
+    # Only a VLArray's own top-level H5T_VLEN is read as hvl_t rows.  A vlen
+    # base nested in another vlen (or in an array, see below) would be mapped
+    # to its own base atom here, while H5Dread still fills one hvl_t per
+    # element, so the atom no longer matches H5Tget_size: reads hand back raw
+    # hvl_t bytes or, for an array of vlens, overflow the read buffer.
+    if H5Tget_class(super_type_id) == H5T_VLEN:
+      H5Tclose(super_type_id)
+      raise TypeError("nested variable length types are not supported yet")
     # Find the super member format
     stype, shape = hdf5_to_np_ext_type(super_type_id, pure_numpy_types)
     # Release resources
@@ -1465,6 +1473,10 @@ def hdf5_to_np_ext_type(
   elif class_id == H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
+    # A vlen base has no fixed-size NumPy counterpart (see H5T_VLEN above).
+    if H5Tget_class(super_type_id) == H5T_VLEN:
+      H5Tclose(super_type_id)
+      raise TypeError("nested variable length types are not supported yet")
     # Find the super member format and its shape.  When the base is itself an
     # H5T_ARRAY (a foreign nested array datatype), its dimensions must be kept
     # too; dropping them would size the NumPy container below H5Tget_size and
