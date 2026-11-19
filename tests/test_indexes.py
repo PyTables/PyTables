@@ -2894,6 +2894,52 @@ class MismatchedLastRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.h5file.root.table.read_where("(x > -5) & (x < 5)")
 
 
+class IndexShorterThanTableTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    """Indexed queries on a table with more rows than its index.
+
+    The indexed row iterator reads one chunkmap entry per table chunk, while
+    the chunkmap is sized after the index.  Rows not yet added to the index
+    used to make it read past the chunkmap and skip arbitrary chunks.
+
+    """
+
+    nrows_indexed = 1000
+    nrows_appended = 100_000
+
+    def setUp(self):
+        super().setUp()
+        self.table = self.h5file.create_table(
+            "/", "table", {"x": tb.Int32Col()}, chunkshape=(100,)
+        )
+        self.table.append(np.zeros(self.nrows_indexed, dtype=[("x", "i4")]))
+        self.table.cols.x.create_index()
+
+    def append_rows(self):
+        self.table.append(np.zeros(self.nrows_appended, dtype=[("x", "i4")]))
+
+    def check_query(self, table):
+        self.assertEqual(table.will_query_use_indexing("x == 0"), {"x"})
+        self.assertLess(table.cols.x.index.nelements, table.nrows)
+        coords = table.get_where_list("x == 0")
+        np.testing.assert_array_equal(coords, np.arange(table.nrows))
+
+    def test_rows_not_flushed_to_index(self):
+        # With autoindex on, appended rows reach the index on flush().
+        self.append_rows()
+        self.check_query(self.table)
+
+    def test_clean_index_shorter_than_table(self):
+        # A file whose index is not marked dirty but covers fewer rows.
+        self.table.autoindex = False
+        self.append_rows()
+        self.table.flush()
+        self.table.cols.x.index._v_attrs.DIRTY = False
+        self._reopen()
+        self.check_query(self.h5file.root.table)
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
 
@@ -2933,6 +2979,7 @@ def suite():
         theSuite.addTest(common.make_suite(Issue699TestCase))
         theSuite.addTest(common.make_suite(MismatchedIndexCacheTestCase))
         theSuite.addTest(common.make_suite(MismatchedLastRowTestCase))
+        theSuite.addTest(common.make_suite(IndexShorterThanTableTestCase))
     if common.heavy:
         # These are too heavy for normal testing
         theSuite.addTest(common.make_suite(AI4bTestCase))

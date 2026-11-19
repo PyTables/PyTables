@@ -33,6 +33,13 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix out-of-bounds read in indexed queries on a table with more rows than
+  its index.  The indexed row iterator read one chunkmap entry per table
+  chunk, but the chunkmap is sized after the index, so rows appended and not
+  yet added to the index (or a file whose clean index is shorter than its
+  table) made it read past the chunkmap and skip arbitrary chunks, returning
+  nondeterministic results.  Chunks not covered by the index are now read and
+  checked against the condition.
 * Fix heap buffer overflow reading a table or compound attribute with a
   member whose name starts with ``_v_``.  ``Description`` takes such names as
   its own settings, so the member was dropped from the NumPy dtype while
