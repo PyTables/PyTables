@@ -1170,6 +1170,14 @@ cdef class Row:
         self.totalchunks = self.totalchunks + 1
       self.nrowsread = 0
       self.nextelement = 0
+      # __next__indexed() reads one chunkmap entry per table chunk, but the
+      # chunkmap is sized after the index, which can cover fewer rows than
+      # the table (rows appended but not yet added to the index, or a file
+      # whose index is shorter than its table).  Mark the chunks the index
+      # does not cover for a full read so the condition is evaluated there.
+      if len(chunkmap) < self.totalchunks:
+        chunkmap = np.concatenate(
+          (chunkmap, np.ones(self.totalchunks - len(chunkmap), dtype=bool)))
       self.chunkmap = chunkmap
       self.chunkmap_data = PyArray_BYTES(self.chunkmap)
       table._use_index = False
