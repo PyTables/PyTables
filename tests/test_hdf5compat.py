@@ -1102,6 +1102,45 @@ class NestedVlenTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
             self.assertIsInstance(node, tb.UnImplemented)
 
 
+class ReservedColumnNameTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
+    """Test for a compound member whose name starts with ``_v_``.
+
+    Description takes ``_v_`` keys as its own settings rather than columns,
+    so such a member read from a foreign file was silently left out of the
+    NumPy dtype while it stayed in the HDF5 memory type used for the read.
+    The container came out smaller than the on-disk record and
+    H5Dread/H5Aread wrote past it (access violation reading a large table on
+    the unpatched tree).  PyTables never creates these names, so such tables
+    must open as UnImplemented and such attributes read as unsupported.
+
+    reserved_colname.h5 was created with h5py; `/table` is a compound
+    {a: int32, _v_b: float64} and `/nested` a compound
+    {a: int32, n: {x: int32, _v_y: int64}}, both with the usual PyTables
+    TABLE attributes, and the group `/Test` carries a 4-element attribute
+    `attr` of the same type as `/table`.
+    """
+
+    h5fname = common.test_filename("reserved_colname.h5")
+
+    def test_table(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            nodes = [
+                self.h5file.get_node("/table"),
+                self.h5file.get_node("/nested"),
+            ]
+        # Rejected on open, so the overflowing read is never reached.
+        for node in nodes:
+            self.assertIsInstance(node, tb.UnImplemented)
+
+    def test_attr(self):
+        with self.assertWarns(tb.exceptions.DataTypeWarning):
+            attrs = self.h5file.get_node("/Test")._v_attrs
+        self.assertIsNone(attrs.attr)
+
+
 class SingleColPaddedCompoundTestCase(
     common.TestFileMixin, common.PyTablesTestCase
 ):
@@ -1261,6 +1300,7 @@ def suite():
         theSuite.addTest(common.make_suite(ForgedLeafClassTestCase))
         theSuite.addTest(common.make_suite(NestedArrayTypeTestCase))
         theSuite.addTest(common.make_suite(NestedVlenTypeTestCase))
+        theSuite.addTest(common.make_suite(ReservedColumnNameTestCase))
         theSuite.addTest(common.make_suite(SingleColPaddedCompoundTestCase))
         theSuite.addTest(common.make_suite(MatlabFileTestCase))
         theSuite.addTest(common.make_suite(ObjectReferenceTestCase))

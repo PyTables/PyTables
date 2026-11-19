@@ -33,6 +33,12 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer overflow reading a table or compound attribute with a
+  member whose name starts with ``_v_``.  ``Description`` takes such names as
+  its own settings, so the member was dropped from the NumPy dtype while
+  ``H5Dread``/``H5Aread`` still wrote it, overrunning the read buffer.  These
+  names are now rejected: such tables open as ``UnImplemented`` and such
+  attributes read as unsupported.
 * Fix heap buffer overflow reading a variable-length datatype nested in an
   ``H5T_ARRAY`` (or in another vlen).  ``hdf5_to_np_ext_type`` mapped any
   ``H5T_VLEN`` to the atom of its base type, which is only right for the

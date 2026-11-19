@@ -1328,6 +1328,15 @@ def hdf5_to_np_nested_type(hid_t type_id):
     # Get the member name
     c_colname = H5Tget_member_name(type_id, i)
     colname = cstr_to_pystr(c_colname)
+    # A ``_v_`` member would be taken by Description as one of its settings
+    # and left out of the NumPy dtype, while H5Aread still writes it (see
+    # get_nested_type in tableextension.pyx).
+    if colname.startswith("_v_"):
+      H5free_memory(c_colname)
+      raise TypeError(
+        f"compound member ``{colname}``: "
+        "names starting with ``_v_`` are reserved"
+      )
 
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
