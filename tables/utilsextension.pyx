@@ -1595,9 +1595,14 @@ cdef int load_reference(
   cdef ndarray nprefarr
   cdef int extdim
   cdef hobj_ref_t *newrefbuf = NULL
+  cdef ndarray flatarr
 
   if refbuf == NULL:
     raise ValueError("Invalid reference buffer")
+
+  # refbuf holds nelements references in C order; a multidimensional nparr
+  # is filled through a flat view, as nparr[i] only indexes its first axis.
+  flatarr = nparr.reshape(-1)
 
   try:
 
@@ -1649,7 +1654,12 @@ cdef int load_reference(
       shape = tuple(shape)
 
       nprefarr = np.empty(dtype=dtype_, shape=shape)
-      nparr[i] = [nprefarr]  # box the array in a list to store it as one object
+      if nparr.ndim == 1:
+        nparr[i] = [nprefarr]  # box the array in a list to store it as one object
+      else:
+        # Same as the former row assignment for (N, 1) arrays (which stores
+        # the array itself), but also valid when rows are longer than one.
+        flatarr[i:i+1] = [nprefarr]
       if stype_ == "_ref_":
         newrefbuf = <hobj_ref_t *>malloc(nprefarr.size * item_size)
         rbuf = newrefbuf
