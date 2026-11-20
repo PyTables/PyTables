@@ -1232,6 +1232,16 @@ class ObjectReferenceTestCase(common.TestFileMixin, common.PyTablesTestCase):
             )
         )
 
+    def test_read_multidim(self):
+        # read() of a (1, 3) reference array must load all 3 references,
+        # not one per row (that undersized the read buffer).
+        array = self.h5file.get_node("/ANN/my_arr")
+        data = array.read()
+        self.assertEqual(data.shape, (1, 3))
+        row = array[0]
+        for j in range(3):
+            self.assertTrue(common.are_arrays_equal(data[0, j], row[j][0]))
+
 
 class ObjectReferenceRecursiveTestCase(
     common.TestFileMixin, common.PyTablesTestCase

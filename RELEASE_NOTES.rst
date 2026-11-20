@@ -19,6 +19,8 @@ Changes from 3.11.1 to 3.12.0
 * Make column descriptions (:class:`StringCol`, :class:`Int32Col`,
   :class:`EnumCol`, ...) and :class:`Enum` objects picklable and copyable, so
   they can be sent to other processes (issue #340).
+* Preserve ``least_significant_digit=0`` when packing and unpacking
+  :class:`Filters`; it was previously dropped and read back as ``None``.
 
 Breaking changes
 ----------------
@@ -36,6 +38,11 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer overflow reading multidimensional object reference arrays
+  with :meth:`Array.read`.  The reference buffer was sized for one element
+  per row while HDF5 fills every element of the rows read, so a reference
+  array such as a ``(1, 3)`` MATLAB cell array overflowed it.  Reading such
+  arrays now returns all of their references.
 * Fix out-of-bounds read in indexed queries on a table with more rows than
   its index.  The indexed row iterator read one chunkmap entry per table
   chunk, but the chunkmap is sized after the index, so rows appended and not
