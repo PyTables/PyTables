@@ -360,8 +360,7 @@ class Atom(metaclass=MetaAtom):
 
         """
         if not isinstance(sctype, type) or not issubclass(sctype, np.generic):
-            assert isinstance(sctype, str)
-            if "," in sctype:
+            if isinstance(sctype, str) and "," in sctype:
                 raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
             try:
                 dtype = np.dtype(sctype)

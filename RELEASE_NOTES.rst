@@ -21,6 +21,8 @@ Changes from 3.11.1 to 3.12.0
   they can be sent to other processes (issue #340).
 * Preserve ``least_significant_digit=0`` when packing and unpacking
   :class:`Filters`; it was previously dropped and read back as ``None``.
+* Accept a :class:`numpy.dtype` in :meth:`Atom.from_sctype`, as its type hints say;
+  it previously failed with an :exc:`AssertionError`.
 
 Breaking changes
 ----------------

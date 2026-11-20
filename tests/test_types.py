@@ -304,6 +304,13 @@ class AtomTestCase(common.PyTablesTestCase):
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
+    def test_from_sctype_dtype(self):
+        atom1 = tb.Atom.from_sctype(np.dtype("int16"), shape=(2, 2))
+        atom2 = tb.Int16Atom(shape=(2, 2), dflt=0)
+        self.assertEqual(atom1, atom2)
+        with self.assertRaises(ValueError):
+            tb.Atom.from_sctype(np.dtype("S5"))
+
     def test_from_kind_01(self):
         atom1 = tb.Atom.from_kind("int", itemsize=2, shape=(2, 2))
         atom2 = tb.Int16Atom(shape=(2, 2), dflt=0)
