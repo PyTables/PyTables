@@ -312,7 +312,7 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
             packed |= _bitshuffle_flag
         if self.fletcher32:
             packed |= _fletcher32_flag
-        if self.least_significant_digit:
+        if self.least_significant_digit is not None:
             packed |= _rounding_flag
         packed <<= 8
 
