@@ -1978,7 +1978,9 @@ cdef class Array(Leaf):
 
     # Get the pointer to the buffer data area
     if self.atom.kind == "reference":
-      refbuf = malloc(nrows * item_size)
+      # H5ARRAYread fills every element of the selected rows, not one per
+      # row, so the buffer has to hold the whole output array.
+      refbuf = malloc(nparr.size * item_size)
       rbuf = refbuf
     else:
       rbuf = PyArray_DATA(nparr)
