@@ -1671,6 +1671,15 @@ class FilterTestCase(common.PyTablesTestCase):
         filter_ = tb.Filters(1, shuffle=False, least_significant_digit=5)
         self.assertEqual(self._hexl(filter_._pack()), "0x5040101")
 
+    def test_filter_pack_unpack_least_significant_digit(self):
+        # a zero digit must survive a pack/unpack round trip
+        for lsd in (0, 5):
+            with self.subTest(lsd=lsd):
+                filter_ = tb.Filters(1, least_significant_digit=lsd)
+                unpacked = tb.Filters._unpack(filter_._pack())
+                self.assertEqual(unpacked.least_significant_digit, lsd)
+                self.assertEqual(unpacked, filter_)
+
     def test_filter_unpack_01(self):
         filter_ = tb.Filters._unpack(np.int64(0x0))
         self.assertFalse(filter_.shuffle)

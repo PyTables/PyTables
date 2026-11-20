@@ -16,6 +16,8 @@ Changes from 3.11.1 to 3.12.0
 * Preserve shaped Atom defaults and non-native byte order when initializing
   CArray and EArray fill values. Nonuniform defaults could previously repeat
   their first element, and foreign-endian defaults could contain incorrect data.
+* Preserve ``least_significant_digit=0`` when packing and unpacking
+  :class:`Filters`; it was previously dropped and read back as ``None``.
 
 Breaking changes
 ----------------
