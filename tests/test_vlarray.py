@@ -4306,6 +4306,36 @@ class VLUEndianTestCase(common.PyTablesTestCase):
         self.assertEqual(ledata, "para\u0140lel")
 
 
+class PseudoAtomMismatchTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    def _create(self, name, atom, row, kind):
+        vlarray = self.h5file.create_vlarray("/", name, atom)
+        vlarray.append(row)
+        vlarray.attrs.PSEUDOATOM = kind
+
+    def test_mismatched_pseudoatom(self):
+        """A pseudo-atom must match the stored atom of a ``VLArray``."""
+
+        self._create("vlstring", tb.Int64Atom(), [1, 2, 3], "vlstring")
+        self._create("object", tb.Int64Atom(), [1, 2, 3], "object")
+        self._create("vlunicode", tb.Int64Atom(), [1, 2, 3], "vlunicode")
+        self._create("shaped", tb.UInt8Atom(shape=(2,)), [[1, 2]], "vlstring")
+        self._create("matching", tb.UInt8Atom(), [65, 66], "vlstring")
+        self._reopen("a")
+
+        for name in ("vlstring", "object", "vlunicode", "shaped"):
+            with self.subTest(name=name):
+                with self.assertWarnsRegex(UserWarning, "does not match"):
+                    node = self.h5file.get_node("/", name)
+                self.assertIsInstance(node, tb.UnImplemented)
+
+        vlarray = self.h5file.root.matching
+        self.assertIsInstance(vlarray.atom, tb.VLStringAtom)
+        vlarray.append(b"xyz")
+        self.assertEqual(vlarray.read(), [b"AB", b"xyz"])
+
+
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
@@ -4903,6 +4933,7 @@ def suite():
         theSuite.addTest(common.make_suite(CopyIndex12TestCase))
         theSuite.addTest(common.make_suite(ChunkshapeTestCase))
         theSuite.addTest(common.make_suite(VLUEndianTestCase))
+        theSuite.addTest(common.make_suite(PseudoAtomMismatchTestCase))
         theSuite.addTest(common.make_suite(TruncateOpenTestCase))
         theSuite.addTest(common.make_suite(TruncateCloseTestCase))
         theSuite.addTest(common.make_suite(TruncateAppendVLTypesTestCase))

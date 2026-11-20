@@ -443,6 +443,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._v_objectid, self.nrows, self._v_chunkshape, atom = (
             self._open_array()
         )
+        stored_atom = atom
 
         # Check if the atom can be a PseudoAtom
         if "PSEUDOATOM" in self.attrs:
@@ -461,6 +462,18 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 atom = VLStringAtom()
             elif flavor1x == "Object":
                 atom = ObjectAtom()
+
+        # A pseudo-atom is chosen by an attribute, but appends write its base
+        # elements with the on-disk type.  If the stored atom is wider, HDF5
+        # reads past the row buffer and saves the extra bytes in the file.
+        if not hasattr(atom, "size") and (
+            stored_atom.type != atom.base.type or stored_atom.shape != ()
+        ):
+            raise ValueError(
+                f"pseudo-atom ``{atom.kind}`` does not match the stored "
+                f"atom of type ``{stored_atom.type}`` and shape "
+                f"``{stored_atom.shape}``"
+            )
 
         self.atom = atom
         return self._v_objectid

@@ -40,6 +40,13 @@ Breaking changes
 Security fixes
 --------------
 
+* Fix heap buffer over-read appending to a VLArray whose ``PSEUDOATOM``
+  attribute does not match its stored datatype.  The pseudo-atom
+  (``vlstring``, ``vlunicode`` or ``object``) was taken from the file without
+  checking its base against the stored atom, so appending to e.g. an int64
+  VLArray marked as ``vlstring`` made HDF5 read 8 bytes per byte of the row
+  buffer and write the extra heap memory into the file.  Such leaves now open
+  as ``UnImplemented``.
 * Fix heap buffer overflow reading multidimensional object reference arrays
   with :meth:`Array.read`.  The reference buffer was sized for one element
   per row while HDF5 fills every element of the rows read, so a reference
