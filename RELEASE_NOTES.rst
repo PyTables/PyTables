@@ -16,6 +16,9 @@ Changes from 3.11.1 to 3.12.0
 * Preserve shaped Atom defaults and non-native byte order when initializing
   CArray and EArray fill values. Nonuniform defaults could previously repeat
   their first element, and foreign-endian defaults could contain incorrect data.
+* Make column descriptions (:class:`StringCol`, :class:`Int32Col`,
+  :class:`EnumCol`, ...) and :class:`Enum` objects picklable and copyable, so
+  they can be sent to other processes (issue #340).
 
 Breaking changes
 ----------------
