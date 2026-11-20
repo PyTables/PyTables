@@ -1,4 +1,6 @@
 import sys
+import copy
+import pickle
 
 import numpy as np
 from packaging.version import parse as parse_version
@@ -337,6 +339,53 @@ class AtomTestCase(common.PyTablesTestCase):
         self.assertRaises(ValueError, tb.Atom.from_kind, "Float")
 
 
+class ColPickleTestCase(common.PyTablesTestCase):
+    """Columns must survive pickle and copy (issue #340)."""
+
+    def _roundtrips(self, col):
+        for clone in (
+            pickle.loads(pickle.dumps(col)),
+            copy.copy(col),
+            copy.deepcopy(col),
+        ):
+            self.assertIs(type(clone), type(col))
+            self.assertEqual(clone, col)
+            self.assertEqual(repr(clone), repr(col))
+            self.assertEqual(clone._v_pos, col._v_pos)
+            self.assertEqual(clone._v_offset, col._v_offset)
+            self.assertEqual(clone._v_col_attrs, col._v_col_attrs)
+
+    def test_string(self):
+        self._roundtrips(tb.StringCol(1))
+
+    def test_position(self):
+        self._roundtrips(tb.Int32Col(pos=2))
+
+    def test_shape_default_attrs(self):
+        self._roundtrips(
+            tb.Float64Col(shape=(2, 3), dflt=1.5, pos=1, attrs={"unit": "m"})
+        )
+
+    def test_enum(self):
+        self._roundtrips(
+            tb.EnumCol(tb.Enum(["red", "green"]), "green", "uint8", pos=3)
+        )
+
+    def test_columns_dict(self):
+        class Rec(tb.IsDescription):
+            name = tb.StringCol(8, pos=0)
+            value = tb.Float32Col(pos=1)
+
+        columns = pickle.loads(pickle.dumps(Rec.columns))
+        self.assertEqual(columns, Rec.columns)
+        desc = tb.description.Description(columns)
+        self.assertEqual(desc._v_names, ["name", "value"])
+
+    def test_enum_pickle(self):
+        enum = tb.Enum({"red": 1, "green": 5})
+        self.assertEqual(pickle.loads(pickle.dumps(enum)), enum)
+
+
 def suite():
     import doctest
 
@@ -348,6 +397,7 @@ def suite():
         if parse_version(np.__version__) < parse_version("2.dev0"):
             theSuite.addTest(doctest.DocTestSuite(tb.atom))
         theSuite.addTest(common.make_suite(AtomTestCase))
+        theSuite.addTest(common.make_suite(ColPickleTestCase))
         theSuite.addTest(common.make_suite(RangeTestCase))
         theSuite.addTest(common.make_suite(DtypeTestCase))
         theSuite.addTest(common.make_suite(ReadFloatTestCase))

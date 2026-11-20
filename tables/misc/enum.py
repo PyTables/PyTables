@@ -423,3 +423,8 @@ class Enum:
 
         """
         return f"Enum({self._names})"
+
+    def __reduce__(self) -> tuple[Any, ...]:
+        # The default protocol fails: `__getattr__` recurses on `_names`
+        # while the instance is still empty.
+        return type(self), (self._names,)

@@ -287,6 +287,18 @@ class Col(atom.Atom):
         kwargs["pos"] = getattr(self, "_v_pos", None)
         return kwargs
 
+    def __reduce__(self) -> tuple[Any, ...]:
+        # Column classes are created dynamically (see `_subclass_from_prefix`),
+        # so they can not be pickled by reference: rebuild the instance from
+        # its prefix instead.
+        return _empty_col, (self.prefix(),), self.__dict__
+
+
+def _empty_col(prefix: str) -> Col:
+    """Create an uninitialized column of the class registered for `prefix`."""
+    colclass = Col._class_from_prefix[prefix]
+    return colclass.__new__(colclass)
+
 
 def _generate_col_classes() -> Generator[type[Col]]:
     """Generate all column classes."""
