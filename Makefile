@@ -2,80 +2,137 @@
 # sources exported from a repository.  For building and installing PyTables,
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
-VERSION = $(shell grep "__version__ =" tables/_version.py | cut -f 3 -d ' ' | sed s/\"//g)
-SRCDIRS = doc
-GENERATED = ANNOUNCE.txt
-PYTHON = python3
-TAG = $(shell $(PYTHON) -c 'import sys, sysconfig; print(f"""{sysconfig.get_platform()}-{sys.implementation.cache_tag}{"t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""}""")')
-PYBUILDDIR = build/lib.$(TAG)
-OPT = PYTHONPATH="$(PYBUILDDIR)"
-MD5SUM = md5sum
-CYTHONIZED = tables/_comp_*.c tables/*extension.c
+PYTHON=python3
+TARGET=tables
+VERSION=$(shell grep "__version__ =" $(TARGET)/_version.py | cut -f 3 -d ' ' | sed s/\"//g)
+GENERATED=ANNOUNCE.txt
+TAG=$(shell $(PYTHON) -c 'import sys, sysconfig; print(f"""{sysconfig.get_platform()}-{sys.implementation.cache_tag}{"t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""}""")')
+PYBUILDDIR=build/lib.$(TAG)
+OPT=PYTHONPATH="$(PYBUILDDIR)"
+MD5SUM=md5sum
+CYTHONIZED=tables/_comp_*.c tables/*extension.c
 
-.PHONY: default dist sdist build check heavycheck parallelcheck clean distclean html latex requirements lint clean-requirements
+.PHONY: default help dist check clean cleaner distclean \
+        lint docs ext wheels \
+        html latex fulldist heavycheck parallelcheck requirements clean-requirements sdist build
 
 default: $(GENERATED) build
 
-dist: sdist html latex
+help:
+	@echo "Usage: make <TARGET>"
+	@echo "Available targets:"
+	@echo "  help      - print this help message"
+	@echo "  dist      - generate the distribution packages (source and wheel)"
+	@echo "  check     - run standard test suite"
+	@echo "  clean     - clean build artifacts"
+	@echo "  cleaner   - clean cache files and working directories of al tools"
+	@echo "  distclean - clean all the generated files"
+	@echo "  lint      - perform check with code linter (flake8, black)"
+	@echo "  docs      - generate the sphinx documentation"
+	@echo "  api       - update the API source files in the documentation"
+	@echo "  ext       - build Python extensions in-place"
+	@echo "  wheels    - build Python wheels"
+	@echo "  html      - build HTML documentation"
+	@echo "  latex     - build PDF/LaTeX documentation"
+	@echo "  fulldist  - build the full distribution for a release (sdizt, doc, ANNOUNCE, etc.)"
+	@echo "  heavycheck         - run the full test suite"
+	@echo "  parallelcheck      - run the parallel test suite"
+	@echo "  requirements       - run the parallel test suite"
+	@echo "  clean-requirements - run the parallel test suite"
+
+dist: fulldist
+
+check: build
+	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs $(TARGET) -k "not AttributeSet"
+	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
+
+clean:
+	$(RM) MANIFEST ANNOUNCE.txt
+	$(RM) -r *.*-info build
+	find . -name __pycache__ -type d -exec $(RM) -r {} +
+	# $(RM) -r __pycache__ */__pycache__ */*/__pycache__ */*/*/__pycache__
+	$(RM) $(TARGET)/*.c $(TARGET)/*.cpp $(TARGET)/*.so $(TARGET)/*.o
+	if [ -f doc/Makefile ] ; then $(MAKE) -C doc clean; fi
+	$(RM) -r doc/build
+	find . '(' -name '*.py[co]' -o -name '*~' ')' -not -path './.pixi/*' -exec rm '{}' ';'
+	$(RM) bench/*.h5 bench/*.prof
+	$(RM) -r examples/*.h5 examples/raw
+	$(RM) -r tmp a.out
+
+cleaner: clean
+	$(RM) -r .coverage htmlcov
+	$(RM) -r .pytest_cache
+	$(RM) -r .tox
+	$(RM) -r .mypy_cache
+	$(RM) -r .ruff_cache
+	$(RM) -r .ipynb_checkpoints
+	$(RM) -r .hypothesis
+
+distclean: cleaner
+	$(RM) -r dist
+
+lint:
+	$(PYTHON) -m flake8 --count --statistics $(TARGET) tests examples
+	$(PYTHON) -m pydocstyle --count $(TARGET)
+	$(PYTHON) -m isort --check $(TARGET) tests examples
+	$(PYTHON) -m black --check $(TARGET) tests examples
+	# $(PYTHON) -m mypy --check-untyped-defs --ignore-missing-imports $(TARGET) tests examples
+	ruff check $(TARGET) tests examples
+	# ruff format --check $(TARGET) tests examples
+	codespell
+	# cython-lint
+	$(PYTHON) ci/check_requirements_sync.py
+
+docs: ext html latex
+	# $(MAKE) PYTHONPATH=${PWD} -C doc html
+	# $(MAKE) PYTHONPATH=${PWD} -C doc doctest
+	$(MAKE) PYTHONPATH=${PWD} -C doc linkcheck
+	# $(MAKE) PYTHONPATH=${PWD} -C doc spelling
+
+ext:
+	$(PYTHON) setup.py build_ext --inplace
+
+wheels:
+	# Requires docker
+	python3 -m cibuildwheel --platform auto
+
+build:
+	$(PYTHON) setup.py build
+
+html: build
+	$(MAKE) $(OPT) -C doc html
+
+latex: build
+	$(MAKE) $(OPT) -C doc latexpdf
+
+sdist:
+	$(PYTHON) -m build --sdist
+	# Cython output is tied to the NumPy of the isolated build env,
+	# so don't let the in-tree build reuse it.
+	$(RM) $(CYTHONIZED)
+
+fulldist: clean sdist $(GENERATED) html latex
+	cp ANNOUNCE.txt dist/ANNOUNCE-$(VERSION).txt
 	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
 	cp doc/build/latex/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
-	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
+	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/build/html
 	cd dist && \
 	$(MD5SUM) -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).rst \
 	pytablesmanual-$(VERSION).pdf \
 	pytablesmanual-$(VERSION)-html.tar.gz > pytables-$(VERSION).md5 && \
 	cd -
 
-sdist: $(GENERATED)
-	# $(RM) -r MANIFEST tables/__pycache__ tables/*/__pycache__
-	# $(RM) tables/*.so
-	$(PYTHON) -m build --sdist
-	# Cython output is tied to the NumPy of the isolated build env, so don't let the in-tree build reuse it.
-	$(RM) $(CYTHONIZED)
-
-clean:
-	$(RM) -r MANIFEST build dist tmp tables/__pycache__ doc/_build
-	$(RM) bench/*.h5 bench/*.prof
-	$(RM) -r examples/*.h5 examples/raw
-	$(RM) -r *.egg-info
-	$(RM) $(GENERATED) tables/*.so a.out
-	find . '(' -name '*.py[co]' -o -name '*~' ')' -not -path './.pixi/*' -exec rm '{}' ';'
-	for srcdir in $(SRCDIRS) ; do $(MAKE) $(OPT) -C $$srcdir $@ ; done
-
-distclean: clean
-	$(RM) $(CYTHONIZED)
-	$(RM) doc/usersguide-*.pdf
-	$(RM) -r doc/html
-	$(RM) -r .pytest_cache
-	$(RM) -r .mypy_cache
-	$(RM) -r .ruff_cache
-	# git clean -fdx
-
-html: build
-	$(MAKE) $(OPT) -C doc html
-	$(RM) -r doc/html
-	cp -R doc/build/html doc/html
-
-latex: build
-	$(MAKE) $(OPT) -C doc latexpdf
-	$(RM) doc/usersguide-*.pdf
-	cp doc/build/latex/usersguide-$(VERSION).pdf doc
-
-ANNOUNCE.txt: ANNOUNCE.txt.in tables/__init__.py
-	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
-
-build:
-	$(PYTHON) setup.py build
-
-check: build
-	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
-	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
-
 heavycheck: build
 	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/test_all.py --heavy
 
 parallelcheck: build
 	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/run_ft.py --max-tests=400
+
+requirements: \
+	requirements.txt \
+	requirements-docs.txt \
+	.github/workflows/requirements/build-requirements.txt \
+	.github/workflows/requirements/wheels-requirements.txt
 
 clean-requirements:
 	$(RM) \
@@ -84,23 +141,9 @@ clean-requirements:
 		.github/workflows/requirements/build-requirements.txt \
 		.github/workflows/requirements/wheels-requirements.txt
 
-requirements: \
-	requirements.txt \
-	requirements-docs.txt \
-	.github/workflows/requirements/build-requirements.txt \
-	.github/workflows/requirements/wheels-requirements.txt
+ANNOUNCE.txt: ANNOUNCE.txt.in $(TARGET)/__init__.py
+	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
 
 %.txt: %.in
 	pip-compile -U --allow-unsafe --generate-hashes --strip-extras $<
 	# uv pip compile --python 3.11 -U --allow-unsafe --generate-hashes --strip-extras -o $@ $<
-
-lint:
-	$(PYTHON) ci/check_requirements_sync.py
-	$(PYTHON) -m flake8 --count --statistics tables tests
-	$(PYTHON) -m pydocstyle --count tables
-	$(PYTHON) -m isort --check tables tests
-	$(PYTHON) -m black --check tables tests
-	# $(PYTHON) -m mypy --check-untyped-defs --ignore-missing-imports tables  tests
-	ruff check tables tests
-	# cython-lint
-	codespell
