@@ -39,9 +39,9 @@ subscribe prior to send messages) to the PyTables `users mailing list`_, and
 send there a brief description of your issue and, if possible, a short script
 that can reproduce it.
 Hopefully, someone on the list will be able to help you.
-It is also a good idea to check out the `archives of the user's list`_ (you may
-want to check the `Gmane archives`_ instead) so as to see if the answer to your
-question has already been dealt with.
+It is also a good idea to check out the archives of the `users mailing list`_
+(you may want to check the `Gmane archives`_ instead) so as to see if the
+answer to your question has already been dealt with.
 
 
 Why HDF5?
@@ -54,7 +54,7 @@ efficiently deal with the data.  It has been chosen for the following reasons:
 * Lets you organize datasets hierarchically.
 * Very flexible and well tested in scientific environments.
 * Good maintenance and improvement rate.
-* Technical excellence (`R&D 100 Award`_).
+* Technical excellence.
 * **It's Open Source software**
 
 
@@ -492,14 +492,12 @@ don't need to re-install PyTables).
 .. _`Python language`: http://www.python.org
 .. _NumPy: http://www.numpy.org
 .. _`users mailing list`: https://groups.google.com/group/pytables-users
-.. _`archives of the user's list`: https://sourceforge.net/p/pytables/mailman/pytables-users/
 .. _`Gmane archives`: http://www.mail-archive.com/pytables-users@lists.sourceforge.net/
-.. _`R&D 100 Award`: http://www.hdfgroup.org/HDF5/RD100-2002/
 .. _ViTables: https://github.com/uvemas/ViTables
 .. _Cython: http://www.cython.org
 .. _`Francesc Alted`: https://github.com/FrancescAlted
 .. _netCDF3: http://www.unidata.ucar.edu/software/netcdf
-.. _`Scientific Python`: http://dirac.cnrs-orleans.fr/ScientificPython.html
+.. _`Scientific Python`: https://github.com/khinsen/ScientificPython
 .. _netCDF4: http://www.unidata.ucar.edu/software/netcdf
 .. _OPeNDAP: http://opendap.org
 .. _`PyTables Manual`: http://www.pytables.org/usersguide/index.html

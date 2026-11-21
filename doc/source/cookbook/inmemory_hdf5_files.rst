@@ -136,4 +136,4 @@ new HDF5 file descriptor::
 
 .. _`HDF5 drivers`: https://support.hdfgroup.org/documentation/hdf5/latest/_h5_f_d__u_g.html#subsec_vfd_drivers
 .. _`HDF5 User's Guide`: https://support.hdfgroup.org/documentation/hdf5/latest/_u_g.html
-.. _`HDF5 File Image Operations`: http://www.hdfgroup.org/HDF5/doc/Advanced/FileImageOperations/HDF5FileImageOperations.pdf
+.. _`HDF5 File Image Operations`: https://support.hdfgroup.org/releases/hdf5/documentation/rfc/HDF5FileImageOperations.pdf

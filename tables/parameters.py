@@ -316,8 +316,8 @@ The following drivers are not currently supported:
 .. versionadded:: 3.0
 
 .. _`Drivers section`:
-    http://www.hdfgroup.org/HDF5/doc/UG/08_TheFile.html#Drivers
-.. _`HDF5 User's Guide`: http://www.hdfgroup.org/HDF5/doc/UG/index.html
+    https://support.hdfgroup.org/documentation/hdf5/latest/_h5_f__u_g.html#subsec_file_alternate_drivers
+.. _`HDF5 User's Guide`: https://support.hdfgroup.org/documentation/hdf5/latest/_u_g.html
 
 """
 

@@ -124,8 +124,7 @@ been fixed. Here is the (non-exhaustive) list:
   single file: more than 5 TB (yeah, more than 5000 GB), that
   accounts for 11 GB compressed, has been created on an AMD
   Opteron machine running Linux-64 (the 64 bits version of the
-  Linux kernel). See the gory details in:
-  http://pytables.sf.net/html/HowFast.html.
+  Linux kernel).
 
 - New platforms supported: PyTables has been compiled and tested
   under Linux32 (Intel), Linux64 (AMD Opteron and Alpha), Win32

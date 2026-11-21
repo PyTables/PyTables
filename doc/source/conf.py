@@ -22,7 +22,7 @@ def get_version(filename):
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "PyTables"
-copyright = "2011–2026, PyTables maintainers"  # noqa: A001
+copyright = "2011-2026, PyTables maintainers"  # noqa: A001
 author = "PyTables maintainers"
 version = get_version("../../tables/_version.py")
 release = version
@@ -36,12 +36,12 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.inheritance_diagram",
     "sphinx.ext.extlinks",
+    "sphinx.ext.inheritance_diagram",
     "sphinx.ext.todo",
-    "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.mathjax",
     # 'numpydoc',
     "sphinx_rtd_theme",
     "IPython.sphinxext.ipython_console_highlighting",
@@ -117,6 +117,19 @@ epub_copyright = copyright
 epub_exclude_files = ["search.html"]
 
 
+# -- Options for linkcheck builder ------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-the-linkcheck-builder
+
+linkcheck_ignore = [
+    "https://gnuwin32.sourceforge.net",
+    "https://lists.sourceforge.net/lists/listinfo/pytables-announce",
+    r"https://sourceforge.net/mailarchive/message.php\?msg_id=29584752",
+    "https://sourceforge.net/projects/pytables",
+    "https://sourceforge.net/projects/pytables/files/lzo-win",
+    "https://sourceforge.net/projects/pytables/files/pytables",
+]
+
+
 # -- Extension configuration -------------------------------------------------
 
 # -- Options for intersphinx extension ---------------------------------------
@@ -135,6 +148,10 @@ extlinks = {
 autodoc_member_order = "groupwise"
 autoclass_content = "class"
 autosummary_generate = []
+
+# -- Spelling options ---------------------------------------------------------
+spelling_ignore_contributor_names = False
+
 
 # usersguide/usersguide.rst is only the root document of the LaTeX/PDF manual,
 # but its toctrees list the same chapters as usersguide/index.rst.  If both are

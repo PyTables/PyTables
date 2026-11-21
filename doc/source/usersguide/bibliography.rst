@@ -12,13 +12,15 @@ Bibliography
 
 :ref:`[HDFG2] <HDFG2>`
     The HDF Group. Introduction to HDF5. Introduction to the HDF5 data model
-    and programming model. `<http://www.hdfgroup.org/HDF5/doc/H5.intro.html>`_.
+    and programming model.
+    `<https://support.hdfgroup.org/documentation/hdf5/latest/index.html>`_.
 
 .. _HDFG3:
 
 :ref:`[HDFG3] <HDFG3>`
     The HDF Group. The HDF5 table programming model. Examples on using HDF5
-    tables with the C API. `<http://www.hdfgroup.org/HDF5/Tutor/h5table.html>`_.
+    tables with the C API.
+    `<https://support.hdfgroup.org/documentation/hdf5/latest/_h5_t_b__u_g.html>`_.
 
 .. _MERTZ:
 
@@ -100,14 +102,14 @@ Bibliography
     GnuWin32. GNU (and other) tools ported to Win32.
     GnuWin32 provides native Win32-versions of GNU tools, or tools with a
     similar open source licence.
-    `<https://gnuwin32.sourceforge.net/>`_.
+    `<https://gnuwin32.sourceforge.net>`_.
 
 .. _SCIPY1:
 
 :ref:`[SCIPY1] <SCIPY1>`
     Konrad Hinsen. Scientific Python. Collection of Python modules useful for
     scientific computing.
-    `<http://dirac.cnrs-orleans.fr/ScientificPython>`_.
+    `<https://github.com/khinsen/ScientificPython>`_.
 
 .. _SCIPY2:
 

@@ -715,7 +715,7 @@ should be changed to::
 
 .. target-notes::
 
-.. _`PyTables users' list`: https://lists.sourceforge.net/lists/listinfo/pytables-users
+.. _`PyTables users' list`: https://groups.google.com/g/pytables-users
 .. _`User's Guide`: https://www.pytables.org/usersguide
 .. _HDF5: http://www.hdfgroup.org/HDF5
 .. _SQLite: http://www.sqlite.org
