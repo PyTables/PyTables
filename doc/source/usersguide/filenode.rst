@@ -70,10 +70,7 @@ of a node file is expected to contain ('file', as we have seen).
 Although this is not expected to change, you should use filenode.NodeType
 instead of the literal 'file' when possible.
 
-new_node() and open_node() are the equivalent to the Python file() call (alias
-open()) for ordinary files. Their arguments differ from that of file(), but
-this is the only point where you will note the difference between working
-with a node file and working with an ordinary file.
+new_node() and open_node() return binary streams inside the host PyTables file.
 
 For this little tutorial, we will assume that we have a PyTables database
 opened for writing. Also, if you are somewhat lazy at typing sentences, the
@@ -104,8 +101,8 @@ hierarchy. This is that command::
     >>> fnode = filenode.new_node(h5file, where='/', name='fnode_test')
 
 That is basically all you need to create a file node. Simple, isn't it? From
-that point on, you can use fnode as any opened Python file (i.e. you can
-write data, read data, lines of text and so on).
+that point on, you can use fnode as a binary file. You can write bytes and read
+them back by line.
 
 new_node() accepts some more keyword arguments. You can give a title to your
 file with the title argument. You can use PyTables' compression features with
@@ -122,26 +119,27 @@ try to get the NODE_TYPE attribute from the newly created node::
 
 Using a file node
 ~~~~~~~~~~~~~~~~~
-As stated above, you can use the new node file as any other opened file. Let
-us try to write some text in and read it::
+Write some bytes, then seek back to the start to read them line by line::
 
-    >>> print("This is a test text line.", file=fnode)
-    >>> print("And this is another one.", file=fnode)
-    >>> print(file=fnode)
-    >>> fnode.write("Of course, file methods can also be used.")
-    >>>
-    >>> fnode.seek(0)  # Go back to the beginning of file.
-    >>>
+    >>> fnode.write(b"This is a test text line.\n")
+    26
+    >>> fnode.write(b"And this is another one.\n")
+    25
+    >>> fnode.write(b"\n")
+    1
+    >>> fnode.write(b"Of course, file methods can also be used.")
+    41
+    >>> fnode.seek(0)
+    0
     >>> for line in fnode:
     ...     print(repr(line))
-    'This is a test text line.\\n'
-    'And this is another one.\\n'
-    '\\n'
-    'Of course, file methods can also be used.'
+    b'This is a test text line.\n'
+    b'And this is another one.\n'
+    b'\n'
+    b'Of course, file methods can also be used.'
 
-This was run on a Unix system, so newlines are expressed as '\n'. In fact,
-you can override the line separator for a file by setting its line_separator
-property to any string you want.
+The newline bytes are part of the data. The last write leaves the final line
+unterminated.
 
 While using a file node, you should take care of closing it *before* you
 close the PyTables host file.
@@ -174,24 +172,28 @@ example::
     >>> node = h5file.root.fnode_test
     >>> fnode = filenode.open_node(node, 'a+')
     >>> print(repr(fnode.readline()))
-    'This is a test text line.\\n'
+    b'This is a test text line.\n'
     >>> print(fnode.tell())
     26
-    >>> print("This is a new line.", file=fnode)
+    >>> fnode.write(b"This is a new line.\n")
+    20
+    >>> print(fnode.tell())
+    46
     >>> print(repr(fnode.readline()))
-    ''
+    b'one.\n'
 
-Of course, the data append process places the pointer at the end of the file,
-so the last readline() call hit EOF. Let us seek to the beginning of the file
-to see the whole contents of our file::
+The write appends 20 bytes to the file and advances the stream position
+from 26 to 46. Reading from that position returns the end of the second
+line. Seek to the beginning to see the appended bytes in context::
 
     >>> fnode.seek(0)
+    0
     >>> for line in fnode:
-    ...   print(repr(line))
-    'This is a test text line.\\n'
-    'And this is another one.\\n'
-    '\\n'
-    'Of course, file methods can also be used.This is a new line.\\n'
+    ...     print(repr(line))
+    b'This is a test text line.\n'
+    b'And this is another one.\n'
+    b'\n'
+    b'Of course, file methods can also be used.This is a new line.\n'
 
 As you can check, the last string we wrote was correctly appended at the end
 of the file, instead of overwriting the second line, where the file pointer
