@@ -196,31 +196,19 @@ def _equiv_expr_node(
 def _get_idx_expr_recurse(
     exprnode: ne.expressions.ExpressionNode,
     indexedcols: frozenset[str],
-    idxexprs: list,
-    strexpr: list[str],
-) -> (
-    list[tuple[Any, tuple[str], tuple[Any]]]
-    | list[
-        tuple[ne.expressions.ExpressionNode, tuple[str, str], tuple[Any, Any]]
-    ]
-    | tuple[list, list[str]]
-):
+    offset: int,
+) -> tuple[list[tuple[Any, tuple[str, ...], tuple[Any, ...]]], str]:
     """Actual implementation of the `get_idx_expr()` wrapper.
 
-    'idxexprs' is a list of expressions in the form ``(var, (ops),
-    (limits))``. 'strexpr' is the indexable expression in string format.
-    These parameters will be received empty (i.e. [], ['']) for the
-    first time and populated during the different recursive calls.
-    Finally, they are returned in the last level to the original
-    wrapper.  If 'exprnode' is not indexable, it will return the tuple
-    ([], ['']) so as to signal this.
+    Return this subtree's index expressions and their boolean combination.
+    References in the string start at ``e{offset}``, after the preceding
+    subtree's expressions.  An unindexable subtree returns ``([], "")``.
 
     """
-    not_indexable = ([], [""])
+    not_indexable = ([], "")
     op_conv = {
         "and": "&",
         "or": "|",
-        "not": "~",
     }
     negcmp = {
         "lt": "ge",
@@ -262,7 +250,7 @@ def _get_idx_expr_recurse(
             invert = False
         else:
             expr = (idxcmp[0], (idxcmp[1],), (idxcmp[2],))
-        return [expr]
+        return [expr], f"e{offset}"
 
     # For now negations of complex expressions will be not supported as
     # forming part of an indexable condition.  This might be supported in
@@ -293,37 +281,21 @@ def _get_idx_expr_recurse(
     ):
         if lop in ["gt", "ge"] and rop in ["lt", "le"]:  # l <= x <= r
             expr = (lcolvar, (lop, rop), (llim, rlim))
-            return [expr]
+            return [expr], f"e{offset}"
         if lop in ["lt", "le"] and rop in ["gt", "ge"]:  # l >= x >= r
             expr = (rcolvar, (rop, lop), (rlim, llim))
-            return [expr]
+            return [expr], f"e{offset}"
 
     # Recursively get the expressions at the left and the right
-    lexpr = _get_idx_expr_recurse(left, indexedcols, idxexprs, strexpr)
-    rexpr = _get_idx_expr_recurse(right, indexedcols, idxexprs, strexpr)
+    lidx, lstr = _get_idx_expr_recurse(left, indexedcols, offset)
+    ridx, rstr = _get_idx_expr_recurse(right, indexedcols, offset + len(lidx))
 
-    def add_expr(expr, idxexprs: list, strexpr: list[str]) -> None:
-        """Add a single expression to the list."""
-        if isinstance(expr, list):
-            # expr is a single expression
-            idxexprs.append(expr[0])
-            lenexprs = len(idxexprs)
-            # Mutate the strexpr string
-            if lenexprs == 1:
-                strexpr[:] = ["e0"]
-            else:
-                strexpr[:] = [f"({strexpr[0]} {op_conv[op]} e{lenexprs - 1})"]
-
-    # Add expressions to the indexable list when they are and'ed, or
-    # they are both indexable.
-    if lexpr != not_indexable and (op == "and" or rexpr != not_indexable):
-        add_expr(lexpr, idxexprs, strexpr)
-        if rexpr != not_indexable:
-            add_expr(rexpr, idxexprs, strexpr)
-        return (idxexprs, strexpr)
-    if rexpr != not_indexable and op == "and":
-        add_expr(rexpr, idxexprs, strexpr)
-        return (idxexprs, strexpr)
+    if lstr and rstr:
+        return lidx + ridx, f"({lstr} {op_conv[op]} {rstr})"
+    # A conjunction can use either child's indexes. A disjunction needs
+    # both, or it could discard rows matching the unindexable child.
+    if op == "and":
+        return (lidx, lstr) if lstr else (ridx, rstr)
 
     # Can not use indexed column.
     return not_indexable
@@ -332,7 +304,7 @@ def _get_idx_expr_recurse(
 def _get_idx_expr(
     expr: ne.expressions.ExpressionNode,
     indexedcols: frozenset[str],
-) -> tuple[list[tuple[Any, tuple[str], tuple[Any]]], list[str]]:
+) -> tuple[list[tuple[Any, tuple[str, ...], tuple[Any, ...]]], str]:
     """Extract an indexable expression out of `exprnode`.
 
     Looks for variable-constant comparisons in the expression node
@@ -360,7 +332,7 @@ def _get_idx_expr(
     * ``~((a > 0) & (c_bool))``
 
     """
-    return _get_idx_expr_recurse(expr, indexedcols, [], [""])
+    return _get_idx_expr_recurse(expr, indexedcols, 0)
 
 
 class CompiledCondition:
@@ -508,16 +480,7 @@ def compile_condition(
         raise TypeError(
             f"condition ``{condition}`` does not have a boolean type"
         )
-    idxexprs = _get_idx_expr(expr, indexedcols)
-    # Post-process the answer
-    if isinstance(idxexprs, list):
-        # Simple expression
-        strexpr = ["e0"]
-    else:
-        # Complex expression
-        idxexprs, strexpr = idxexprs
-    # Get rid of the unnecessary list wrapper for strexpr
-    strexpr = strexpr[0]
+    idxexprs, strexpr = _get_idx_expr(expr, indexedcols)
 
     # Get the variable names used in the condition.
     # At the same time, build its signature.

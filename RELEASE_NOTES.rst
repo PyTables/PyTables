@@ -183,6 +183,10 @@ Security fixes
 Bugs fixed
 ----------
 
+* Preserve boolean grouping in compound indexed table queries. Nested
+  conjunctions and disjunctions could omit matching rows, including when
+  only some conditions were indexable (:issue:`564`).
+
 * Give :class:`Array`, :class:`CArray` and :class:`EArray` independent row
   iterators, so nested and interleaved iteration does not share a cursor
   or read buffer (:issue:`293`).
