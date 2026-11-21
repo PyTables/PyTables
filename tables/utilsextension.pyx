@@ -1655,7 +1655,8 @@ cdef int load_reference(
 
       nprefarr = np.empty(dtype=dtype_, shape=shape)
       if nparr.ndim == 1:
-        nparr[i] = [nprefarr]  # box the array in a list to store it as one object
+        # box the array in a list to store it as one object
+        nparr[i] = [nprefarr]
       else:
         # Same as the former row assignment for (N, 1) arrays (which stores
         # the array itself), but also valid when rows are longer than one.

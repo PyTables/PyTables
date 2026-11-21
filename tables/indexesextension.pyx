@@ -1601,8 +1601,11 @@ cdef class LastRowArray(Array):
     # H5ARRAYOreadSliceLR() writes stop - start elements of this array's
     # own type, and both come from the file, so check them against the
     # destination buffer before reading.
-    if (buf is None or stop < start or
-        (stop - start) * self.atom.itemsize > buf.nbytes):
+    if (
+      buf is None
+      or stop < start
+      or (stop - start) * self.atom.itemsize > buf.nbytes
+    ):
       raise ValueError(
         f"last row slice [{start}:{stop}] of {self._v_pathname} does not "
         f"fit in the read buffer"
