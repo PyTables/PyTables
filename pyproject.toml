@@ -107,7 +107,7 @@ pttree = "tables.scripts.pttree:main"
 
 
 [tool.setuptools.dynamic]
-version = { attr = "tables._version.__version__" }
+version = {attr = "tables._version.__version__"}
 
 
 [tool.setuptools]
@@ -272,12 +272,12 @@ extend-ignore = [
 
 [tool.ruff.format]
 # preview = true
-docstring-code-format = true
+# docstring-code-format = true
 
 
 [tool.ruff.lint.per-file-ignores]
 "**/{tests}/*" = ["D", "RUF012"]
-"**/{notebooks}/*.ipynb" = ["D","T201"]
+"**/{notebooks}/*.ipynb" = ["D", "T201"]
 "docs/conf.py" = ["D"]
 "setup.py" = ["RUF012"]  # RUF012: Mutable default value for class attribute
 "tables/__init__.py" = ["RUF022"]  # unsorted-dunder-all
