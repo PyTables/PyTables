@@ -1,17 +1,18 @@
 # Copy this file into the clipboard and paste into 'script -c python'.
 
 import tables as tb
+from tables.nodes import filenode
 
 h5file = tb.open_file("fnode.h5", "w")
 
-fnode = tb.nodes.FileNode.new_node(h5file, where="/", name="fnode_test")
+fnode = filenode.new_node(h5file, where="/", name="fnode_test")
 
-print(h5file.getAttrNode("/fnode_test", "NODE_TYPE"))
+print(h5file.get_node_attr("/fnode_test", "NODE_TYPE"))
 
-print("This is a test text line.", file=fnode)
-print("And this is another one.", file=fnode)
-print(file=fnode)
-fnode.write("Of course, file methods can also be used.")
+fnode.write(b"This is a test text line.\n")
+fnode.write(b"And this is another one.\n")
+fnode.write(b"\n")
+fnode.write(b"Of course, file methods can also be used.")
 
 fnode.seek(0)  # Go back to the beginning of file.
 
@@ -22,10 +23,11 @@ fnode.close()
 print(fnode.closed)
 
 node = h5file.root.fnode_test
-fnode = tb.nodes.FileNode.open_node(node, "a+")
+fnode = filenode.open_node(node, "a+")
 print(repr(fnode.readline()))
 print(fnode.tell())
-print("This is a new line.", file=fnode)
+fnode.write(b"This is a new line.\n")
+print(fnode.tell())
 print(repr(fnode.readline()))
 
 fnode.seek(0)

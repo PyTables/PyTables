@@ -18,6 +18,7 @@ for script in \
     carray1.py \
     earray1.py \
     earray2.py \
+    filenodes1.py \
     index.py \
     inmemory.py \
     links.py \
@@ -45,7 +46,6 @@ done
 #TO DEBUG:
 #--------- python2.7 works
 #--------- python3.4 DON'T WORK
-# filenodes1.py
 # multiprocess_access_queues.py
 # multiprocess_access_benchmarks.py
 # objecttree.py
