@@ -28,14 +28,14 @@ jobs:
           liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev \
           python3-all-dev python3-pip python3-build python3-setuptools \
           python3-packaging python3-cpuinfo \
+          python3-numpy python3-numexpr \
           python3-pytest python3-pytest-doctestplus \
           python3-sphinx python3-sphinx-rtd-theme python3-numpydoc python3-ipython \
+          cython3 twine \
           latexmk texlive-fonts-recommended texlive-latex-recommended \
           texlive-latex-extra texlive-plain-generic
-        # Extract build dependency versions dynamically: cython numpy numexpr
-        pip install $(grep -oE '^(cython)==[^ \\]+' .github/workflows/requirements/build-requirements.txt) $(grep -oE '^(numpy|numexpr)==[^ \\]+' requirements.txt)
-    - name: Build PyTables
-      run: make build
+    - name: Build PyTables in-place
+      run: make ext
       env:
         PYTABLES_NO_EMBEDDED_LIBS: TRUE
     - name: Build HTML documentation

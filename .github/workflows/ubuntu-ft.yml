@@ -39,8 +39,8 @@ jobs:
         python3 -m pip install -r .github/workflows/requirements/build-requirements.in
         # Install from requirements.in but exclude the blosc2 package
         python3 -m pip install -r <(grep -v ^blosc2 requirements.in)
-    - name: Build PyTables
-      run: make build
+    - name: Build PyTables in-place
+      run: make ext
       env:
         PYTABLES_NO_EMBEDDED_LIBS: TRUE
     - name: Test in parallel

@@ -3,20 +3,17 @@
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
 PYTHON=python3
+MD5SUM=md5sum
 TARGET=tables
 VERSION=$(shell grep "__version__ =" $(TARGET)/_version.py | cut -f 3 -d ' ' | sed s/\"//g)
 GENERATED=ANNOUNCE.txt
-TAG=$(shell $(PYTHON) -c 'import sys, sysconfig; print(f"""{sysconfig.get_platform()}-{sys.implementation.cache_tag}{"t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""}""")')
-PYBUILDDIR=build/lib.$(TAG)
-OPT=PYTHONPATH="$(PYBUILDDIR)"
-MD5SUM=md5sum
 CYTHONIZED=tables/_comp_*.c tables/*extension.c
 
 .PHONY: default help dist check clean cleaner distclean \
         lint docs ext wheels \
-        html latex fulldist heavycheck parallelcheck requirements clean-requirements sdist build
+        html latex fulldist heavycheck parallelcheck requirements clean-requirements
 
-default: $(GENERATED) build
+default: help
 
 help:
 	@echo "Usage: make <TARGET>"
@@ -40,11 +37,16 @@ help:
 	@echo "  requirements       - run the parallel test suite"
 	@echo "  clean-requirements - run the parallel test suite"
 
-dist: fulldist
+dist: clean
+	$(PYTHON) -m build --sdist
+	$(PYTHON) -m twine check dist/*.tar.gz
+	# Cython output is tied to the NumPy of the isolated build env,
+	# so don't let the in-tree build reuse it.
+	$(RM) $(CYTHONIZED)
 
-check: build
-	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs $(TARGET) -k "not AttributeSet"
-	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
+check: ext
+	env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs $(TARGET) -k "not AttributeSet"
+	env PYTHONPATH=. $(PYTHON) -Werror tests/test_all.py
 
 clean:
 	$(RM) MANIFEST ANNOUNCE.txt
@@ -96,22 +98,13 @@ wheels:
 	# Requires docker
 	python3 -m cibuildwheel --platform auto
 
-build:
-	$(PYTHON) setup.py build
+html: ext
+	$(MAKE) PYTHONPATH=${PWD} -C doc html
 
-html: build
-	$(MAKE) $(OPT) -C doc html
+latex: ext
+	$(MAKE) PYTHONPATH=${PWD} -C doc latexpdf
 
-latex: build
-	$(MAKE) $(OPT) -C doc latexpdf
-
-sdist:
-	$(PYTHON) -m build --sdist
-	# Cython output is tied to the NumPy of the isolated build env,
-	# so don't let the in-tree build reuse it.
-	$(RM) $(CYTHONIZED)
-
-fulldist: clean sdist $(GENERATED) html latex
+fulldist: clean dist $(GENERATED) html latex
 	cp ANNOUNCE.txt dist/ANNOUNCE-$(VERSION).txt
 	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
 	cp doc/build/latex/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
@@ -122,11 +115,11 @@ fulldist: clean sdist $(GENERATED) html latex
 	pytablesmanual-$(VERSION)-html.tar.gz > pytables-$(VERSION).md5 && \
 	cd -
 
-heavycheck: build
-	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/test_all.py --heavy
+heavycheck: ext
+	env PYTHONPATH=. $(PYTHON) tests/test_all.py --heavy
 
-parallelcheck: build
-	cd ${PYBUILDDIR} && ln -sf ../../tests && env PYTHONPATH=. $(PYTHON) tests/run_ft.py --max-tests=400
+parallelcheck: ext
+	env PYTHONPATH=. $(PYTHON) tests/run_ft.py --max-tests=400
 
 requirements: \
 	requirements.txt \
