@@ -1375,13 +1375,15 @@ class InputFlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for convert in (True, False):
             with self.subTest(convert=convert):
                 self.array._v_convert = convert
-                with mock.patch.object(
-                    type(self.array),
-                    "__getitem__",
-                    side_effect=OSError("read failed"),
+                with (
+                    mock.patch.object(
+                        type(self.array),
+                        "__getitem__",
+                        side_effect=OSError("read failed"),
+                    ),
+                    self.assertRaisesRegex(OSError, "read failed"),
                 ):
-                    with self.assertRaisesRegex(OSError, "read failed"):
-                        self.expr.eval()
+                    self.expr.eval()
                 self.assert_input_flavor(convert)
 
     def test_closed_iterator_preserves_flavor(self):

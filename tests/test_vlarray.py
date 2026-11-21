@@ -3452,18 +3452,22 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         )
                     )
             for key in (-nrows - 1, -2 * nrows, -3 * nrows, -1000000):
-                with self.subTest(index_type=index_type, key=key):
-                    with self.assertRaises(IndexError):
-                        vlarray[index_type(key)]
+                with (
+                    self.subTest(index_type=index_type, key=key),
+                    self.assertRaises(IndexError),
+                ):
+                    vlarray[index_type(key)]
 
     def test07_empty_scalar_indices(self):
         self._reopen(mode="a")
         vlarray = self.h5file.create_vlarray("/", "empty", atom=tb.Int32Atom())
         for index_type in (int, np.int64):
             for key in (-1, 0, 1):
-                with self.subTest(index_type=index_type, key=key):
-                    with self.assertRaises(IndexError):
-                        vlarray[index_type(key)]
+                with (
+                    self.subTest(index_type=index_type, key=key),
+                    self.assertRaises(IndexError),
+                ):
+                    vlarray[index_type(key)]
 
 
 class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):

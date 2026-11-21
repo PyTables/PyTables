@@ -237,9 +237,11 @@ class AtomTestCase(common.PyTablesTestCase):
             (tb.StringAtom, {"itemsize": 4}),
         ):
             for shape in ((2.7,), [2.7], (np.float64(2.0),), ("2",)):
-                with self.subTest(atom=atom_class, shape=shape):
-                    with self.assertRaises(TypeError):
-                        atom_class(shape=shape, **kwargs)
+                with (
+                    self.subTest(atom=atom_class, shape=shape),
+                    self.assertRaises(TypeError),
+                ):
+                    atom_class(shape=shape, **kwargs)
 
     def test_shape_preserves_integer_dimensions(self):
         for atom_class, kwargs in (

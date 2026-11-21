@@ -1619,11 +1619,15 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for method in ("__getitem__", "__setitem__"):
                 with self.subTest(convert=convert, method=method):
                     array._v_convert = convert
-                    with mock.patch.object(
-                        tb.CArray, method, side_effect=OSError("copy failed")
+                    with (
+                        mock.patch.object(
+                            tb.CArray,
+                            method,
+                            side_effect=OSError("copy failed"),
+                        ),
+                        self.assertRaisesRegex(OSError, "copy failed"),
                     ):
-                        with self.assertRaisesRegex(OSError, "copy failed"):
-                            array.copy("/", f"copy_{convert}_{method}")
+                        array.copy("/", f"copy_{convert}_{method}")
                     self.assertIs(array._v_convert, convert)
                     self.assertIsInstance(
                         array[:], list if convert else np.ndarray
