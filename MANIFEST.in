@@ -1,6 +1,8 @@
 include MANIFEST.in
-include *.txt *.rst THANKS
+include requirements*.txt *.rst THANKS
 include setup.py Makefile
+include ANNOUNCE.txt.in
+exclude ANNOUNCE.txt
 
 recursive-include tables *.py *.pyx *.pxd
 recursive-exclude tables *.c
