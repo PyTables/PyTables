@@ -83,8 +83,8 @@ vlarray.append([1, 0, 3, 0])  # This will be converted to a boolean
 vlarray = fileh.create_vlarray(
     root, "vlarray7", tb.VLStringAtom(), "Variable Length String"
 )
-vlarray.append("asd")
-vlarray.append("aaana")
+vlarray.append(b"asd")
+vlarray.append(b"aaana")
 
 # Unicode variable length strings
 vlarray = fileh.create_vlarray(
