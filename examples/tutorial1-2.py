@@ -195,8 +195,9 @@ table.flush()
 
 # Print the data using the table iterator:
 for r in table:
+    name = r["name"].decode()
     print(
-        f"{r['name']:<16s} | {r['pressure']:11.1f} | {r['energy']:11.4g} | "
+        f"{name:<16s} | {r['pressure']:11.1f} | {r['energy']:11.4g} | "
         f"{r['grid_i']:6d} | {r['grid_j']:6d} | {r['TDCcount']:8d} |"
     )
 
@@ -279,8 +280,9 @@ print("-" * (16 + 11 + 11 + 6 + 6 + 8))
 
 # Print the data using the table iterator:
 for r in table.iterrows():
+    name = r["name"].decode()
     print(
-        f"{r['name']:<16s} | {r['pressure']:11.1f} | {r['energy']:11.4g} | "
+        f"{name:<16s} | {r['pressure']:11.1f} | {r['energy']:11.4g} | "
         f"{r['grid_i']:6d} | {r['grid_j']:6d} | {r['TDCcount']:8d} |"
     )
 

@@ -61,6 +61,6 @@ print("Select table.cols._f_col('name')[:]-->", table.cols._f_col("name")[:])
 print("Select table.cols.lati[1]-->", table.cols.lati[1])
 print("Select table.cols.lati[1:2]-->", table.cols.lati[1:2])
 print("Select table.cols.vector[:]-->", table.cols.vector[:])
-print("Select table.cols['matrix2D'][:]-->", table.cols.matrix2D[:])
+print("Select table.cols.matrix_2d[:]-->", table.cols.matrix_2d[:])
 
 fileh.close()
