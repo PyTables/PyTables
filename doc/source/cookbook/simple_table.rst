@@ -44,10 +44,11 @@ https://pypi.python.org/pypi/simpletable).
       # of dicts with keys matching the columns (x, y, name) in this
       # case.
 
-      # query the data (query() alias of tables' readWhere()
+      # query the data (query() alias of tables' read_where())
       >>> tbl.query('(x > 4) & (y < 70)') #doctest: +NORMALIZE_WHITESPACE
-      array([('name_5', 5.0, 50.0), ('name_6', 6.0, 60.0)],
-            dtype=[('name', '|S16'), ('x', '<f4'), ('y', '<f4')])
+      array([(b'name_5', 5., 50.), (b'name_6', 6., 60.)],
+            dtype=[('name', 'S16'), ('x', '<f4'), ('y', '<f4')])
+      >>> tbl._v_file.close()
 
     """
 
@@ -59,11 +60,11 @@ https://pypi.python.org/pypi/simpletable).
                      group_name='default', mode='a', title="", filters=_filter,
                      expectedrows=512000):
 
-            f = tables.openFile(file_name, mode)
+            f = tables.open_file(file_name, mode)
             self.uservars = None
 
             if group_name is None: group_name = 'default'
-            parentNode = f._getOrCreatePath('/' + group_name, True)
+            parentNode = f._get_or_create_path('/' + group_name, True)
 
             if table_name in parentNode: # existing table
                 description = None
@@ -103,7 +104,7 @@ https://pypi.python.org/pypi/simpletable).
                     row.append()
             self.flush()
 
-        query = tables.Table.readWhere
+        query = tables.Table.read_where
 
     # convenience subclass that I use a lot.
     class BlastTable(SimpleTable):

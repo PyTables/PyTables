@@ -20,7 +20,7 @@ using the *driver* keyword argument of the :func:`tables.open_file` function::
     >>> import tables
     >>> h5file = tables.open_file("sample.h5", driver="H5FD_CORE")
 
-The content of the :file`sample.h5` is opened for reading. It is loaded into
+The content of the :file:`sample.h5` is opened for reading. It is loaded into
 memory and all reading operations are performed without disk I/O overhead.
 
 .. note::
@@ -125,7 +125,7 @@ new HDF5 file descriptor::
                                   driver_core_backing_store=0)
     >>> print(h5file.root.array)
     /array (Array(300, 300)) 'Array'
-    >>> h5file.setNodeAttr(h5file.root, "description", "In memory file example")
+    >>> h5file.set_node_attr(h5file.root, "description", "In memory file example")
 
 
 
