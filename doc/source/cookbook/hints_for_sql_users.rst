@@ -75,7 +75,7 @@ Creating a table
 
 PyTables supports some other *datasets* besides tables, and they're not
 arranged in a flat namespace, but rather into a *hierarchical* one (see an
-introduction to the _ref:`object tree <ObjectTreeSection>`);
+introduction to the :ref:`object tree <ObjectTreeSection>`);
 however, due to the nature of these recipes, we'll limit ourselves to tables
 in the *root group*.
 The basic syntax for table creation under SQL is::
@@ -373,7 +373,7 @@ quite decoupled operations, so we will have a look at querying later and
 assume that you already know the set of rows you want to update.
 
 If the set happens to be a slice of the table, you may use the
-:`meth:`tables.Table.modify_rows` method or its equivalent
+:meth:`tables.Table.modify_rows` method or its equivalent
 :meth:`tables.Table.__setitem__` notation::
 
     rows = [
@@ -381,7 +381,7 @@ If the set happens to be a slice of the table, you may use the
         ('bar', 0.5, 0.0, 100.0),
         ('foo', 1.0, 1.0,  25.0)
     ]
-    tbl.modifyRows(start=6, stop=13, step=3, rows=rows)
+    tbl.modify_rows(start=6, stop=13, step=3, rows=rows)
     tbl[6:13:3] = rows  # this is the same
 
 If you just want to update some columns in the slice, use the
