@@ -1256,11 +1256,11 @@ class IndexedTableUsage29(IndexedTableUsage):
         "((c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5))) & (c_extra > 0)",
     ]
     idx_expr = [
+        ("c_int32", ("eq",), (3,)),
         ("c_int32", ("eq",), (4,)),
         ("c_int32", ("eq",), (5,)),
-        ("c_int32", ("eq",), (3,)),
     ]
-    str_expr = "((e0 & e1) | e2)"
+    str_expr = "(e0 | (e1 & e2))"
 
 
 class IndexedTableUsage30(IndexedTableUsage):
@@ -1338,6 +1338,116 @@ class IndexedTableUsage34(IndexedTableUsage):
         ("c_bool", ("eq",), (True,)),
     ]
     str_expr = "e0"
+
+
+class NestedIndexConditionsTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
+    """Nested index conditions preserve the query's boolean grouping."""
+
+    def setUp(self):
+        super().setUp()
+        rows = np.empty(
+            2000,
+            dtype=[
+                ("open", "f8"),
+                ("symbol", "S5"),
+                ("extra", "i4"),
+                ("flag", "?"),
+            ],
+        )
+        rows["open"] = np.arange(len(rows)) // 10
+        rows["symbol"] = np.tile(
+            [b"sym_0", b"sym_1", b"sym_2", b"sym_3", b"sym_4"], 400
+        )
+        rows["extra"] = np.arange(len(rows)) % 3
+        rows["flag"] = np.arange(len(rows)) % 2 == 0
+        self.table = self.h5file.create_table("/", "test", rows, chunkshape=32)
+        for name in ("open", "symbol", "flag"):
+            self.table.cols._f_col(name).create_csindex()
+
+    def check_queries(self, queries):
+        data = self.table.read()
+        columns = {name: data[name] for name in data.dtype.names}
+        for condition, indexes in queries:
+            with self.subTest(condition=condition):
+                expected = np.flatnonzero(
+                    eval(condition, {}, columns)
+                ).tolist()
+                self.assertEqual(
+                    self.table.will_query_use_indexing(condition),
+                    frozenset(indexes),
+                )
+                self.assertEqual(
+                    self.table.get_where_list(condition).tolist(), expected
+                )
+                self.assertEqual(
+                    [row.nrow for row in self.table.where(condition)], expected
+                )
+
+    def test_disjunction(self):
+        first = "(open == 50) & (symbol == b'sym_0')"
+        second = "(open == 100) & (symbol == b'sym_0')"
+        self.assertEqual(self.table.get_where_list(first).tolist(), [500, 505])
+        self.assertEqual(
+            self.table.get_where_list(second).tolist(), [1000, 1005]
+        )
+        self.assertEqual(
+            self.table.get_where_list(f"({first}) | ({second})").tolist(),
+            [500, 505, 1000, 1005],
+        )
+
+    def test_grouping(self):
+        queries = [
+            "((open == 50) & (symbol == b'sym_0')) | "
+            "((open == 100) & (symbol == b'sym_1'))",
+            "((open == 50) | (open == 100)) & "
+            "((symbol == b'sym_0') | (symbol == b'sym_1'))",
+            "(open == 50) & ((symbol == b'sym_0') | (symbol == b'sym_1'))",
+            "((symbol == b'sym_0') | (symbol == b'sym_1')) & (open == 50)",
+            "(open == 50) | ((open == 100) & (symbol == b'sym_0'))",
+            "((open == 100) & (symbol == b'sym_0')) | (open == 50)",
+            "(((open > 40) & (open < 60)) & (symbol == b'sym_0')) | "
+            "(((open > 90) & (open < 110)) & (symbol == b'sym_1'))",
+        ]
+        self.check_queries(
+            [(condition, ("open", "symbol")) for condition in queries]
+        )
+        self.check_queries(
+            [
+                (
+                    "((open == 50) & flag) | ((open == 100) & ~flag)",
+                    ("open", "flag"),
+                ),
+            ]
+        )
+
+    def test_partial_indexing(self):
+        self.check_queries(
+            [
+                (
+                    "((open == 50) & (extra == 0)) | ((open == 100) & (extra == 1))",
+                    ("open",),
+                ),
+                (
+                    "(((open == 50) & (symbol == b'sym_0')) | (extra == 1)) & flag",
+                    ("flag",),
+                ),
+                (
+                    "flag & ((extra == 1) | ((open == 50) & (symbol == b'sym_0')))",
+                    ("flag",),
+                ),
+                ("((open == 50) & (symbol == b'sym_0')) | (extra == 1)", ()),
+                ("(extra == 1) | ((open == 50) & (symbol == b'sym_0'))", ()),
+                ("~((open == 50) & (symbol == b'sym_0')) & flag", ("flag",)),
+            ]
+        )
+
+    def test_reopened(self):
+        self._reopen()
+        self.table = self.h5file.root.test
+        self.test_grouping()
+        self.test_partial_indexing()
 
 
 class FunctionNamedColumnsTestCase(
@@ -1436,6 +1546,7 @@ def suite():
         testSuite.addTest(common.make_suite(IndexedTableUsage32))
         testSuite.addTest(common.make_suite(IndexedTableUsage33))
         testSuite.addTest(common.make_suite(IndexedTableUsage34))
+        testSuite.addTest(common.make_suite(NestedIndexConditionsTestCase))
         testSuite.addTest(common.make_suite(FunctionNamedColumnsTestCase))
 
     return testSuite
